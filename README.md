@@ -4,8 +4,8 @@ zcomp
 The Z transpiler
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
-[![Version](https://img.shields.io/npm/v/zcomp.svg)](https://npmjs.org/package/zcomp)
-[![Downloads/week](https://img.shields.io/npm/dw/zcomp.svg)](https://npmjs.org/package/zcomp)
+[![Version](https://img.shields.io/npm/v/zcomp.svg)](https://www.npmjs.com/package/@zlanguage/zcomp)
+[![Downloads/week](https://img.shields.io/npm/dw/zcomp.svg)](https://www.npmjs.com/package/@zlanguage/zcomp)
 [![License](https://img.shields.io/npm/l/zcomp.svg)](https://github.com/zlanguage/zcomp/blob/master/package.json)
 
 <!-- toc -->
@@ -14,8 +14,12 @@ The Z transpiler
 <!-- tocstop -->
 # Usage
 <!-- usage -->
+
 ```sh-session
-$ npm install -g zcomp
+$ npm install -g @zlanguage/zcomp
+$ npm install -g @zlanguage/zstdlib
+$ npm install -g globby
+$ npm link zstdlib
 $ zcomp COMMAND
 running command...
 $ zcomp (-v|--version|version)

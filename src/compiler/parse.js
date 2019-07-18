@@ -434,4 +434,4 @@ module.exports = Object.freeze(function parse(tokGen) {
     return statementz;
   }
   return [];
-})
+});
