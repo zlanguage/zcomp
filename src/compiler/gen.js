@@ -22,6 +22,12 @@ function outdent() {
 function zStringify(thing) {
   if (typeof thing === "string") {
     return thing;
+  } else if (isExpr(thing)) {
+    let anchor = curr;
+    curr = thing;
+    let res = genExpr();
+    curr = anchor;
+    return res;
   } else if (typeof thing === "number") {
     return thing.toString();
   } else if (thing.species === "Object") {
@@ -106,7 +112,7 @@ function genDestructuring(arr){
   if(arr && arr.species && arr.species.startsWith("Destructuring")){
     switch(arr.species.slice(13)){
       case "[Array]":
-        return `[${arr.map(genDestructuring).join(", ")}]`;
+        return `[${arr.map(genDeastructuring).join(", ")}]`;
       case "[Object]":
         let r = "{";
         r += arr.map(dstruct => {
