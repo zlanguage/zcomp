@@ -28,8 +28,8 @@ class TranspileCommand extends Command {
 
 TranspileCommand.description = `Transpiles files from Z into JS
 ...
--p: Path of file to transpile
--t: Where to transpile the file
+path: Path of file to transpile
+to: Where to transpile the file
 `;
 
 TranspileCommand.args = [

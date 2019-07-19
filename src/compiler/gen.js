@@ -7,7 +7,7 @@ const $Z = require("@zlanguage/zstdlib");
 ${prims.map(name => `const ${name} = $Z.${name};`).join("\n")}
 
 `;
-let ast; 
+let ast;
 let index = 0;
 let curr;
 let padstart = 0;
@@ -101,6 +101,26 @@ function genTwoth() {
 function isExpr(obj) {
   return obj && ["subscript", "refinement", "invocation", "assignment", "function"].includes(obj.type);
 }
+
+function genDestructuring(arr){
+  if(arr && arr.species && arr.species.startsWith("Destructuring")){
+    switch(arr.species.slice(13)){
+      case "[Array]":
+        return `[${arr.map(genDestructuring).join(", ")}]`;
+      case "[Object]":
+        let r = "{";
+        r += arr.map(dstruct => {
+          if(dstruct.type === "assignment"){
+            return `${dstruct.zeroth} : ${dstruct.wunth}`
+          }
+          return dstruct;
+        }).join(", ");
+        r += "}";
+        return r;
+    }
+  }
+  return arr;
+}
 function genExpr() {
   let r = "";
   if (isExpr(curr)) {
@@ -122,7 +142,7 @@ function genExpr() {
         r += genTwoth();
         break;
       case "assignment":
-        r += `${curr.zeroth} = `;
+        r += `${genDestructuring(curr.zeroth)} = `;
         curr = curr.wunth;
         r += genExpr();
         break;
@@ -231,7 +251,31 @@ generateStatement.return = () => {
   curr = anchor;
   return r;
 }
-function genBlock() {
+
+generateStatement.try = () => {
+  let r = "try";
+  let anchor = curr;
+  curr = curr.zeroth;
+  r += genBlock();
+  r += ` catch (${anchor.wunth})`;
+  curr = anchor.twoth;
+  r += genBlock([
+    `if (assertBool($eq(${anchor.wunth}["settled"], false))) {`,
+    `  throw new Error("Error ${anchor.wunth} not settled.")`,
+    "}"
+  ]);
+  curr = anchor;
+  return r;
+}
+
+generateStatement.raise = () => {
+  return `throw new Error(${curr.zeroth});`;
+}
+
+generateStatement.settle = () => {
+  return `${curr.zeroth}["settled"] = true;`;
+}
+function genBlock(cleanup) {
   let r = " {\n";
   indent();
   let anchor = curr;
@@ -241,6 +285,10 @@ function genBlock() {
     r += "\n";
   });
   curr = anchor;
+  if(cleanup !== undefined) {
+    r += cleanup.map(x => x.padStart(x.length + padstart)).join("\n");
+    r += "\n";
+  }
   outdent();
   r += "}".padStart(1 + padstart);
   return r;

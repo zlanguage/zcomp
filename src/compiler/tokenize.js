@@ -29,7 +29,7 @@ Capturing Group:
 [6] Number
 [7] Punctuator
 */
-const tokenRegExp = /(\u0020+)|(#.*)|("(?:[^"\\]|\\(?:[nr"\\]|u\{[0-9A-F]{4,6}\}))*")|(let|loop|if|elif|else|func|break|import|export|match|return|def|=>)|([A-Za-z_+\-/*%&|?^=<>'!][A-Za-z0-9+\-/*%&|?^<>='!]*)|(-?[\d_]+(?:\.[\d_]+)?(?:e\-?[\d_]+)?)|([(),.{}\[\]:])/y;
+const tokenRegExp = /(\u0020+)|(#.*)|("(?:[^"\\]|\\(?:[nr"\\]|u\{[0-9A-F]{4,6}\}))*")|(let|loop|if|elif|else|func|break|import|export|match|return|def|=>|try|on|settle|raise)|([A-Za-z_+\-/*%&|?^=<>'!][A-Za-z0-9+\-/*%&|?^<>='!]*)|(-?[\d_]+(?:\.[\d_]+)?(?:e\-?[\d_]+)?)|([(),.{}\[\]:])/y;
 /**
  * Create a token generator for a specific source.
  * @param {string | Array<string>} source If string is provided, string is split along newlines. If array is provided, array is used as the array of lines.

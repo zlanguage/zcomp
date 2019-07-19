@@ -5,6 +5,7 @@ let tok;
 let nextTok;
 let tokList;
 let index = 0;
+const isValidName = /^[A-Za-z_$][A-za-z_$0-9]*$/;
 const blockStatements = Object.freeze(["if", "else", "loop"]);
 
 function error(message) {
@@ -88,6 +89,42 @@ function expr() {
       case "(number)":
         // Numbers are translated to raw numbers
         zeroth = tok.number;
+        break;
+      case "(":
+        // Parse destructuring
+        // Parens are never part of tuple literals - Z dosen't have them
+        zeroth = [];
+        advance();
+        // Empty destructuring? It's possible.
+        if (tok.id !== ")") {
+          while (true) {
+            zeroth.push(expr());
+            advance();
+            if (tok && tok.id === ")") {
+              break;
+            }
+            advance(",");
+          }
+        }
+        zeroth.species = "Destructuring[Array]";
+        break;
+      case "{":
+        // Object destructuring
+        zeroth = [];
+        advance();
+        // Empty destructuring? It's possible.
+        if (tok.id !== "}") {
+          while (true) {
+            zeroth.push(expr());
+            advance();
+            if (tok && tok.id === "}") {
+              break;
+            }
+            advance(",");
+            console.log("Something went wrong with the comma")
+          }
+        }
+        zeroth.species = "Destructuring[Object]";
         break;
       case "[":
         // Parse Array
@@ -278,14 +315,39 @@ parseStatement.import = () => {
     type: "import"
   }
   advance("(keyword)");
-  const imported = expr();
-  if (imported.type !== "assignment") {
-    return error("Invalid import statement.");
-  } else if (!imported.wunth.startsWith("\"")) {
-    return error("Import statement expects string.");
+  let imported = expr();
+  if (isValidName.test(imported)) {
+    importStatement.zeroth = imported;
+    importStatement.wunth = `"${imported}"`
+  } else if (typeIn(imported, "refinement")) {
+    let path = `"${imported.zeroth}/${imported.wunth}`;
+    let modName = "";
+    if (imported.twoth) {
+      imported = imported.twoth;
+      while (true) {
+        path += `/${imported.wunth}`;
+        if (imported.twoth === undefined) {
+          modName = imported.wunth;
+          path += `"`;
+          break;
+        }
+        imported = imported.twoth;
+      }
+    } else {
+      modName = imported.wunth;
+      path += `"`;
+    }
+    importStatement.zeroth = modName;
+    importStatement.wunth = path;
+  } else {
+    if (imported.type !== "assignment") {
+      return error("Invalid import statement.");
+    } else if (!imported.wunth.startsWith("\"")) {
+      return error("Import statement expects string.");
+    }
+    importStatement.zeroth = imported.zeroth;
+    importStatement.wunth = imported.wunth;
   }
-  importStatement.zeroth = imported.zeroth;
-  importStatement.wunth = imported.wunth;
   return importStatement;
 }
 parseStatement.export = () => {
@@ -340,13 +402,46 @@ parseStatement.break = () => {
     type: "break"
   }
 }
+
+parseStatement.try = () => {
+  const tryStatement = {
+    type: "try"
+  }
+  //advance("(keyword)");
+  tryStatement.zeroth = block();
+  if (nextTok && nextTok.id === "(keyword)" && nextTok.string === "on") {
+    advance();
+    advance("(keyword)");
+    tryStatement.wunth = expr();
+    tryStatement.twoth = block();
+  }
+  return tryStatement;
+}
+
+parseStatement.settle = () => {
+  const settleStatement = {
+    type: "settle"
+  }
+  advance("(keyword)");
+  settleStatement.zeroth = expr();
+  return settleStatement;
+}
+
+parseStatement.raise = () => {
+  const raiseStatement = {
+    type: "raise"
+  }
+  advance("(keyword)");
+  raiseStatement.zeroth = expr();
+  return raiseStatement;
+}
 const exprKeywords = Object.freeze(["func"]);
 function statement(extraAdv) {
   if (tok && tok.id === "(keyword)" && !exprKeywords.includes(tok.string)) {
     return parseStatement[tok.string](extraAdv);
   } else {
     let res = expr();
-    if(res !== undefined && res.id === "(error)"){
+    if (res !== undefined && res.id === "(error)") {
       return res;
     }
     if (typeIn(res, "assignment") || typeIn(res, "invocation")) {
@@ -434,4 +529,4 @@ module.exports = Object.freeze(function parse(tokGen) {
     return statementz;
   }
   return [];
-});
+})
