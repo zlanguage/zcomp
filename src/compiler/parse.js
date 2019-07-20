@@ -156,6 +156,9 @@ function expr() {
             if (tok.id !== ")") {
               // Figure out the parameter list
               while (true) {
+                if (tok.id === "(keyword)") {
+                  throw error("Unexpected keyword in parameter list.").zeroth;
+                }
                 const nextParam = expr(); // Any valid expression can be used in parameter position
                 zeroth.push(nextParam);
                 if (nextTok.id === ")") {
@@ -371,7 +374,7 @@ parseStatement.if = (extraAdv) => {
   ifStatement.zeroth = expr();
   ifStatement.wunth = block(extraAdv);
   if (nextTok && nextTok.id === "(keyword)" && nextTok.string === "else") {
-    advance("(keyword)");
+    advance("}");
     ifStatement.twoth = block(extraAdv);
   }
   return ifStatement;

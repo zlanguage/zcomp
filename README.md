@@ -10,7 +10,7 @@ The Z transpiler/interpreter
 
 # Z
 
-A transpiled language that can be evaluated as a script (for testing) or transpiled to human-readable JS (for production code). Z supports modules, functions, closure, error handling, and many more features you would expect from a modern language.
+A transpiled language that can be evaluated as a script (for testing) or transpiled to human-readable JS (for production code). Z supports modules, functions, closure, error handling, and many more features you would expect from a modern language. Is it ready for production code? I'd wait a few months before that.
 
 # ZComp
 
@@ -52,9 +52,6 @@ $ zcomp run [path of Z to run]
 # Docs
 Coming soon!
 
-# Z 0.0.5 is out!
+# Z 0.0.7 is out!
 New features:
-- Compiler `run` command
-- Error handling
-- Destructuring
-- Smart Imports
+- Bug fixes galore
