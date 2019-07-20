@@ -112,7 +112,7 @@ function genDestructuring(arr){
   if(arr && arr.species && arr.species.startsWith("Destructuring")){
     switch(arr.species.slice(13)){
       case "[Array]":
-        return `[${arr.map(genDeastructuring).join(", ")}]`;
+        return `[${arr.map(genDestructuring).join(", ")}]`;
       case "[Object]":
         let r = "{";
         r += arr.map(dstruct => {

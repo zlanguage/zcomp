@@ -182,7 +182,7 @@ function expr() {
         return error(`Unexpected token(s) ${tok.string}`)
       default:
         // As for alphanumerics, they just translated to their string values.
-        if (tok.alphanumeric || (prevTok.id === "[" && tok.id === ":")) {
+        if (tok.alphanumeric || (prevTok.id === "[" && tok.id === ":") || tok.id === ")" || tok.id === "]") {
           zeroth = tok.id;
         } else {
           // Other non-alphanumeric tokens become errors
@@ -375,7 +375,13 @@ parseStatement.if = (extraAdv) => {
   ifStatement.wunth = block(extraAdv);
   if (nextTok && nextTok.id === "(keyword)" && nextTok.string === "else") {
     advance("}");
-    ifStatement.twoth = block(extraAdv);
+    // Parse else-if
+    if(nextTok && nextTok.id === "(keyword)" && nextTok.string === "if"){
+      advance("(keyword)");
+      ifStatement.twoth = [statement()];
+    } else {
+      ifStatement.twoth = block(extraAdv);
+    }
   }
   return ifStatement;
 }
@@ -438,10 +444,23 @@ parseStatement.raise = () => {
   raiseStatement.zeroth = expr();
   return raiseStatement;
 }
+
+parseStatement.importstd = () => {
+  advance("(keyword)");
+  return {
+    type: "import",
+    zeroth: tok.id,
+    wunth: `"@zlanguage/zstdlib/src/js/${tok.id}"`
+  }
+}
 const exprKeywords = Object.freeze(["func"]);
-function statement(extraAdv) {
+function statement() {
   if (tok && tok.id === "(keyword)" && !exprKeywords.includes(tok.string)) {
-    return parseStatement[tok.string](extraAdv);
+    const parser = parseStatement[tok.string];
+    if(typeof parser !== "function"){
+      return error("Invalid use of keyword.")
+    }
+    return parser();
   } else {
     let res = expr();
     if (res !== undefined && res.id === "(error)") {
