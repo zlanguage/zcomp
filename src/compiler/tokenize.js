@@ -17,7 +17,7 @@ const symbolMap = {
     "!": "$exclam"
 };
 const symbolRegExps = Object.keys(symbolMap).map(x => {
-    const res = new RegExp(`\\${x}`);
+    const res = new RegExp(`\\${x}`, "g");
     res.str = symbolMap[x];
     return res;
 });
