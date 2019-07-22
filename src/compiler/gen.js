@@ -168,7 +168,7 @@ function genExpr() {
         })();
         break;
       case "spread":
-        r += `...${curr.wunth}`
+        r += `...${zStringify(curr.wunth)}`
         break;
     }
   } else {
