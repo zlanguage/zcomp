@@ -361,7 +361,6 @@ parseStatement.let = () => {
   advance("(keyword)");
   let assignment;
   assignment = expr();
-  console.log(assignment)
   if (assignment.type !== "assignment") {
     return error(`Let statement expects assignment.`);
   }

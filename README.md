@@ -52,9 +52,7 @@ $ zcomp run [path of Z to run]
 # Docs
 Coming soon!
 
-# Z 0.0.8 is out!
+# Z 0.0.13 is out!
 New features:
-- Standard Library Imports
-- More Memory-Effecient Name-Mangaling
-- Loser Reserved Word Policy
-- Else-if
+- Function Syntatic Shorthands
+- Rest/Spread
