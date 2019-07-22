@@ -76,6 +76,48 @@ function arrayToObj(arr) {
 function isExprAhead() {
   return nextTok !== undefined && ["(", "[", ".", ":"].includes(nextTok.id);
 }
+function isImplicit(str) {
+  return typeof str === "string" && str.endsWith("$exclam")
+}
+function isExpr(obj) {
+  return obj && ["subscript", "refinement", "invocation", "assignment", "function"].includes(obj.type);
+}
+function findImplicits(ast) {
+  if (typeof ast !== "object" || ast === null) {
+    return [];
+  }
+  const implicits = [];
+  if (isImplicit(ast.zeroth)) {
+    implicits.push(ast.zeroth);
+  }
+  if (isImplicit(ast.wunth)) {
+    implicits.push(ast.wunth);
+  }
+  if (isImplicit(ast.twoth)) {
+    implicits.push(ast.twoth);
+  }
+  switch (ast.type) {
+    case "invocation":
+      ast.wunth.forEach(param => {
+        if (isImplicit(param)) {
+          implicits.push(param);
+        } else if (isExpr(param)){
+          implicits.push(...findImplicits(param))
+        }
+      });
+      break;
+  }
+  if (isExpr(ast.zeroth)) {
+    implicits.push(...findImplicits(ast.zeroth));
+  }
+  if (isExpr(ast.wunth)) {
+    implicits.push(...findImplicits(ast.wunth));
+  }
+  if (isExpr(ast.twoth)) {
+    implicits.push(...findImplicits(ast.twoth));
+  }
+  return Array.from(new Set(implicits));
+}
 
 function expr() {
   let zeroth, wunth, twoth, type;
@@ -147,35 +189,61 @@ function expr() {
       case "(keyword)":
         switch (tok.string) {
           case "func":
-            // Figure out functions parameter list.
-            advance();
-            advance();
             type = "function";
             zeroth = []; // Zeroth will serve as the parameter list
-            //Is there no parameter list?
-            if (tok.id !== ")") {
-              // Figure out the parameter list
-              while (true) {
-                if (tok.id === "(keyword)") {
-                  throw error("Unexpected keyword in parameter list.").zeroth;
-                }
-                const nextParam = expr(); // Any valid expression can be used in parameter position
-                zeroth.push(nextParam);
-                if (nextTok.id === ")") {
-                  // The parameter list has finished
-                  advance(); // Prepare for block
-                  break;
-                }
-                if (nextTok.id === ",") {
-                  //Let's skip to the next parameter
-                  advance();
-                  advance();
+            // Figure out functions parameter list.
+            // Look for implicit parameters
+            if (nextTok.id === "(") {
+              advance();
+              advance();
+              // Detect empty parameter list
+              if (tok.id !== ")") {
+                // Figure out the parameter list
+                while (true) {
+                  if (tok.id === "(keyword)") {
+                    throw error("Unexpected keyword in parameter list.").zeroth;
+                  }
+                  const nextParam = expr(); // Any valid expression can be used in parameter position
+                  zeroth.push(nextParam);
+                  if (nextTok.id === ")") {
+                    // The parameter list has finished
+                    advance(); // Prepare for block
+                    break;
+                  }
+                  if (nextTok.id === ",") {
+                    //Let's skip to the next parameter
+                    advance();
+                    advance();
+                  }
                 }
               }
+              if (nextTok.id === "{") {
+                wunth = block();
+              } else {
+                advance(")");
+                wunth = [{
+                  type: "return",
+                  zeroth: expr()
+                }];
+              }
+            } else {
+              advance("(keyword)");
+              const implicitExpr = expr();
+              zeroth = findImplicits(implicitExpr);
+              wunth = [{
+                type: "return",
+                zeroth: implicitExpr
+              }];
             }
-            wunth = block();
             break;
         }
+        break;
+      case "...":
+        // Parse spread / splate
+        type = "spread";
+        advance();
+        zeroth = "...";
+        wunth = expr();
         break;
       case "(error)":
         // Return invalid tokens
@@ -191,8 +259,8 @@ function expr() {
         break;
     }
   }
-  // Are there more tokens left?
-  if (nextTok !== undefined) {
+  // Are there more tokens left? (And is it not a spread/splat)
+  if (nextTok !== undefined && type !== "spread") {
     // If so, there might be more to the expression
     switch (nextTok.id) {
       case ".":
@@ -293,6 +361,7 @@ parseStatement.let = () => {
   advance("(keyword)");
   let assignment;
   assignment = expr();
+  console.log(assignment)
   if (assignment.type !== "assignment") {
     return error(`Let statement expects assignment.`);
   }
@@ -376,7 +445,7 @@ parseStatement.if = (extraAdv) => {
   if (nextTok && nextTok.id === "(keyword)" && nextTok.string === "else") {
     advance("}");
     // Parse else-if
-    if(nextTok && nextTok.id === "(keyword)" && nextTok.string === "if"){
+    if (nextTok && nextTok.id === "(keyword)" && nextTok.string === "if") {
       advance("(keyword)");
       ifStatement.twoth = [statement()];
     } else {
@@ -457,7 +526,7 @@ const exprKeywords = Object.freeze(["func"]);
 function statement() {
   if (tok && tok.id === "(keyword)" && !exprKeywords.includes(tok.string)) {
     const parser = parseStatement[tok.string];
-    if(typeof parser !== "function"){
+    if (typeof parser !== "function") {
       return error("Invalid use of keyword.")
     }
     return parser();

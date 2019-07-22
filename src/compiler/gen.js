@@ -105,7 +105,7 @@ function genTwoth() {
   return r;
 }
 function isExpr(obj) {
-  return obj && ["subscript", "refinement", "invocation", "assignment", "function"].includes(obj.type);
+  return obj && ["subscript", "refinement", "invocation", "assignment", "function", "spread"].includes(obj.type);
 }
 
 function genDestructuring(arr){
@@ -166,6 +166,9 @@ function genExpr() {
           r += genBlock();
           curr = anchor;
         })();
+        break;
+      case "spread":
+        r += `...${curr.wunth}`
         break;
     }
   } else {

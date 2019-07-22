@@ -8,7 +8,6 @@ const symbolMap = {
     "=": "$eq",
     "<": "$lt",
     ">": "$gt",
-    "!": "$exclm",
     "\\": "$backslash",
     "&": "$and",
     "|": "$or",
@@ -34,7 +33,7 @@ Capturing Group:
 [6] Number
 [7] Punctuator
 */
-const tokenRegExp = /(\u0020+|\t+)|(#.*)|("(?:[^"\\]|\\(?:[nr"\\]|u\{[0-9A-F]{4,6}\}))*")|\b(let|loop|if|elif|else|func|break|import|export|match|return|def|=>|try|on|settle|raise|importstd)\b|([A-Za-z_+\-/*%&|?^=<>'!][A-Za-z0-9+\-/*%&|?^<>='!]*)|(-?[\d_]+(?:\.[\d_]+)?(?:e\-?[\d_]+)?)|([(),.{}\[\]:])/y;
+const tokenRegExp = /(\u0020+|\t+)|(#.*)|("(?:[^"\\]|\\(?:[nr"\\]|u\{[0-9A-F]{4,6}\}))*")|\b(let|loop|if|elif|else|func|break|import|export|match|return|def|=>|try|on|settle|raise|importstd)\b|([A-Za-z_+\-/*%&|?^=<>'!][A-Za-z0-9+\-/*%&|?^<>='!]*)|(-?[\d_]+(?:\.[\d_]+)?(?:e\-?[\d_]+)?)|(\.{3}|[(),.{}\[\]:])/y;
 /**
  * Create a token generator for a specific source.
  * @param {string | Array<string>} source If string is provided, string is split along newlines. If array is provided, array is used as the array of lines.
@@ -42,7 +41,7 @@ const tokenRegExp = /(\u0020+|\t+)|(#.*)|("(?:[^"\\]|\\(?:[nr"\\]|u\{[0-9A-F]{4,
  * @returns {() => void | {id: string, lineNumber: number, columnNumber: number, string ?: string, columnTo ?: number, readonly ?: boolean, alphanumeric ?: boolean, number ?: number}} A function that generates the next token.
  */
 function tokenize(source, comment = false) {
-    source = source.replace(/;[^]*?;/g, "");
+    source = source.replace(new RegExp("/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/", "g"), "");
     const lines = (
         Array.isArray(source) ?
         source :
