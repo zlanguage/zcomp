@@ -2,7 +2,8 @@ const runtime = require("@zlanguage/zstdlib");
 const prims = Object.keys(runtime);
 let res = `"use strict";
 
-const $Z = require("@zlanguage/zstdlib");
+const $Z = require("@zlanguage/zstdlib")
+const matcher = require("@zlanguage/zstdlib/src/js/matcher");
 
 ${prims.map(name => `const ${name} = $Z.${name};`).join("\n")}
 
@@ -91,7 +92,6 @@ function genExprTwoth() {
       r += " = ";
       curr = curr.wunth;
       r += genExpr();
-
   }
   return r;
 }
@@ -105,7 +105,7 @@ function genTwoth() {
   return r;
 }
 function isExpr(obj) {
-  return obj && ["subscript", "refinement", "invocation", "assignment", "function", "spread"].includes(obj.type);
+  return obj && ["subscript", "refinement", "invocation", "assignment", "function", "spread", "match", "range"].includes(obj.type);
 }
 
 function genDestructuring(arr){
@@ -126,6 +126,54 @@ function genDestructuring(arr){
     }
   }
   return arr;
+}
+function stringifyPat(pat){
+  if(typeof pat === "string" && pat.includes("$exclam")){
+    const parts = pat.split("$exclam").map(x => x);
+    if(parts.length === 1){
+      return `matcher.type("${parts[0]}"")`;
+    } else {
+      return `matcher.type("${parts[0]}", "${parts[1]}")`;
+    }
+  }
+  if (/^[a-z_]$/.test(pat[0])) {
+    return `matcher.wildcard("${pat}")`;
+  }
+  if(pat.species === "Destructuring[Array]"){
+    return `matcher.arr(${pat.map(stringifyPat).join(", ")})`;
+  }
+  if(pat.species === "Destructuring[Object]"){
+    return `matcher.obj(${pat.map(patpart => {
+      if(patpart.type !== "assignment"){
+        throw new Error("Object pattern matching expression requires value.");
+      }
+      return `matcher.prop("${patpart.zeroth}", ${stringifyPat(patpart.wunth)})`;
+    }).join(", ")})`
+  }
+  if (pat.type === "spread"){
+    return `matcher.rest("${pat.wunth}")`;
+  }
+  if (pat.type === "range"){
+    return `matcher.range(${pat.zeroth}, ${pat.wunth})`
+  }
+  return zStringify(pat);
+}
+function genMatcherArr(matches){
+  let r = "";
+  r += matches.map(([pat, expr]) => {
+    let res = "[";
+    res += stringifyPat(pat);
+    res += ", "
+    let anchor = curr;
+    curr = expr;
+    indent();
+    res += genExpr();
+    outdent();
+    curr = anchor;
+    res += "]";
+    return res.padStart(res.length + padstart + 2);
+  }).join(",\n");;
+  return r;
 }
 function genExpr() {
   let r = "";
@@ -170,6 +218,16 @@ function genExpr() {
       case "spread":
         r += `...${zStringify(curr.wunth)}`
         break;
+      case "match":
+        r += `matcher([\n`;
+        r += genMatcherArr(curr.wunth);
+        r += `])(${zStringify(curr.zeroth)})`
+        break;
+      case "range":
+        const from = curr.zeroth;
+        const to = curr.wunth;
+        r += `Array(${to} - ${from} + 1).fill(undefined).map(function(_, index) { return index }).map(function (item) { return item + ${from} })`;
+
     }
   } else {
     r += zStringify(curr);

@@ -101,7 +101,7 @@ function findImplicits(ast) {
       ast.wunth.forEach(param => {
         if (isImplicit(param)) {
           implicits.push(param);
-        } else if (isExpr(param)){
+        } else if (isExpr(param)) {
           implicits.push(...findImplicits(param))
         }
       });
@@ -119,6 +119,34 @@ function findImplicits(ast) {
   return Array.from(new Set(implicits));
 }
 
+function findWildcards(pat) {
+  const wildcards = [];
+  switch (typeof pat) {
+    case "string":
+      if (pat.includes("$exclam")) {
+        const [_, wildcard] = pat.split("$exclam");
+        if (wildcard) {
+          wildcards.push(wildcard);
+        }
+      } else if (/^[a-z_]$/.test(pat[0])) {
+        wildcards.push(pat)
+      }
+    case "object":
+      if (pat.type === "spread") {
+        wildcards.push(pat.wunth);
+      } else if (pat.species === "Destructuring[Array]") {
+        pat.forEach(patpart => {
+          wildcards.push(...findWildcards(patpart));
+        })
+      } else if (pat.species === "Destructuring[Object]") {
+        const pats = arrayToObj([...pat]).map(([k, v]) => v);
+        pats.forEach(patpart => {
+          wildcards.push(...findWildcards(patpart))
+        })
+      }
+  }
+  return Array.from(new Set(wildcards));
+}
 function expr() {
   let zeroth, wunth, twoth, type;
   // Is the token a literal? If so, prepare to return it's value.
@@ -131,6 +159,12 @@ function expr() {
       case "(number)":
         // Numbers are translated to raw numbers
         zeroth = tok.number;
+        if(nextTok && nextTok.id === "..."){
+          type = "range";
+          advance("(number)");
+          advance("...");
+          wunth = tok.number;
+        }
         break;
       case "(":
         // Parse destructuring
@@ -163,7 +197,6 @@ function expr() {
               break;
             }
             advance(",");
-            console.log("Something went wrong with the comma")
           }
         }
         zeroth.species = "Destructuring[Object]";
@@ -236,10 +269,37 @@ function expr() {
               }];
             }
             break;
+          // Parse match
+          case "match":
+            type = "match";
+            advance("(keyword)");
+            zeroth = expr();
+            advance();
+            advance("{");
+            wunth = [];
+            while (tok && tok.id !== "}") {
+              const pat = expr();
+              const wildcards = findWildcards(pat);
+              advance();
+              advance("$eq$gt");
+              const res = {
+                type: "function",
+                zeroth: wildcards,
+                wunth: [{
+                  type: "return",
+                  zeroth: expr()
+                }]
+              };
+              advance();
+              if (tok.id !== "}") {
+                advance(",")
+              }
+              wunth.push([pat, res]);
+            }
         }
         break;
       case "...":
-        // Parse spread / splate
+        // Parse spread / splat
         type = "spread";
         advance();
         zeroth = "...";
@@ -521,7 +581,7 @@ parseStatement.importstd = () => {
     wunth: `"@zlanguage/zstdlib/src/js/${tok.id}"`
   }
 }
-const exprKeywords = Object.freeze(["func"]);
+const exprKeywords = Object.freeze(["func", "match"]);
 function statement() {
   if (tok && tok.id === "(keyword)" && !exprKeywords.includes(tok.string)) {
     const parser = parseStatement[tok.string];
@@ -534,7 +594,7 @@ function statement() {
     if (res !== undefined && res.id === "(error)") {
       return res;
     }
-    if (typeIn(res, "assignment") || typeIn(res, "invocation")) {
+    if (typeIn(res, "assignment") || typeIn(res, "invocation") || typeIn(res, "match")) {
       return res;
     } else {
       if (res !== undefined) {
