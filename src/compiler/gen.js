@@ -327,7 +327,7 @@ generateStatement.try = () => {
   r += ` catch (${anchor.wunth})`;
   curr = anchor.twoth;
   r += genBlock([
-    `if (assertBool($eq(${anchor.wunth}["settled"], false))) {`,
+    `if (assertBool($eq(${anchor.wunth}["settled"], undefined))) {`,
     `  throw new Error("Error ${anchor.wunth} not settled.")`,
     "}"
   ]);
