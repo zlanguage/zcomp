@@ -83,10 +83,13 @@ function isExpr(obj) {
   return obj && ["subscript", "refinement", "invocation", "assignment", "function"].includes(obj.type);
 }
 function findImplicits(ast) {
-  if (typeof ast !== "object" || ast === null) {
+  if ((typeof ast !== "object" && typeof ast !== "string") || ast === null || ast.type === "match") {
     return [];
   }
   const implicits = [];
+  if(isImplicit(ast)){
+    implicits.push(ast);
+  }
   if (isImplicit(ast.zeroth)) {
     implicits.push(ast.zeroth);
   }
@@ -95,6 +98,11 @@ function findImplicits(ast) {
   }
   if (isImplicit(ast.twoth)) {
     implicits.push(ast.twoth);
+  }
+  if(Array.isArray(ast)){
+    ast.forEach(part => {
+      implicits.push(...findImplicits(part));
+    })
   }
   switch (ast.type) {
     case "invocation":
@@ -107,13 +115,13 @@ function findImplicits(ast) {
       });
       break;
   }
-  if (isExpr(ast.zeroth)) {
+  if (isExpr(ast.zeroth) || Array.isArray(ast.zeroth)) {
     implicits.push(...findImplicits(ast.zeroth));
   }
-  if (isExpr(ast.wunth)) {
+  if (isExpr(ast.wunth) || Array.isArray(ast.wunth)) {
     implicits.push(...findImplicits(ast.wunth));
   }
-  if (isExpr(ast.twoth)) {
+  if (isExpr(ast.twoth) || Array.isArray(ast.twoth)) {
     implicits.push(...findImplicits(ast.twoth));
   }
   return Array.from(new Set(implicits));
@@ -241,11 +249,11 @@ function expr() {
             zeroth = []; // Zeroth will serve as the parameter list
             // Figure out functions parameter list.
             // Look for implicit parameters
-            if (nextTok.id === "(") {
+            if (nextTok && nextTok.id === "(") {
               advance();
               advance();
               // Detect empty parameter list
-              if (tok.id !== ")") {
+              if (tok && tok.id !== ")") {
                 // Figure out the parameter list
                 let i = 0;
                 while (i < 100) {
