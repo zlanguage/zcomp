@@ -1,7 +1,7 @@
 {
     "name": "@zlanguage/zcomp",
     "description": "The Z transpiler",
-    "version": "0.0.18",
+    "version": "0.0.19",
     "author": "N8",
     "bin": {
         "zcomp": "./bin/run"

@@ -173,13 +173,18 @@ function expr() {
         advance();
         // Empty destructuring? It's possible.
         if (tok.id !== ")") {
-          while (true) {
+          let i = 0;
+          while (i < 100) {
             zeroth.push(expr());
             advance();
             if (tok && tok.id === ")") {
               break;
             }
             advance(",");
+            i += 1;
+          }
+          if(i === 100){
+            return error("Unclosed array destructuring.");
           }
         }
         zeroth.species = "Destructuring[Array]";
@@ -190,13 +195,18 @@ function expr() {
         advance();
         // Empty destructuring? It's possible.
         if (tok.id !== "}") {
-          while (true) {
+          let i = 0;
+          while (i < 100) {
             zeroth.push(expr());
             advance();
             if (tok && tok.id === "}") {
               break;
             }
             advance(",");
+            i += 1;
+          }
+          if(i === 100){
+            return error("Unclosed object destructuring.")
           }
         }
         zeroth.species = "Destructuring[Object]";
@@ -206,15 +216,20 @@ function expr() {
         zeroth = [];
         advance();
         // Detect empty array
-        if (tok.id !== "]") {
+        if (tok && tok.id !== "]") {
           //Add an expression object for each element of the array.
-          while (true) {
+          let i = 0;
+          while (i < 1000) {
             zeroth.push(expr());
             advance();
             if (tok && tok.id === "]") {
               break;
             }
             advance(",");
+            i += 1;
+          }
+          if(i === 1000){
+            return error("Unclosed array literal or array literal maximum of one thousand elements exceeded.");
           }
         }
         zeroth = arrayToObj(zeroth); // Support parsing of object literals.
@@ -232,25 +247,30 @@ function expr() {
               // Detect empty parameter list
               if (tok.id !== ")") {
                 // Figure out the parameter list
-                while (true) {
-                  if (tok.id === "(keyword)") {
+                let i = 0;
+                while (i < 100) {
+                  if (tok && tok.id === "(keyword)") {
                     throw error("Unexpected keyword in parameter list.").zeroth;
                   }
                   const nextParam = expr(); // Any valid expression can be used in parameter position
                   zeroth.push(nextParam);
-                  if (nextTok.id === ")") {
+                  if (nextTok && nextTok.id === ")") {
                     // The parameter list has finished
                     advance(); // Prepare for block
                     break;
                   }
-                  if (nextTok.id === ",") {
+                  if (nextTok && nextTok.id === ",") {
                     //Let's skip to the next parameter
                     advance();
                     advance();
                   }
+                  i += 1;
+                }
+                if(i === 100){
+                  return error("Unclosed function parameter list.");
                 }
               }
-              if (nextTok.id === "{") {
+              if (nextTok && nextTok.id === "{") {
                 wunth = block();
               } else {
                 advance(")");
@@ -277,7 +297,8 @@ function expr() {
             advance();
             advance("{");
             wunth = [];
-            while (tok && tok.id !== "}") {
+            let i = 0;
+            while (tok && tok.id !== "}" && i < 100) {
               const pat = expr();
               const wildcards = findWildcards(pat);
               advance();
@@ -291,10 +312,14 @@ function expr() {
                 }]
               };
               advance();
-              if (tok.id !== "}") {
+              if (tok && tok.id !== "}") {
                 advance(",")
               }
               wunth.push([pat, res]);
+              i += 1;
+            }
+            if(i === 100){
+              return error("Unclosed match expression.");
             }
         }
         break;
@@ -347,7 +372,7 @@ function expr() {
         type = "invocation";
         wunth = []; // Wunth will serve as the parameter list
         //Is there no parameter list?
-        if (tok.id === ")") {
+        if (tok && tok.id === ")") {
           // Is there a refinement after the end of the method call? A subscript? ANOTHER method call?
           if (isExprAhead()) {
             // If so, record it in twoth
@@ -355,17 +380,22 @@ function expr() {
           }
           break;
         }
+        let i = 0;
         // Figure out the parameter list
-        while (true) {
+        while (i < 100) {
           const nextParam = expr(); // Any valid expression can be used in parameter position
           wunth.push(nextParam);
-          if (nextTok.id === ")") {
+          if (nextTok && nextTok.id === ")") {
             // The invocation has finished
             advance(); // Put ")" in the token position to allow mixing of refinements and methods.
             break;
           }
           advance();
           advance(",");
+          i += 1;
+        }
+        if(i === 100) {
+          return error("Unclosed invocation.")
         }
         // Is there a refinement after the end of the method call? A subscript? ANOTHER method call?
         if (isExprAhead()) {
@@ -607,9 +637,14 @@ function block() {
   let statements = [];
   advance();
   advance();
-  while (tok && tok.id !== "}") {
+  let i = 0;
+  while (tok && tok.id !== "}" && i < 1e6) {
     statements.push(statement());
     advance();
+    i += 1;
+  }
+  if(i === 1e6) {
+    return error("Unclosed block.")
   }
   return statements;
 }
@@ -646,11 +681,11 @@ function arrayWrap(arr) {
 function findAndThrow(ast) {
   let errorFound = false;
   arrayWrap(ast).every(part => {
-    if (part.id === "(error)") {
+    if (part && part.id === "(error)") {
       throw part.zeroth;
       errorFound = true;
       return false;
-    } else if (part.type) {
+    } else if (part && part.type) {
       if (part && part.zeroth) {
         errorFound = findAndThrow(part.zeroth);
       }
