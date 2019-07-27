@@ -385,5 +385,7 @@ function genStatements(ast) {
   return r;
 }
 module.exports = Object.freeze(function gen(ast) {
+  index = 0;
+  padstart = 0;
   return res + genStatements(ast);
 });

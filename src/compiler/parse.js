@@ -716,6 +716,7 @@ module.exports = Object.freeze(function parse(tokGen) {
     }
     return res;
   }();
+  index = 0;
   [tok, nextTok] = [tokList[0], tokList[1]];
   const statementz = statements();
   if (!findAndThrow(statementz)) {

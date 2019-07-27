@@ -48,11 +48,15 @@ Run Z Code:
 ```sh
 $ zcomp run [path of Z to run]
 ```
-
+Transpile one directory to another:
+```sh
+$ zcomp run [path of directory with Z] [path of "out" directory]
+```
 # Docs
-Coming soon!
+The docs are on the offical [Z Website](https://zlanguage.github.io/).
 
-# Z 0.0.13 is out!
+# Z 0.1.0 is out!
 New features:
-- Function Syntatic Shorthands
-- Rest/Spread
+- Recursive Directory Compiling
+- Stateless Compilation
+- Numerous Bug Fixes
