@@ -200,6 +200,13 @@ function expr() {
           }
         }
         zeroth.species = "Destructuring[Array]";
+        if(nextTok.id === "{"){
+          zeroth.push({
+            type: "function",
+            zeroth: [],
+            wunth: block()
+          });
+        }
         break;
       case "{":
         // Object destructuring
@@ -683,7 +690,7 @@ function statement() {
     if (res !== undefined && res.id === "(error)") {
       return res;
     }
-    if (typeIn(res, "assignment") || typeIn(res, "invocation") || typeIn(res, "match")) {
+    if (typeIn(res, "assignment") || typeIn(res, "invocation") || typeIn(res, "match") || res && res.species === "Destructuring[Array]") {
       return res;
     } else {
       if (res !== undefined) {
