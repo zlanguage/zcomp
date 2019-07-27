@@ -48,7 +48,7 @@ function zStringify(thing) {
     outdent();
     return "{\n" + obj + "\n" + "}".padStart(padstart + 1);
   } else if (Array.isArray(thing)) {
-    if(thing.toString() === ":"){
+    if (thing.toString() === ":") {
       return "{}";
     }
     const anchor = curr;
@@ -105,18 +105,18 @@ function genTwoth() {
   return r;
 }
 function isExpr(obj) {
-  return obj && ["subscript", "refinement", "invocation", "assignment", "function", "spread", "match", "range"].includes(obj.type);
+  return obj && ["subscript", "refinement", "invocation", "assignment", "function", "spread", "match", "range", "dds"].includes(obj.type);
 }
 
-function genDestructuring(arr){
-  if(arr && arr.species && arr.species.startsWith("Destructuring")){
-    switch(arr.species.slice(13)){
+function genDestructuring(arr) {
+  if (arr && arr.species && arr.species.startsWith("Destructuring")) {
+    switch (arr.species.slice(13)) {
       case "[Array]":
         return `[${arr.map(genDestructuring).join(", ")}]`;
       case "[Object]":
         let r = "{";
         r += arr.map(dstruct => {
-          if(dstruct.type === "assignment"){
+          if (dstruct.type === "assignment") {
             return `${dstruct.zeroth} : ${dstruct.wunth}`
           }
           return dstruct;
@@ -127,10 +127,10 @@ function genDestructuring(arr){
   }
   return arr;
 }
-function stringifyPat(pat){
-  if(typeof pat === "string" && pat.includes("$exclam")){
+function stringifyPat(pat) {
+  if (typeof pat === "string" && pat.includes("$exclam")) {
     const parts = pat.split("$exclam").map(x => x);
-    if(parts.length === 1){
+    if (parts.length === 1) {
       return `matcher.type("${parts[0]}"")`;
     } else {
       return `matcher.type("${parts[0]}", "${parts[1]}")`;
@@ -139,26 +139,26 @@ function stringifyPat(pat){
   if (/^[a-z_]$/.test(pat[0])) {
     return `matcher.wildcard("${pat}")`;
   }
-  if(pat.species === "Destructuring[Array]"){
+  if (pat.species === "Destructuring[Array]") {
     return `matcher.arr(${pat.map(stringifyPat).join(", ")})`;
   }
-  if(pat.species === "Destructuring[Object]"){
+  if (pat.species === "Destructuring[Object]") {
     return `matcher.obj(${pat.map(patpart => {
-      if(patpart.type !== "assignment"){
+      if (patpart.type !== "assignment") {
         throw new Error("Object pattern matching expression requires value.");
       }
       return `matcher.prop("${patpart.zeroth}", ${stringifyPat(patpart.wunth)})`;
     }).join(", ")})`
   }
-  if (pat.type === "spread"){
+  if (pat.type === "spread") {
     return `matcher.rest("${pat.wunth}")`;
   }
-  if (pat.type === "range"){
+  if (pat.type === "range") {
     return `matcher.range(${pat.zeroth}, ${pat.wunth})`
   }
   return zStringify(pat);
 }
-function genMatcherArr(matches){
+function genMatcherArr(matches) {
   let r = "";
   r += matches.map(([pat, expr]) => {
     let res = "[";
@@ -227,7 +227,19 @@ function genExpr() {
         const from = curr.zeroth;
         const to = curr.wunth;
         r += `Array(${to} - ${from} + 1).fill(undefined).map(function(_, index) { return index }).map(function (item) { return item + ${from} })`;
-
+        break;
+      case "dds":
+        if(typeof curr.wunth === "string"){
+          r += `${curr.wunth}`;
+        } else if ((curr.wunth.type !== undefined) && (curr.wunth.zeroth !== undefined) && (curr.wunth.wunth !== undefined)){
+          let anchor = curr;
+          curr = curr.wunth;
+          r += genStatement();
+          curr = anchor;
+        } else {
+          r += zStringify(curr.wunth);
+        }
+        break;
     }
   } else {
     r += zStringify(curr);
@@ -342,6 +354,9 @@ generateStatement.raise = () => {
 generateStatement.settle = () => {
   return `${curr.zeroth}["settled"] = true;`;
 }
+generateStatement.meta = () => {
+  return `/* meta ${curr.zeroth} = ${"\"" + curr.wunth + "\""} */`
+}
 function genBlock(cleanup) {
   let r = " {\n";
   indent();
@@ -352,7 +367,7 @@ function genBlock(cleanup) {
     r += "\n";
   });
   curr = anchor;
-  if(cleanup !== undefined) {
+  if (cleanup !== undefined) {
     r += cleanup.map(x => x.padStart(x.length + padstart)).join("\n");
     r += "\n";
   }
@@ -362,7 +377,7 @@ function genBlock(cleanup) {
 }
 function genStatement(extraAdv) {
   let res;
-  if(curr.type === undefined){
+  if (curr.type === undefined) {
     return "";
   }
   if (isExpr(curr)) {

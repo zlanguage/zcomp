@@ -57,6 +57,5 @@ The docs are on the offical [Z Website](https://zlanguage.github.io/).
 
 # Z 0.1.0 is out!
 New features:
-- Recursive Directory Compiling
-- Stateless Compilation
-- Numerous Bug Fixes
+- Dollar Directives
+- Metadata *at compile time* with `meta` keyword.

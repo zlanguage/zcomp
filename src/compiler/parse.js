@@ -1,10 +1,14 @@
 "use strict";
+const path = require("path");
 let theError;
 let prevTok;
 let tok;
 let nextTok;
 let tokList;
 let index = 0;
+let metadata = {
+    ddsdir: ""
+};
 const isValidName = /^[A-Za-z_$][A-za-z_$0-9]*$/;
 const blockStatements = Object.freeze(["if", "else", "loop"]);
 
@@ -87,7 +91,7 @@ function findImplicits(ast) {
     return [];
   }
   const implicits = [];
-  if(isImplicit(ast)){
+  if (isImplicit(ast)) {
     implicits.push(ast);
   }
   if (isImplicit(ast.zeroth)) {
@@ -99,7 +103,7 @@ function findImplicits(ast) {
   if (isImplicit(ast.twoth)) {
     implicits.push(ast.twoth);
   }
-  if(Array.isArray(ast)){
+  if (Array.isArray(ast)) {
     ast.forEach(part => {
       implicits.push(...findImplicits(part));
     })
@@ -167,7 +171,7 @@ function expr() {
       case "(number)":
         // Numbers are translated to raw numbers
         zeroth = tok.number;
-        if(nextTok && nextTok.id === "..."){
+        if (nextTok && nextTok.id === "...") {
           type = "range";
           advance("(number)");
           advance("...");
@@ -191,7 +195,7 @@ function expr() {
             advance(",");
             i += 1;
           }
-          if(i === 100){
+          if (i === 100) {
             return error("Unclosed array destructuring.");
           }
         }
@@ -213,7 +217,7 @@ function expr() {
             advance(",");
             i += 1;
           }
-          if(i === 100){
+          if (i === 100) {
             return error("Unclosed object destructuring.")
           }
         }
@@ -236,11 +240,24 @@ function expr() {
             advance(",");
             i += 1;
           }
-          if(i === 1000){
+          if (i === 1000) {
             return error("Unclosed array literal or array literal maximum of one thousand elements exceeded.");
           }
         }
         zeroth = arrayToObj(zeroth); // Support parsing of object literals.
+        break;
+      case "$":
+        // Parse dollar directive
+        advance("$");
+        type = "dds";
+        if (tok.alphanumeric) {
+          zeroth = tok.id;
+        } else {
+          zeroth = tok.string;
+        }
+        const transformer = require(metadata.ddsdir + zeroth);
+        advance();
+        wunth = transformer(expr(), {...metadata});
         break;
       case "(keyword)":
         switch (tok.string) {
@@ -274,7 +291,7 @@ function expr() {
                   }
                   i += 1;
                 }
-                if(i === 100){
+                if (i === 100) {
                   return error("Unclosed function parameter list.");
                 }
               }
@@ -326,7 +343,7 @@ function expr() {
               wunth.push([pat, res]);
               i += 1;
             }
-            if(i === 100){
+            if (i === 100) {
               return error("Unclosed match expression.");
             }
         }
@@ -402,7 +419,7 @@ function expr() {
           advance(",");
           i += 1;
         }
-        if(i === 100) {
+        if (i === 100) {
           return error("Unclosed invocation.")
         }
         // Is there a refinement after the end of the method call? A subscript? ANOTHER method call?
@@ -619,6 +636,38 @@ parseStatement.importstd = () => {
     wunth: `"@zlanguage/zstdlib/src/js/${tok.id}"`
   }
 }
+parseStatement.meta = () => {
+  advance("(keyword)");
+  const name = tok.id;
+  advance();
+  advance(":");
+  if(tok.id !== "(string)"){
+    return error("Meta requires string and value.")
+  }
+  const value = tok.string;
+  metadata[name] = value;
+  return {
+    type: "meta",
+    zeroth: name,
+    wunth: value
+  }
+}
+
+function parseDollarDirective() {
+  let dollarDir = {
+    type: "dds"
+  }
+  advance("$");
+  if (tok.alphanumeric) {
+    dollarDir.zeroth = tok.id;
+  } else {
+    dollarDir.zeroth = tok.string;
+  }
+  advance();
+  const transformer = require(metadata.ddsdir + dollarDir.zeroth);
+  dollarDir.wunth = transformer(statement(), {...metadata});
+  return dollarDir;
+}
 const exprKeywords = Object.freeze(["func", "match"]);
 function statement() {
   if (tok && tok.id === "(keyword)" && !exprKeywords.includes(tok.string)) {
@@ -627,6 +676,8 @@ function statement() {
       return error("Invalid use of keyword.")
     }
     return parser();
+  } else if (tok && tok.id === "$") {
+    return parseDollarDirective();
   } else {
     let res = expr();
     if (res !== undefined && res.id === "(error)") {
@@ -651,7 +702,7 @@ function block() {
     advance();
     i += 1;
   }
-  if(i === 1e6) {
+  if (i === 1e6) {
     return error("Unclosed block.")
   }
   return statements;
@@ -717,6 +768,7 @@ module.exports = Object.freeze(function parse(tokGen) {
     return res;
   }();
   index = 0;
+  metadata = {};
   [tok, nextTok] = [tokList[0], tokList[1]];
   const statementz = statements();
   if (!findAndThrow(statementz)) {
