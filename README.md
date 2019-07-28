@@ -55,6 +55,6 @@ $ zcomp run [path of directory with Z] [path of "out" directory]
 # Docs
 The docs are on the offical [Z Website](https://zlanguage.github.io/).
 
-# Z 0.1.2 is out!
+# Z 0.1.3 is out!
 New features:
-- Implicit blocks for arrays.
+- Infix syntax

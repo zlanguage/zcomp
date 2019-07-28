@@ -159,6 +159,25 @@ function findWildcards(pat) {
   }
   return Array.from(new Set(wildcards));
 }
+function configureExpr(type, zeroth, wunth, twoth) {
+  if (twoth !== undefined) {
+    return {
+      type,
+      zeroth,
+      wunth,
+      twoth
+    }
+  }
+  if (wunth !== undefined && type !== undefined) {
+    return {
+      type,
+      zeroth,
+      wunth
+    }
+  }
+  // Return raw value if isn't a complete token
+  return zeroth;
+}
 function expr() {
   let zeroth, wunth, twoth, type;
   // Is the token a literal? If so, prepare to return it's value.
@@ -200,7 +219,7 @@ function expr() {
           }
         }
         zeroth.species = "Destructuring[Array]";
-        if(nextTok.id === "{"){
+        if (nextTok.id === "{") {
           zeroth.push({
             type: "function",
             zeroth: [],
@@ -264,7 +283,7 @@ function expr() {
         }
         const transformer = require(metadata.ddsdir + zeroth);
         advance();
-        wunth = transformer(expr(), {...metadata});
+        wunth = transformer(expr(), { ...metadata });
         break;
       case "(keyword)":
         switch (tok.string) {
@@ -455,6 +474,16 @@ function expr() {
         wunth = expr(); // Parse right-hand side
         break;
     }
+  }
+  if (nextTok && nextTok.alphanumeric) {
+    advance();
+    advance();
+    const res = {
+      type: "invocation",
+      zeroth: prevTok.id,
+      wunth: [configureExpr(type, zeroth, wunth, twoth), expr()]
+    }
+    return res;
   }
   if (twoth !== undefined) {
     return {
@@ -648,7 +677,7 @@ parseStatement.meta = () => {
   const name = tok.id;
   advance();
   advance(":");
-  if(tok.id !== "(string)"){
+  if (tok.id !== "(string)") {
     return error("Meta requires string and value.")
   }
   const value = tok.string;
@@ -672,7 +701,7 @@ function parseDollarDirective() {
   }
   advance();
   const transformer = require(metadata.ddsdir + dollarDir.zeroth);
-  dollarDir.wunth = transformer(statement(), {...metadata});
+  dollarDir.wunth = transformer(statement(), { ...metadata });
   return dollarDir;
 }
 const exprKeywords = Object.freeze(["func", "match"]);
