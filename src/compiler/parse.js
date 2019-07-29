@@ -159,6 +159,51 @@ function findWildcards(pat) {
   }
   return Array.from(new Set(wildcards));
 }
+
+function convertReturns(returnType, statement, index) {
+  if (statement.type === "return") {
+    return {
+      type: "return",
+      zeroth: {
+        type: "invocation",
+        zeroth: "assertType",
+        wunth: [returnType, statement.zeroth]
+      }
+    }
+  }
+  return wrapReturn(returnType, statement);
+}
+function wrapReturn(returnType, block) {
+  if (!block) { return block }
+  if(!returnType.startsWith(`"`)) { 
+    returnType = `"${returnType}"`
+  }
+  if (Array.isArray(block)) {
+    block = block.map((statement, index) => convertReturns(returnType, statement, index));
+  }
+  if (block.zeroth) {
+    if (Array.isArray(block.zeroth)) {
+      block.zeroth = block.zeroth.map((statement, index) => convertReturns(returnType, statement, index));
+    } else {
+      block.zeroth = wrapReturn(returnType, block.zeroth);
+    }
+  }
+  if (block.wunth) {
+    if (Array.isArray(block.wunth)) {
+      block.wunth = block.wunth.map((statement, index) => convertReturns(returnType, statement, index));
+    } else {
+      block.wunth = wrapReturn(returnType, block.wunth);
+    }
+  }
+  if (block.twoth) {
+    if (Array.isArray(block.twoth)) {
+      block.twoth = block.twoth.map((statement, index) => convertReturns(returnType, statement, index));
+    } else {
+      block.twoth = wrapReturn(returnType, block.twoth);
+    }
+  }
+  return block;
+}
 function configureExpr(type, zeroth, wunth, twoth) {
   if (twoth !== undefined) {
     return {
@@ -355,6 +400,24 @@ function expr() {
                     ]
                   }]
                 })), ...block()];
+              } else if (tok && tok.id === ")" && nextTok && nextTok.alphanumeric && nextTok.id.endsWith("$exclam")) {
+                advance(")");
+                const returnType = tok.id.replace(/\$exclam$/, "");
+                wunth = [...typeChecks.map(([param, type]) => ({
+                  type: "enter",
+                  zeroth: [{
+                    type: "invocation",
+                    zeroth: "$eq",
+                    wunth: [
+                      {
+                        type: "invocation",
+                        zeroth: "typeOf",
+                        wunth: [param]
+                      },
+                      `"${type.replace(/\$exclam$/, "")}"`
+                    ]
+                  }]
+                })), ...wrapReturn(returnType, block())];
               } else {
                 advance(")");
                 wunth = [{
@@ -516,6 +579,18 @@ function expr() {
       wunth: [configureExpr(type, zeroth, wunth, twoth), expr()]
     }
     return res;
+  }
+  if (nextTok && nextTok.alphanumeric && nextTok.id.endsWith("$exclam") && tokList[index + 2] && tokList[index + 2].id !== "," && tokList[index + 2].id !== ")") {
+    type = "assignment";
+    const typeToAssert = nextTok.id.replace(/\$exclam$/, "");
+    advance();
+    advance();
+    advance(":");
+    wunth = {
+      type: "invocation",
+      zeroth: "assertType",
+      wunth: [typeToAssert, expr()]
+    }
   }
   if (twoth !== undefined) {
     return {
