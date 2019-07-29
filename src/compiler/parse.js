@@ -289,6 +289,7 @@ function expr() {
         switch (tok.string) {
           case "func":
             type = "function";
+            const typeChecks = [];
             zeroth = []; // Zeroth will serve as the parameter list
             // Figure out functions parameter list.
             // Look for implicit parameters
@@ -315,6 +316,23 @@ function expr() {
                     advance();
                     advance();
                   }
+                  // Check for runtime type checks
+                  if (nextTok && nextTok.alphanumeric) {
+                    if (isValidName.test(nextParam)) {
+                      typeChecks.push([nextParam, nextTok.id]);
+                    }
+                    advance();
+                    if (nextTok && nextTok.id === ")") {
+                      // The parameter list has finished
+                      advance(); // Prepare for block
+                      break;
+                    }
+                    if (nextTok && nextTok.id === ",") {
+                      //Let's skip to the next parameter
+                      advance();
+                      advance();
+                    }
+                  }
                   i += 1;
                 }
                 if (i === 100) {
@@ -322,7 +340,21 @@ function expr() {
                 }
               }
               if (nextTok && nextTok.id === "{") {
-                wunth = block();
+                wunth = [...typeChecks.map(([param, type]) => ({
+                  type: "enter",
+                  zeroth: [{
+                    type: "invocation",
+                    zeroth: "$eq",
+                    wunth: [
+                      {
+                        type: "invocation",
+                        zeroth: "typeOf",
+                        wunth: [param]
+                      },
+                      `"${type.replace(/\$exclam$/, "")}"`
+                    ]
+                  }]
+                })), ...block()];
               } else {
                 advance(")");
                 wunth = [{
@@ -475,7 +507,7 @@ function expr() {
         break;
     }
   }
-  if (nextTok && nextTok.alphanumeric) {
+  if (nextTok && nextTok.alphanumeric && (nextTok.lineNumber === tok.lineNumber) && !nextTok.id.endsWith("$exclam")) {
     advance();
     advance();
     const res = {
@@ -605,11 +637,11 @@ parseStatement.if = (extraAdv) => {
   return ifStatement;
 }
 
-parseStatement.loop = (extraAdv) => {
+parseStatement.loop = () => {
   const loopStatement = {
     type: "loop"
   }
-  loopStatement.zeroth = block(extraAdv);
+  loopStatement.zeroth = block();
   return loopStatement;
 }
 
@@ -689,6 +721,19 @@ parseStatement.meta = () => {
   }
 }
 
+parseStatement.enter = () => {
+  return {
+    type: "enter",
+    zeroth: block()
+  }
+}
+
+parseStatement.exit = () => {
+  return {
+    type: "exit",
+    zeroth: block()
+  }
+}
 function parseDollarDirective() {
   let dollarDir = {
     type: "dds"
@@ -743,6 +788,7 @@ function block() {
   }
   return statements;
 }
+
 function statements() {
   const statements = [];
   let nextStatement;

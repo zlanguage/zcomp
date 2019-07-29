@@ -211,7 +211,25 @@ function genExpr() {
           r += list;
           r += ")";
           curr = anchor.wunth;
-          r += genBlock();
+          if (curr[curr.length - 1] && (curr[curr.length - 1].type === "exit")) {
+            let anchor = curr;
+            r += `{ try { ${genBlock()} }`;
+            curr = curr[curr.length - 1];
+            let conds = function() {
+              let r = "";
+              let anchor = curr;
+              r += curr.zeroth.map(condition => {
+                curr = condition;
+                return genExpr();
+              }).join(" && ");
+              curr = anchor;
+              return `if (!(${r})) { throw new Error("Enter failed") }`
+            }()
+            r += ` finally { ${conds} } }`
+            curr = anchor;
+          } else {
+            r += genBlock();
+          }
           curr = anchor;
         })();
         break;
@@ -229,9 +247,9 @@ function genExpr() {
         r += `Array(${to} - ${from} + 1).fill(undefined).map(function(_, index) { return index }).map(function (item) { return item + ${from} })`;
         break;
       case "dds":
-        if(typeof curr.wunth === "string"){
+        if (typeof curr.wunth === "string") {
           r += `${curr.wunth}`;
-        } else if ((curr.wunth.type !== undefined) && (curr.wunth.zeroth !== undefined) && (curr.wunth.wunth !== undefined)){
+        } else if ((curr.wunth.type !== undefined) && (curr.wunth.zeroth !== undefined) && (curr.wunth.wunth !== undefined)) {
           let anchor = curr;
           curr = curr.wunth;
           r += genStatement();
@@ -356,6 +374,21 @@ generateStatement.settle = () => {
 }
 generateStatement.meta = () => {
   return `/* meta ${curr.zeroth} = ${"\"" + curr.wunth + "\""} */`
+}
+
+generateStatement.enter = () => {
+  let r = "";
+  let anchor = curr;
+  r += curr.zeroth.map(condition => {
+    curr = condition;
+    return genExpr();
+  }).join(" && ");
+  curr = anchor;
+  return `if (!(${r})) { throw new Error("Enter failed") }`
+}
+
+generateStatement.exit = () => {
+  return "";
 }
 function genBlock(cleanup) {
   let r = " {\n";
