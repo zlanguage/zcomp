@@ -383,6 +383,7 @@ function expr() {
             let i = 0;
             while (tok && tok.id !== "}" && i < 100) {
               const pat = expr();
+              console.log(pat);
               const wildcards = findWildcards(pat);
               advance();
               advance("$eq$gt");
@@ -507,7 +508,7 @@ function expr() {
         break;
     }
   }
-  if (nextTok && nextTok.alphanumeric && (nextTok.lineNumber === tok.lineNumber) && !nextTok.id.endsWith("$exclam")) {
+  if (nextTok && nextTok.alphanumeric && (nextTok.lineNumber === tok.lineNumber) && !nextTok.id.endsWith("$exclam") && nextTok.id !== "$eq$gt") {
     advance();
     advance();
     const res = {
