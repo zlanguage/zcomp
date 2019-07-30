@@ -33,7 +33,7 @@ Capturing Group:
 [6] Number
 [7] Punctuator
 */
-const tokenRegExp = /(\u0020+|\t+)|(#.*)|("(?:[^"\\]|\\(?:[nr"\\]|u\{[0-9A-F]{4,6}\}))*")|\b(let|loop|if|elif|else|func|break|import|export|match|return|def|try|on|settle|raise|importstd|meta|enter|exit)\b|([A-Za-z_+\-/*%&|?^=<>'!][A-Za-z0-9+\-/*%&|?^<>='!]*)|(-?[\d_]+(?:\.[\d_]+)?(?:e\-?[\d_]+)?)|(\.{3}|[$(),.{}\[\]:])/y;
+const tokenRegExp = /(\u0020+|\t+)|(#.*)|("(?:[^"\\]|\\(?:[nr"\\]|u\{[0-9A-F]{4,6}\}))*")|\b(let|loop|if|elif|else|func|break|import|export|match|return|def|try|on|settle|raise|importstd|meta|enter|exit)\b|([A-Za-z_+\-/*%&|?^=<>'!][A-Za-z0-9+\-/*%&|?^<>='!]*)|((?:0[box])?-?[\d_]+(?:\.[\d_]+)?(?:e\-?[\d_]+)?[a-z]*)|(\.{3}|[$(),.{}\[\]:])/y;
 /**
  * Create a token generator for a specific source.
  * @param {string | Array<string>} source If string is provided, string is split along newlines. If array is provided, array is used as the array of lines.
@@ -150,7 +150,7 @@ function tokenize(source, comment = false) {
             return {
                 id: "(number)",
                 readonly: true,
-                number: Number(captives[6].replace(/_/g, "")),
+                number: Number(captives[6].replace(/([^0])[a-z]+/g, "$1").replace(/_/g, "")),
                 string: captives[6],
                 lineNumber,
                 columnNumber,

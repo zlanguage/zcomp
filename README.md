@@ -55,7 +55,6 @@ $ zcomp run [path of directory with Z] [path of "out" directory]
 # Docs
 The docs are on the offical [Z Website](https://zlanguage.github.io/).
 
-# Z 0.1.8 is out!
+# Z 0.1.9 is out!
 New features:
-- Variable Types (Runtime)
-- Return Types (Runtime)
+- Enhanced Number Literals
