@@ -15,7 +15,8 @@ const ops = {
     $minus: 111,
     $star: 222,
     $slash: 222,
-    $carot: 333
+    $percent: 222,
+    $carot: 333,
 }
 const isValidName = /^[A-Za-z_$][A-za-z_$0-9]*$/;
 const blockStatements = Object.freeze(["if", "else", "loop"]);
