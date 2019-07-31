@@ -373,7 +373,7 @@ generateStatement.settle = () => {
   return `${curr.zeroth}["settled"] = true;`;
 }
 generateStatement.meta = () => {
-  return `/* meta ${curr.zeroth} = ${"\"" + curr.wunth + "\""} */`
+  return `/* meta ${curr.zeroth} = ${"\"" + curr.wunth + "\""} */`;
 }
 
 generateStatement.enter = () => {
@@ -389,6 +389,21 @@ generateStatement.enter = () => {
 
 generateStatement.exit = () => {
   return "";
+}
+generateStatement.operator = () => {
+  return `/* operator ${curr.zeroth} = ${ curr.wunth} */`;
+}
+generateStatement.hoist = () => {
+  let r = `var `;
+  let assignmentArray = [];
+  let anchor = curr;
+  curr.zeroth.forEach(assignment => {
+    curr = assignment;
+    assignmentArray.push(genExpr());
+  });
+  r += assignmentArray.join(", ");
+  curr = anchor;
+  return r + ";";
 }
 function genBlock(cleanup) {
   let r = " {\n";

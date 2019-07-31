@@ -7,8 +7,16 @@ let nextTok;
 let tokList;
 let index = 0;
 let metadata = {
-    ddsdir: ""
+    ddsdir: process.cwd()
 };
+const ops = {
+    $eq: 0,
+    $plus: 111,
+    $minus: 111,
+    $star: 222,
+    $slash: 222,
+    $carot: 333
+}
 const isValidName = /^[A-Za-z_$][A-za-z_$0-9]*$/;
 const blockStatements = Object.freeze(["if", "else", "loop"]);
 
@@ -175,7 +183,7 @@ function convertReturns(returnType, statement, index) {
 }
 function wrapReturn(returnType, block) {
   if (!block) { return block }
-  if(!returnType.startsWith(`"`)) { 
+  if (!returnType.startsWith(`"`)) {
     returnType = `"${returnType}"`
   }
   if (Array.isArray(block)) {
@@ -222,6 +230,79 @@ function configureExpr(type, zeroth, wunth, twoth) {
   }
   // Return raw value if isn't a complete token
   return zeroth;
+}
+
+function opPred(op){
+  if(ops[op] !== undefined){
+    return ops[op];
+  }
+  return 1;
+}
+function swapLeftToRight(obj) {
+  if(!obj){
+    return obj;
+  }
+  if (obj.leftToRight) {
+    return obj;
+  }
+  if (obj.type !== "invocation") {
+    return obj;
+  }
+  if(!obj.wunth){
+    return obj;
+  }
+  if(!obj.wunth[1]){
+    return obj;
+  }
+  if (obj.wunth[1].type !== "invocation") {
+    return obj;
+  }
+  if(opPred(obj.wunth[1].zeroth) > opPred(obj.zeroth)){
+    return obj;
+  }
+  if(obj.infix !== true || obj.wunth[1].infix !== true){
+    return obj;
+  }
+  const nested = obj.wunth[1];
+  const outer = obj;
+  const res = {
+    type: "invocation",
+    zeroth: nested.zeroth,
+    wunth: [
+      {
+        type: "invocation",
+        zeroth: outer.zeroth,
+        wunth: [outer.wunth[0], nested.wunth[0]]
+      },
+      nested.wunth[1]
+    ]
+  }
+  Object.defineProperty(res, "leftToRight", {
+    value: true,
+    enumerable: false
+  });
+  return res;
+}
+function leftToRight(obj) {
+  if(!obj || typeof obj !== "object"){
+    return obj;
+  }
+  if (obj.type === "invocation") {
+    obj = swapLeftToRight(obj);
+  }
+  if(obj.zeroth && obj.zeroth.type === "invocation"){
+    obj.zeroth = leftToRight(obj.zeroth);
+  }
+  if(obj.wunth && obj.wunth.type === "invocation"){
+    obj.wunth = leftToRight(obj.wunth);
+  }
+  if(Array.isArray(obj.wunth)) {
+    obj.wunth = obj.wunth.map(leftToRight);
+  }
+  if(obj.twoth && obj.twoth.type === "invocation"){
+    obj.twoth = leftToRight(obj.twoth);
+  }
+  return obj;
 }
 function expr() {
   let zeroth, wunth, twoth, type;
@@ -573,12 +654,16 @@ function expr() {
   if (nextTok && nextTok.alphanumeric && (nextTok.lineNumber === tok.lineNumber) && !nextTok.id.endsWith("$exclam") && nextTok.id !== "$eq$gt") {
     advance();
     advance();
-    const res = {
+    let res = {
       type: "invocation",
       zeroth: prevTok.id,
-      wunth: [configureExpr(type, zeroth, wunth, twoth), expr()]
+      wunth: [configureExpr(type, zeroth, wunth, twoth), expr()].filter(param => param !== undefined)
     }
-    return res;
+    Object.defineProperty(res, "infix", {
+      value: true,
+      enumerable: false
+    });
+    return leftToRight(res);
   }
   if (nextTok && nextTok.alphanumeric && nextTok.id.endsWith("$exclam") && tokList[index + 2] && tokList[index + 2].id !== "," && tokList[index + 2].id !== ")") {
     type = "assignment";
@@ -808,6 +893,25 @@ parseStatement.exit = () => {
     type: "exit",
     zeroth: block()
   }
+}
+
+parseStatement.operator = () => {
+  advance("(keyword)");
+  const op = tok.id;
+  advance();
+  advance(":");
+  const pred = tok.number;
+  ops[op] = pred;
+  return {
+    type: "operator",
+    zeroth: op,
+    wunth: pred
+  };
+}
+parseStatement.hoist = () => {
+  const res = parseStatement.let();
+  res.type = "hoist";
+  return res;
 }
 function parseDollarDirective() {
   let dollarDir = {
