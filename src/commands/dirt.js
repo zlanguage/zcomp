@@ -73,7 +73,7 @@ class DirtCommand extends Command {
     }
 }
 
-DirtCommand.description = `Recursive directory compiling.`;
+DirtCommand.description = `Recursive directory transpiling.`;
 
 DirtCommand.args = [
     { name: "indir", description: "Path of the directory to transpile", required: true },
