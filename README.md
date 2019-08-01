@@ -55,8 +55,8 @@ $ zcomp run [path of directory with Z] [path of "out" directory]
 # Docs
 The docs are on the offical [Z Website](https://zlanguage.github.io/).
 
-# Z 0.1.10 is out!
+# Z 0.1.14 is out!
 New features:
-- Negative Numbers Work Again
-- Infix Operators Evaluate Left-Right
-- ORDER OF OPERATIONS
+- Numerous Bug Fixes
+- Enhanced type-checking
+- Better `transpile` and `dirt` commands

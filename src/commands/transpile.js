@@ -17,7 +17,13 @@ class TranspileCommand extends Command {
             if (err) {
                 return console.log(err);
             }
-            fs.writeFile(to, gen(parse(tokenize(data.toString()))), err => {
+            let res;
+            try {
+                res = gen(parse(tokenize(data.toString())));
+            } catch (err) {
+                console.log(err);
+            }
+            fs.writeFile(to, res, err => {
                 if (err) {
                     console.log(err);
                 }

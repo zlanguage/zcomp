@@ -87,7 +87,7 @@ function arrayToObj(arr) {
 
 
 function isExprAhead() {
-  return nextTok !== undefined && ["(", "[", ".", ":"].includes(nextTok.id);
+  return nextTok !== undefined && ["(", "[", ".", ":"].includes(nextTok.id) && ((["(", "["].includes(nextTok.id)) ? tok.lineNumber === nextTok.lineNumber : true);
 }
 function isImplicit(str) {
   return typeof str === "string" && str.endsWith("$exclam")
@@ -233,14 +233,14 @@ function configureExpr(type, zeroth, wunth, twoth) {
   return zeroth;
 }
 
-function opPred(op){
-  if(ops[op] !== undefined){
+function opPred(op) {
+  if (ops[op] !== undefined) {
     return ops[op];
   }
   return 1;
 }
 function swapLeftToRight(obj) {
-  if(!obj){
+  if (!obj) {
     return obj;
   }
   if (obj.leftToRight) {
@@ -249,19 +249,19 @@ function swapLeftToRight(obj) {
   if (obj.type !== "invocation") {
     return obj;
   }
-  if(!obj.wunth){
+  if (!obj.wunth) {
     return obj;
   }
-  if(!obj.wunth[1]){
+  if (!obj.wunth[1]) {
     return obj;
   }
   if (obj.wunth[1].type !== "invocation") {
     return obj;
   }
-  if(opPred(obj.wunth[1].zeroth) > opPred(obj.zeroth)){
+  if (opPred(obj.wunth[1].zeroth) > opPred(obj.zeroth)) {
     return obj;
   }
-  if(obj.infix !== true || obj.wunth[1].infix !== true){
+  if (obj.infix !== true || obj.wunth[1].infix !== true) {
     return obj;
   }
   const nested = obj.wunth[1];
@@ -285,22 +285,22 @@ function swapLeftToRight(obj) {
   return res;
 }
 function leftToRight(obj) {
-  if(!obj || typeof obj !== "object"){
+  if (!obj || typeof obj !== "object") {
     return obj;
   }
   if (obj.type === "invocation") {
     obj = swapLeftToRight(obj);
   }
-  if(obj.zeroth && obj.zeroth.type === "invocation"){
+  if (obj.zeroth && obj.zeroth.type === "invocation") {
     obj.zeroth = leftToRight(obj.zeroth);
   }
-  if(obj.wunth && obj.wunth.type === "invocation"){
+  if (obj.wunth && obj.wunth.type === "invocation") {
     obj.wunth = leftToRight(obj.wunth);
   }
-  if(Array.isArray(obj.wunth)) {
+  if (Array.isArray(obj.wunth)) {
     obj.wunth = obj.wunth.map(leftToRight);
   }
-  if(obj.twoth && obj.twoth.type === "invocation"){
+  if (obj.twoth && obj.twoth.type === "invocation") {
     obj.twoth = leftToRight(obj.twoth);
   }
   return obj;
@@ -433,6 +433,13 @@ function expr() {
                   }
                   const nextParam = expr(); // Any valid expression can be used in parameter position
                   zeroth.push(nextParam);
+                  // Check for runtime type checks
+                  if (nextTok && nextTok.alphanumeric) {
+                    if (isValidName.test(nextParam)) {
+                      typeChecks.push([nextParam, nextTok.id]);
+                    }
+                    advance();
+                  }
                   if (nextTok && nextTok.id === ")") {
                     // The parameter list has finished
                     advance(); // Prepare for block
@@ -442,23 +449,6 @@ function expr() {
                     //Let's skip to the next parameter
                     advance();
                     advance();
-                  }
-                  // Check for runtime type checks
-                  if (nextTok && nextTok.alphanumeric) {
-                    if (isValidName.test(nextParam)) {
-                      typeChecks.push([nextParam, nextTok.id]);
-                    }
-                    advance();
-                    if (nextTok && nextTok.id === ")") {
-                      // The parameter list has finished
-                      advance(); // Prepare for block
-                      break;
-                    }
-                    if (nextTok && nextTok.id === ",") {
-                      //Let's skip to the next parameter
-                      advance();
-                      advance();
-                    }
                   }
                   i += 1;
                 }
@@ -475,10 +465,10 @@ function expr() {
                     wunth: [
                       {
                         type: "invocation",
-                        zeroth: "typeOf",
+                        zeroth: type.includes("$gt") ? "typeGeneric": "typeOf",
                         wunth: [param]
                       },
-                      `"${type.replace(/\$exclam$/, "")}"`
+                      `"${type.replace(/\$exclam$/, "").replace(/\$gt/g, ">").replace(/\$lt/g, "<")}"`
                     ]
                   }]
                 })), ...block()];
@@ -493,10 +483,10 @@ function expr() {
                     wunth: [
                       {
                         type: "invocation",
-                        zeroth: "typeOf",
+                        zeroth: type.includes("$gt") ?"typeGeneric": "typeOf",
                         wunth: [param]
                       },
-                      `"${type.replace(/\$exclam$/, "")}"`
+                      `"${type.replace(/\$exclam$/, "").replace(/\$gt/g, ">").replace(/\$lt/g, "<")}"`
                     ]
                   }]
                 })), ...wrapReturn(returnType, block())];
