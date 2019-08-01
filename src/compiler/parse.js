@@ -10,7 +10,14 @@ let metadata = {
     ddsdir: process.cwd()
 };
 const ops = {
-    $eq: 0,
+    and: -333,
+    or: -333,
+    $eq: -222,
+    $lt: -111,
+    $gt: -111,
+    $gt$eq: -111,
+    $lt$eq: -111,
+    $plus$plus: 111,
     $plus: 111,
     $minus: 111,
     $star: 222,
@@ -1027,4 +1034,4 @@ module.exports = Object.freeze(function parse(tokGen) {
     return statementz;
   }
   return [];
-})
+});
