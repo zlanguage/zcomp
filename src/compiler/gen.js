@@ -105,7 +105,7 @@ function genTwoth() {
   return r;
 }
 function isExpr(obj) {
-  return obj && ["subscript", "refinement", "invocation", "assignment", "function", "spread", "match", "range", "dds"].includes(obj.type);
+  return obj && ["subscript", "refinement", "invocation", "assignment", "function", "spread", "match", "range", "dds", "loopexpr"].includes(obj.type);
 }
 
 function genDestructuring(arr) {
@@ -157,6 +157,73 @@ function stringifyPat(pat) {
     return `matcher.range(${pat.zeroth}, ${pat.wunth})`
   }
   return zStringify(pat);
+}
+
+function genLoopStatements(loopexpr){
+  const loops = [];
+  const predicates = [];
+  const finalRes = function(){
+    let anchor = curr;
+    curr = loopexpr.wunth;
+    let r = genExpr();
+    curr = anchor;
+    return r;
+  }();
+  loopexpr.zeroth.forEach(expr => {
+    if(expr.type === "invocation" && expr.zeroth === "$lt$minus") {
+      loops.push({
+        type: "of",
+        zeroth: expr.wunth[0],
+        wunth: expr.wunth[1],
+        twoth: []
+      });
+    } else if (expr.type === "assignment") {
+      loops[loops.length - 1].twoth.push(expr);
+    } else if (expr.type === "predicate") {
+      predicates.push(expr);
+    }
+  });
+  let r = "";
+  loops.forEach(loop => {
+    const iterable = function(){
+      let anchor = curr;
+      curr = loop.wunth;
+      let res = genExpr();
+      curr = anchor;
+      return res;
+    }();
+    r += `for (const ${loop.zeroth} of ${iterable}) {\n`;
+    indent();
+    let anchor = curr;
+    loop.twoth.forEach(assignment => {
+      let anchor = curr;
+      curr = {
+        type: "def",
+        zeroth: [assignment]
+      };
+      r += genStatement() + "\n";
+      curr = anchor;
+    });
+    curr = anchor;
+  });
+  const conds = predicates.map(predicate => {
+    let anchor = curr;
+    curr = predicate.zeroth;
+    let r = genExpr();
+    curr = anchor;
+    return r;
+  }).join(" && ");
+  let theIf = `if (${conds}) {`;
+  let inner = `  res.push(${finalRes})\n`;
+  theIf = theIf.padStart(padstart + theIf.length);
+  theIf += "\n" + inner.padStart(padstart + inner.length);
+  theIf += "}".padStart(padstart + 1);
+  r += theIf;
+  loops.forEach(() => {
+    r += "\n}".padStart(padstart + 1);
+    outdent();
+  });
+  return r;
 }
 function genMatcherArr(matches) {
   let r = "";
@@ -257,6 +324,11 @@ function genExpr() {
         } else {
           r += zStringify(curr.wunth);
         }
+        break;
+      case "loopexpr":
+        r += "function(){\n  const res = [];\n"
+        r += genLoopStatements(curr).split("\n").map(str => str.padStart(padstart + 2 + str.length)).join("\n");
+        r += "\n  return res;\n}()"
         break;
     }
   } else {

@@ -546,6 +546,32 @@ function expr() {
             if (i === 100) {
               return error("Unclosed match expression.");
             }
+            break;
+          case "loop":
+            type = "loopexpr";
+            advance("(keyword)");
+            advance("(");
+            zeroth = [];
+            while(tok && tok.id !== ")"){
+              if(tok.id === "(keyword)" && tok.string === "if") {
+                advance("(keyword)")
+                zeroth.push({
+                  type: "predicate",
+                  zeroth: expr()
+                })
+              } else {
+                zeroth.push(expr());
+              }
+              advance();
+              if(tok && tok.id === ",") {
+                advance(",")
+              } else {
+                break;
+              }
+            }
+            advance(")");
+            wunth = expr();
+            break;
         }
         break;
       case "...":
@@ -1034,4 +1060,4 @@ module.exports = Object.freeze(function parse(tokGen) {
     return statementz;
   }
   return [];
-});
+})
