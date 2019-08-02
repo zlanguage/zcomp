@@ -206,13 +206,16 @@ function genLoopStatements(loopexpr){
     });
     curr = anchor;
   });
-  const conds = predicates.map(predicate => {
+  let conds = predicates.map(predicate => {
     let anchor = curr;
     curr = predicate.zeroth;
     let r = genExpr();
     curr = anchor;
     return r;
   }).join(" && ");
+  if (conds === ""){
+    conds = "true";
+  }
   let theIf = `if (${conds}) {`;
   let inner = `  res.push(${finalRes})\n`;
   theIf = theIf.padStart(padstart + theIf.length);
