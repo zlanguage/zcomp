@@ -43,8 +43,17 @@ function advance(id) {
   prevTok = tok;
   tok = nextTok;
   nextTok = tokList[index + 1];
-
 }
+
+function check(id) {
+  if (!tok) {
+    throw error(`Expected ${id}, got nothing.`).zeroth;
+  }
+  if (tok && id !== undefined && id !== tok.id) {
+    throw error(`Expected "${id}" but got "${tok.id}".`).zeroth;
+  }
+}
+
 function skip(id) {
   advance(id);
   advance();
@@ -312,6 +321,23 @@ function leftToRight(obj) {
   }
   return obj;
 }
+function parseCol(start, end, sep = ","){
+  let res = [];
+  advance(start);
+  if(tok.id !== end) {
+    while (true) {
+      res.push(expr())
+      advance();
+      if(tok && tok.id === sep){
+        advance(sep);
+      } else {
+        break;
+      }
+    }
+    check(end);
+  }
+  return res;
+}
 function expr() {
   let zeroth, wunth, twoth, type;
   // Is the token a literal? If so, prepare to return it's value.
@@ -334,26 +360,9 @@ function expr() {
       case "(":
         // Parse destructuring
         // Parens are never part of tuple literals - Z dosen't have them
-        zeroth = [];
-        advance();
-        // Empty destructuring? It's possible.
-        if (tok.id !== ")") {
-          let i = 0;
-          while (i < 100) {
-            zeroth.push(expr());
-            advance();
-            if (tok && tok.id === ")") {
-              break;
-            }
-            advance(",");
-            i += 1;
-          }
-          if (i === 100) {
-            return error("Unclosed array destructuring.");
-          }
-        }
+        zeroth = parseCol("(", ")");
         zeroth.species = "Destructuring[Array]";
-        if (nextTok.id === "{") {
+        if (nextTok && nextTok.id === "{") {
           zeroth.push({
             type: "function",
             zeroth: [],
@@ -363,47 +372,12 @@ function expr() {
         break;
       case "{":
         // Object destructuring
-        zeroth = [];
-        advance();
-        // Empty destructuring? It's possible.
-        if (tok.id !== "}") {
-          let i = 0;
-          while (i < 100) {
-            zeroth.push(expr());
-            advance();
-            if (tok && tok.id === "}") {
-              break;
-            }
-            advance(",");
-            i += 1;
-          }
-          if (i === 100) {
-            return error("Unclosed object destructuring.")
-          }
-        }
+        zeroth = parseCol("{", "}")
         zeroth.species = "Destructuring[Object]";
         break;
       case "[":
         // Parse Array
-        zeroth = [];
-        advance();
-        // Detect empty array
-        if (tok && tok.id !== "]") {
-          //Add an expression object for each element of the array.
-          let i = 0;
-          while (i < 1000) {
-            zeroth.push(expr());
-            advance();
-            if (tok && tok.id === "]") {
-              break;
-            }
-            advance(",");
-            i += 1;
-          }
-          if (i === 1000) {
-            return error("Unclosed array literal or array literal maximum of one thousand elements exceeded.");
-          }
-        }
+        zeroth = parseCol("[", "]")
         zeroth = arrayToObj(zeroth); // Support parsing of object literals.
         break;
       case "$":
@@ -472,7 +446,7 @@ function expr() {
                     wunth: [
                       {
                         type: "invocation",
-                        zeroth: type.includes("$gt") ? "typeGeneric": "typeOf",
+                        zeroth: type.includes("$gt") ? "typeGeneric" : "typeOf",
                         wunth: [param]
                       },
                       `"${type.replace(/\$exclam$/, "").replace(/\$gt/g, ">").replace(/\$lt/g, "<")}"`
@@ -490,7 +464,7 @@ function expr() {
                     wunth: [
                       {
                         type: "invocation",
-                        zeroth: type.includes("$gt") ?"typeGeneric": "typeOf",
+                        zeroth: type.includes("$gt") ? "typeGeneric" : "typeOf",
                         wunth: [param]
                       },
                       `"${type.replace(/\$exclam$/, "").replace(/\$gt/g, ">").replace(/\$lt/g, "<")}"`
@@ -552,8 +526,8 @@ function expr() {
             advance("(keyword)");
             advance("(");
             zeroth = [];
-            while(tok && tok.id !== ")"){
-              if(tok.id === "(keyword)" && tok.string === "if") {
+            while (tok && tok.id !== ")") {
+              if (tok.id === "(keyword)" && tok.string === "if") {
                 advance("(keyword)")
                 zeroth.push({
                   type: "predicate",
@@ -563,7 +537,7 @@ function expr() {
                 zeroth.push(expr());
               }
               advance();
-              if(tok && tok.id === ",") {
+              if (tok && tok.id === ",") {
                 advance(",")
               } else {
                 break;
@@ -619,35 +593,8 @@ function expr() {
       case "(":
         // It's an invocation
         advance();
-        advance();
         type = "invocation";
-        wunth = []; // Wunth will serve as the parameter list
-        //Is there no parameter list?
-        if (tok && tok.id === ")") {
-          // Is there a refinement after the end of the method call? A subscript? ANOTHER method call?
-          if (isExprAhead()) {
-            // If so, record it in twoth
-            twoth = expr();
-          }
-          break;
-        }
-        let i = 0;
-        // Figure out the parameter list
-        while (i < 100) {
-          const nextParam = expr(); // Any valid expression can be used in parameter position
-          wunth.push(nextParam);
-          if (nextTok && nextTok.id === ")") {
-            // The invocation has finished
-            advance(); // Put ")" in the token position to allow mixing of refinements and methods.
-            break;
-          }
-          advance();
-          advance(",");
-          i += 1;
-        }
-        if (i === 100) {
-          return error("Unclosed invocation.")
-        }
+        wunth = parseCol("(", ")");
         // Is there a refinement after the end of the method call? A subscript? ANOTHER method call?
         if (isExprAhead()) {
           // If so, record it in twoth
