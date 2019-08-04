@@ -315,7 +315,7 @@ function genExpr() {
       case "match":
         r += `matcher([\n`;
         r += genMatcherArr(curr.wunth);
-        r += `])(${zStringifhy(curr.zeroth)})`
+        r += `])(${zStringify(curr.zeroth)})`
         break;
       case "range":
         const from = curr.zeroth;
