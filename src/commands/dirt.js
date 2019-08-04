@@ -39,7 +39,7 @@ class DirtCommand extends Command {
                             try {
                                 transpiledFile = gen(parse(tokenize(data.toString())));
                             } catch (err) {
-                                console.log(`In file ${filename}, error found:`);
+                                console.log(`In file ${filepath}, error found:`);
                                 console.log(err);
                             }
                             fs.writeFile(outpath, transpiledFile, err => {
