@@ -3,9 +3,9 @@ const tokenize = require("../compiler/tokenize");
 const parse = require("../compiler/parse");
 const gen = require("../compiler/gen");
 const fs = require("fs");
-class TranspileCommand extends Command {
+class WatchCommand extends Command {
     async run() {
-        const { args } = this.parse(TranspileCommand);
+        const { args } = this.parse(WatchCommand);
         let { path, to } = args;
         if (!path) {
             throw new Error("Watch expects path.");
@@ -35,14 +35,14 @@ class TranspileCommand extends Command {
     }
 }
 
-TranspileCommand.description = `Acts like transpile, but transpiles a file on changes.
+WatchCommand.description = `Acts like transpile, but transpiles a file on changes.
 ...
 path: Path of file to transpile
 to: Where to transpile the file
 `;
 
-TranspileCommand.args = [
+WatchCommand.args = [
     { name: "path", description: "Path of file to transpile", required: true },
     { name: "to", description: "Where to transpile the file.", required: false }
 ];
-module.exports = TranspileCommand;
+module.exports = WatchCommand;
