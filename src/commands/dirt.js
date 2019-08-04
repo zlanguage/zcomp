@@ -21,41 +21,41 @@ class DirtCommand extends Command {
     transpileDir(inPath, outPath) {
         fs.readdir(inPath, (err, files) => {
             if (err) {
-                return console.log(err)
+                return this.log(err)
             }
             files.forEach(file => {
                 const filepath = path.join(inPath, file);
                 const outpath = path.join(outPath, file).replace(".zlang", ".js");
                 fs.lstat(filepath, (err, stats) => {
                     if (err) {
-                        return console.log(err);
+                        return this.log(err);
                     }
                     if (stats.isFile() && /\.zlang/.test(filepath)) {
                         fs.readFile(filepath, (err, data) => {
                             if (err) {
-                                return console.log(err);
+                                return this.log(err);
                             }
                             let transpiledFile;
                             try {
                                 transpiledFile = gen(parse(tokenize(data.toString())));
                             } catch (err) {
-                                console.log(`In file ${filepath}, error found:`);
-                                console.log(err);
+                                this.log(`In file ${filepath}, error found:`);
+                                this.log(err);
                             }
                             fs.writeFile(outpath, transpiledFile, err => {
                                 if (err) {
-                                    return console.log(err)
+                                    return this.log(err)
                                 }
                             });
                         })
                     } else if (stats.isFile()) {
                         fs.readFile(filepath, (err, data) => {
                             if (err) {
-                                return console.log(err);
+                                return this.log(err);
                             }
                             fs.writeFile(outpath, data.toString(), err => {
                                 if (err) {
-                                    return console.log(err);
+                                    return this.log(err);
                                 }
                             })
                         })
@@ -64,7 +64,7 @@ class DirtCommand extends Command {
                             if (!exists) {
                                 fs.mkdir(outpath, err => {
                                     if (err) {
-                                        return console.log(err);
+                                        return this.log(err);
                                     }
                                 });
                             }

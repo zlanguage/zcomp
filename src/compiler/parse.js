@@ -645,7 +645,7 @@ function expr() {
     wunth = {
       type: "invocation",
       zeroth: "assertType",
-      wunth: [typeToAssert, expr()]
+      wunth: ["\"" + typeToAssert + "\"", expr()]
     }
   }
   if (twoth !== undefined) {

@@ -8,31 +8,34 @@ class TranspileCommand extends Command {
         const { args } = this.parse(TranspileCommand);
         let { path, to } = args;
         if (!path) {
-            throw new Error("Transpilation expects path.");
+            throw new Error("Watch expects path.");
         }
         if (!to) {
             to = path.replace(/(.+).zlang/, "$1.js");
         }
-        fs.readFile(path, (err, data) => {
-            if (err) {
-                return this.log(err);
-            }
-            let res;
-            try {
-                res = gen(parse(tokenize(data.toString())));
-            } catch (err) {
-                this.log(err);
-            }
-            fs.writeFile(to, res, err => {
+        fs.watchFile(path, (curr, prev) => {
+            this.log(`Transpiling ${path}...`);
+            fs.readFile(path, (err, data) => {
                 if (err) {
                     this.log(err);
                 }
-            });
+                let res;
+                try {
+                    res = gen(parse(tokenize(data.toString())));
+                } catch (err) {
+                    this.log(err);
+                }
+                fs.writeFile(to, res, err => {
+                    if (err) {
+                        this.log(err);
+                    }
+                });
+            })
         });
     }
 }
 
-TranspileCommand.description = `Transpiles files from Z into JS
+TranspileCommand.description = `Acts like transpile, but transpiles a file on changes.
 ...
 path: Path of file to transpile
 to: Where to transpile the file

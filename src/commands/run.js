@@ -12,7 +12,7 @@ class RunCommand extends Command {
         }
         fs.readFile(path, (err, data) => {
             if (err) {
-                return console.log(err);
+                return this.log(err);
             }
             eval(gen(parse(tokenize(data.toString()))));
         });
