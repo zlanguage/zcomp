@@ -9,6 +9,7 @@ let index = 0;
 let metadata = {
     ddsdir: process.cwd()
 };
+const validNameOps = ["and", "or"]
 const ops = {
     and: -333,
     or: -333,
@@ -255,6 +256,15 @@ function opPred(op) {
   }
   return 1;
 }
+function isValidOp(op) {
+  if (validNameOps.includes(op)) {
+    return true;
+  }
+  if (/(\$[a-z0-9_])+/.test(op)) {
+    return true;
+  }
+  return false;
+}
 function swapLeftToRight(obj) {
   if (!obj) {
     return obj;
@@ -274,6 +284,9 @@ function swapLeftToRight(obj) {
   if (obj.wunth[1].type !== "invocation") {
     return obj;
   }
+  if (!isValidOp(obj.wunth[1].zeroth)) {
+    return obj;
+  }
   if (opPred(obj.wunth[1].zeroth) > opPred(obj.zeroth)) {
     return obj;
   }
@@ -291,6 +304,8 @@ function swapLeftToRight(obj) {
       nested.wunth[1]
     ]
   }
+  /*console.log("In: ", JSON.stringify(obj, undefined, 4));
+  console.log("Out: ", JSON.stringify(res, undefined, 4));*/
   Object.defineProperty(res, "leftToRight", {
     value: true,
     enumerable: false
@@ -1001,6 +1016,7 @@ module.exports = Object.freeze(function parse(tokGen) {
   metadata = {};
   [tok, nextTok] = [tokList[0], tokList[1]];
   const statementz = statements();
+  /*console.log(JSON.stringify(statementz, undefined, 4))*/
   if (!findAndThrow(statementz)) {
     return statementz;
   }

@@ -50,12 +50,16 @@ $ zcomp run [path of Z to run]
 ```
 Transpile one directory to another:
 ```sh
-$ zcomp run [path of directory with Z] [path of "out" directory]
+$ zcomp dirt [path of directory with Z] [path of "out" directory]
+```
+Watch a file for changes, and transpile when the file is changed:
+```sh
+$ zcomp watch [path of Z to watch and transpile] [path of where to output the transpiled JS]
 ```
 # Docs
 The docs are on the offical [Z Website](https://zlanguage.github.io/).
 
-# Z 0.2.5 is out!
+# Z 0.2.6 is out!
 New features:
-- Repl result highlighting
-- Operators evaluate correctly
+- Operators allow invocations to be mixed in.
+- Left and right associative operators.
