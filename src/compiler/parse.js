@@ -277,9 +277,6 @@ function swapLeftToRight(obj) {
   if (opPred(obj.wunth[1].zeroth) > opPred(obj.zeroth)) {
     return obj;
   }
-  if (obj.infix !== true || obj.wunth[1].infix !== true) {
-    return obj;
-  }
   const nested = obj.wunth[1];
   const outer = obj;
   const res = {
@@ -321,14 +318,14 @@ function leftToRight(obj) {
   }
   return obj;
 }
-function parseCol(start, end, sep = ","){
+function parseCol(start, end, sep = ",") {
   let res = [];
   advance(start);
-  if(tok.id !== end) {
+  if (tok.id !== end) {
     while (true) {
       res.push(expr())
       advance();
-      if(tok && tok.id === sep){
+      if (tok && tok.id === sep) {
         advance(sep);
       } else {
         break;
@@ -630,10 +627,10 @@ function expr() {
       zeroth: prevTok.id,
       wunth: [configureExpr(type, zeroth, wunth, twoth), expr()].filter(param => param !== undefined)
     }
-    Object.defineProperty(res, "infix", {
+    /*Object.defineProperty(res, "infix", {
       value: true,
       enumerable: false
-    });
+    });*/
     return leftToRight(res);
   }
   if (nextTok && nextTok.alphanumeric && nextTok.id.endsWith("$exclam") && tokList[index + 2] && tokList[index + 2].id !== "," && tokList[index + 2].id !== ")") {
@@ -991,6 +988,7 @@ function findAndThrow(ast) {
   });
   return errorFound;
 }
+
 module.exports = Object.freeze(function parse(tokGen) {
   tokList = function() {
     let res = [];

@@ -30,7 +30,7 @@ class WatchCommand extends Command {
                         this.log(err);
                     }
                 });
-            })
+            });
         });
     }
 }

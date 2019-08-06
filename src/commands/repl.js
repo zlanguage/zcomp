@@ -21,7 +21,7 @@ class ReplCommand extends Command {
             try {
                 const res = eval(gen(parse(tokenize(commands.concat(code).join("\n")))));
                 if (res !== "use strict" && !alreadyLogged) {
-                    this.log(res);
+                    console.log(res);
                 }
                 if (code.includes(":") || code.includes("import") || code.includes("importstd")) {
                     commands.push(code);
