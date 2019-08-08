@@ -105,7 +105,7 @@ function genTwoth() {
   return r;
 }
 function isExpr(obj) {
-  return obj && ["subscript", "refinement", "invocation", "assignment", "function", "spread", "match", "range", "dds", "loopexpr"].includes(obj.type);
+  return obj && ["subscript", "refinement", "invocation", "assignment", "function", "spread", "match", "range", "dds", "loopexpr", "ifexpr"].includes(obj.type);
 }
 
 function genDestructuring(arr) {
@@ -299,9 +299,9 @@ function genExpr() {
                 return genExpr();
               }).join(" && ");
               curr = anchor;
-              return `if (!(${r})) { throw new Error("Enter failed") }`
+              return `if (!(${r})) { throw new Error("Enter failed") }`;
             }()
-            r += ` finally { ${conds} } }`
+            r += ` finally { ${conds} } }`;
             curr = anchor;
           } else {
             r += genBlock();
@@ -310,12 +310,12 @@ function genExpr() {
         })();
         break;
       case "spread":
-        r += `...${zStringify(curr.wunth)}`
+        r += `...${zStringify(curr.wunth)}`;
         break;
       case "match":
         r += `matcher([\n`;
         r += genMatcherArr(curr.wunth);
-        r += `])(${zStringify(curr.zeroth)})`
+        r += `])(${zStringify(curr.zeroth)})`;
         break;
       case "range":
         const from = curr.zeroth;
@@ -338,6 +338,18 @@ function genExpr() {
         r += "function(){\n  const res = [];\n"
         r += genLoopStatements(curr).split("\n").map(str => str.padStart(padstart + 2 + str.length)).join("\n");
         r += "\n  return res;\n}()"
+        break;
+      case "ifexpr":
+        {
+          let anchor = curr;
+          curr = anchor.zeroth;
+          r += `(${genExpr()}) ? `;
+          curr = anchor.wunth;
+          r += genExpr();
+          curr = anchor.twoth;
+          r += ` : ${genExpr()}`;
+          curr = anchor;
+        }
         break;
     }
   } else {

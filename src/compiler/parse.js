@@ -558,6 +558,18 @@ function expr() {
             advance(")");
             wunth = expr();
             break;
+          case "if":
+            advance("(keyword)");
+            type = "ifexpr";
+            advance("(");
+            zeroth = expr();
+            advance();
+            advance(")");
+            wunth = expr();
+            advance();
+            advance("(keyword)");
+            twoth = expr();
+            break;
         }
         break;
       case "...":
@@ -1016,7 +1028,7 @@ module.exports = Object.freeze(function parse(tokGen) {
   metadata = {};
   [tok, nextTok] = [tokList[0], tokList[1]];
   const statementz = statements();
-  /*console.log(JSON.stringify(statementz, undefined, 4))*/
+  // console.log(JSON.stringify(statementz, undefined, 4));
   if (!findAndThrow(statementz)) {
     return statementz;
   }
