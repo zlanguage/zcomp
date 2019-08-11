@@ -124,6 +124,12 @@ function genDestructuring(arr) {
         r += "}";
         return r;
     }
+  } else if (isExpr(arr)) {
+    let anchor = curr;
+    curr = arr;
+    let res = genExpr();
+    curr = anchor;
+    return res;
   }
   return arr;
 }
@@ -389,7 +395,7 @@ generateStatement.def = () => {
 }
 
 generateStatement.import = () => {
-  return `const ${curr.zeroth} = stone(require(${curr.wunth}));`
+  return `const ${genDestructuring(curr.zeroth)} = stone(require(${curr.wunth}));`
 }
 
 generateStatement.export = () => {
