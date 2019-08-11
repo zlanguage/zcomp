@@ -59,6 +59,7 @@ $ zcomp watch [path of Z to watch and transpile] [path of where to output the tr
 # Docs
 The docs are on the offical [Z Website](https://zlanguage.github.io/).
 
-# Z 0.2.7 is out!
+# Z 0.2.8 is out!
 New features:
-- Ternary operator
+- Watch directories for changes
+- Improved REPL

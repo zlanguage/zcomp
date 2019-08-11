@@ -14,7 +14,7 @@ class ReplCommand extends Command {
         rl.prompt();
         rl.on("line", code => {
             let alreadyLogged = false;
-            if (/^[A-Za-z_+\-/*%&|?^=<>'!][A-Za-z_0-9+\-/*%&|?^<>='!]*$/.test(code) || code.includes(".") || code.includes("[")) {
+            if (/^[A-Za-z_+\-/*%&|?^=<>'!][A-Za-z_0-9+\-/*%&|?^<>='!.]*$/.test(code)) {
                 alreadyLogged = true;
                 code = `log(${code})`;
             }
