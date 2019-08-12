@@ -105,7 +105,8 @@ function genTwoth() {
   return r;
 }
 function isExpr(obj) {
-  return obj && ["subscript", "refinement", "invocation", "assignment", "function", "spread", "match", "range", "dds", "loopexpr", "ifexpr"].includes(obj.type);
+  return obj && ["subscript", "refinement", "invocation", "assignment", "function", "spread", "match", "range", "dds", "loopexpr", "ifexpr", "goroutine", 
+  "get"].includes(obj.type);
 }
 
 function genDestructuring(arr) {
@@ -282,6 +283,8 @@ function genExpr() {
         curr = curr.wunth;
         r += genExpr();
         break;
+      case "goroutine":
+        r += "async ";
       case "function":
         (function() {
           r += `function (`
@@ -357,6 +360,15 @@ function genExpr() {
           curr = anchor;
         }
         break;
+      case "get":
+        r += "await "
+        {
+          let anchor = curr;
+          curr = curr.zeroth;
+          r += genExpr();
+          curr = anchor;
+        }
+        r += "._from()"
     }
   } else {
     r += zStringify(curr);

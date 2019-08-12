@@ -61,4 +61,4 @@ The docs are on the offical [Z Website](https://zlanguage.github.io/).
 
 # Z 0.2.9 is out!
 New features:
-- Destructuring Enhancements
+- Channels/Goroutines Added

@@ -9,8 +9,10 @@ let index = 0;
 let metadata = {
     ddsdir: process.cwd()
 };
-const validNameOps = ["and", "or"]
+const validNameOps = ["and", "or", "to"];
+const unOps = ["get"];
 const ops = {
+    to: -444,
     and: -333,
     or: -333,
     $eq: -222,
@@ -305,7 +307,7 @@ function swapLeftToRight(obj) {
     ]
   }
   /*console.log("In: ", JSON.stringify(obj, undefined, 4));
-  console.log("Out: ", JSON.stringify(res, undefined, 4));*/
+  console.log("Out: ", JSON.stringify(res, undefined, 4)); */
   Object.defineProperty(res, "leftToRight", {
     value: true,
     enumerable: false
@@ -407,8 +409,13 @@ function expr() {
         break;
       case "(keyword)":
         switch (tok.string) {
+          case "go":
+            advance("(keyword)")
+            type = "goroutine"
           case "func":
-            type = "function";
+            if (type !== "goroutine") {
+              type = "function";
+            }
             const typeChecks = [];
             zeroth = []; // Zeroth will serve as the parameter list
             // Figure out functions parameter list.
@@ -570,6 +577,11 @@ function expr() {
             advance("(keyword)");
             twoth = expr();
             break;
+          case "get":
+            advance("(keyword)");
+            type = "get";
+            zeroth = expr();
+            break;
         }
         break;
       case "...":
@@ -685,6 +697,12 @@ function expr() {
       type,
       zeroth,
       wunth
+    }
+  }
+  if (unOps.includes(type)) {
+    return {
+      type,
+      zeroth
     }
   }
   // Return raw value if isn't a complete token
@@ -1028,7 +1046,7 @@ module.exports = Object.freeze(function parse(tokGen) {
   metadata = {};
   [tok, nextTok] = [tokList[0], tokList[1]];
   const statementz = statements();
-  // console.log(JSON.stringify(statementz, undefined, 4));
+  console.log(JSON.stringify(statementz, undefined, 4));
   if (!findAndThrow(statementz)) {
     return statementz;
   }
