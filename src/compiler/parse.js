@@ -1046,7 +1046,7 @@ module.exports = Object.freeze(function parse(tokGen) {
   metadata = {};
   [tok, nextTok] = [tokList[0], tokList[1]];
   const statementz = statements();
-  console.log(JSON.stringify(statementz, undefined, 4));
+  // console.log(JSON.stringify(statementz, undefined, 4));
   if (!findAndThrow(statementz)) {
     return statementz;
   }
