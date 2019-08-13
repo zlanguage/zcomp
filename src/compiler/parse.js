@@ -941,7 +941,7 @@ function parseDollarDirective() {
   dollarDir.wunth = transformer(statement(), { ...metadata });
   return dollarDir;
 }
-const exprKeywords = Object.freeze(["func", "match"]);
+const exprKeywords = Object.freeze(["func", "match", "get"]);
 function statement() {
   if (tok && tok.id === "(keyword)" && !exprKeywords.includes(tok.string)) {
     const parser = parseStatement[tok.string];
@@ -956,7 +956,7 @@ function statement() {
     if (res !== undefined && res.id === "(error)") {
       return res;
     }
-    if (typeIn(res, "assignment") || typeIn(res, "invocation") || typeIn(res, "match") || res && res.species === "Destructuring[Array]") {
+    if (typeIn(res, "assignment") || typeIn(res, "invocation") || typeIn(res, "get") || typeIn(res, "match") || res && res.species === "Destructuring[Array]") {
       return res;
     } else {
       if (res !== undefined) {
