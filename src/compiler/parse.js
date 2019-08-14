@@ -34,20 +34,35 @@ const blockStatements = Object.freeze(["if", "else", "loop"]);
 function error(message) {
     return {
         id: "(error)",
-        zeroth: `Error: "${message}"${(prevTok || tok) ? ` at ${tok ? tok.lineNumber : prevTok.lineNumber}:${tok ? tok.columnNumber : prevTok.columnNumber}:${tok ? tok.columnTo : prevTok.columnTo}` : ""}.`
-  };
+        zeroth: `Error: "${message}"${(prevTok || tok) ? ` at ${formatCurrLine()}.` : ""}`
+    };
+}
+function nqerror(message) {
+    return {
+        id: "(error)",
+        zeroth: `Error: ${message} ${(prevTok || tok) ? `at ${formatCurrLine()}.` : ""}`
+    };
+}
+function formatCurrLine() {
+  return `${tok ? tok.lineNumber + 1 : prevTok.lineNumber + 1}:${tok ? tok.columnNumber : prevTok.columnNumber}:${tok ? tok.columnTo : prevTok.columnTo}`;
 }
 
 function advance(id) {
-  if (tok && id !== undefined && id !== tok.id) {
-    throw error(`Expected "${id}" but got "${tok.id}".`).zeroth;
-  }
+  isTok(id)
   index += 1;
   prevTok = tok;
   tok = nextTok;
   nextTok = tokList[index + 1];
 }
 
+function isTok(id) {
+  if (tok && id !== undefined && id !== tok.id) {
+    throw error(`Expected "${id}" but got "${tok.id}".`).zeroth;
+  }
+  if (tok === undefined && id !== undefined) {
+    throw error(`Expected "${id}" but got nothing.`).zeroth;
+  }
+}
 function check(id) {
   if (!tok) {
     throw error(`Expected ${id}, got nothing.`).zeroth;
@@ -340,7 +355,10 @@ function parseCol(start, end, sep = ",") {
   advance(start);
   if (tok.id !== end) {
     while (true) {
-      res.push(expr())
+      const toPush = expr();
+      if (!findAndThrow(toPush)) {
+        res.push(toPush)
+      }
       advance();
       if (tok && tok.id === sep) {
         advance(sep);
@@ -432,7 +450,9 @@ function expr() {
                     throw error("Unexpected keyword in parameter list.").zeroth;
                   }
                   const nextParam = expr(); // Any valid expression can be used in parameter position
-                  zeroth.push(nextParam);
+                  if(!findAndThrow(nextParam)) {
+                    zeroth.push(nextParam);
+                  }
                   // Check for runtime type checks
                   if (nextTok && nextTok.alphanumeric) {
                     if (isValidName.test(nextParam)) {
@@ -644,6 +664,7 @@ function expr() {
         type = "subscript";
         wunth = expr(); // Unlike refinements, subscripts allow ANY expression for property access
         advance();
+        isTok("]");
         // Continue to the next part of the expression
         if (isExprAhead()) {
           twoth = expr();
@@ -968,12 +989,23 @@ function statement() {
 function block() {
   let statements = [];
   advance();
+  const init = tok;
   advance();
   let i = 0;
   while (tok && tok.id !== "}" && i < 1e6) {
-    statements.push(statement());
+    const st = statement();
+    if(!findAndThrow(st)) {
+      statements.push(st);
+    }
     advance();
     i += 1;
+  }
+  if (tok === undefined) {
+    let temp = tok;
+    tok = init;
+    const res = nqerror("Unclosed block. Block started");
+    tok = temp;
+    return res;
   }
   if (i === 1e6) {
     return error("Unclosed block.")
