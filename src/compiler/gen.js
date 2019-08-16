@@ -558,8 +558,8 @@ function genStatements(ast) {
   }
   return r;
 }
-module.exports = Object.freeze(function gen(ast) {
+module.exports = Object.freeze(function gen(ast, prelude = true) {
   index = 0;
   padstart = 0;
-  return res + genStatements(ast);
+  return prelude ? res + genStatements(ast) : genStatements(ast);
 });
