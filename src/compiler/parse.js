@@ -370,6 +370,30 @@ function parseCol(start, end, sep = ",") {
   }
   return res;
 }
+
+function hasGet(statement) {
+  if (statement == null || typeof statement !== "object") {
+    return false;
+  }
+  if (statement.type === "function") {
+    return false;
+  }
+  if (statement.type === "get") {
+    return true;
+  }
+  for(const part of [statement.zeroth, statement.wunth, statement.twoth]) {
+    if (hasGet(part)) {
+      return true;
+    }
+    if (Array.isArray(part)) {
+      return isGoroutine(part);
+    }
+  }
+  return false;
+}
+function isGoroutine(ast) {
+  return ast.some(statement => hasGet(statement) ? true : false)
+}
 function expr() {
   let zeroth, wunth, twoth, type;
   // Is the token a literal? If so, prepare to return it's value.
@@ -525,6 +549,9 @@ function expr() {
                 type: "return",
                 zeroth: implicitExpr
               }];
+            }
+            if (isGoroutine(wunth)) {
+              type = "goroutine";
             }
             break;
           // Parse match
@@ -1080,6 +1107,27 @@ module.exports = Object.freeze(function parse(tokGen) {
   const statementz = statements();
   // console.log(JSON.stringify(statementz, undefined, 4));
   if (!findAndThrow(statementz)) {
+    if (isGoroutine(statementz)) {
+      return [
+        {
+          type: "def",
+          zeroth: [{
+            type: "assignment",
+            zeroth: "$main",
+            wunth: {
+              type: "goroutine",
+              zeroth: [],
+              wunth: statementz
+            }
+          }]
+        },
+        {
+          type: "invocation",
+          zeroth: "$main",
+          wunth: []
+        }
+      ]
+    }
     return statementz;
   }
   return [];
