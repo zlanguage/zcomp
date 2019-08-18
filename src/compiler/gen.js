@@ -143,11 +143,14 @@ function stringifyPat(pat) {
       return `matcher.type("${parts[0]}", "${parts[1]}")`;
     }
   }
-  if (/^[a-z_]$/.test(pat[0])) {
-    return `matcher.wildcard("${pat}")`;
+  if (typeof pat === "string" && pat.endsWith("$question")) {
+    return `matcher.predicate(${pat.replace(/\$question$/, "")})`;
   }
   if (pat.species === "Destructuring[Array]") {
     return `matcher.arr(${pat.map(stringifyPat).join(", ")})`;
+  }
+  if (/^[a-z_]$/.test(pat[0])) {
+    return `matcher.wildcard("${pat}")`;
   }
   if (pat.species === "Destructuring[Object]") {
     return `matcher.obj(${pat.map(patpart => {
@@ -162,6 +165,10 @@ function stringifyPat(pat) {
   }
   if (pat.type === "range") {
     return `matcher.range(${pat.zeroth}, ${pat.wunth})`
+  }
+  if (pat.type === "invocation") {
+    pat.wunth.species = "Destructuring[Array]";
+    return `matcher.extractor(${zStringify(pat.zeroth)}.extract, ${stringifyPat(pat.wunth)})`
   }
   return zStringify(pat);
 }

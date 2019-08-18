@@ -35,13 +35,13 @@ function error(message) {
     return {
         id: "(error)",
         zeroth: `Error: "${message}"${(prevTok || tok) ? ` at ${formatCurrLine()}.` : ""}`
-    };
+  };
 }
 function nqerror(message) {
-    return {
-        id: "(error)",
-        zeroth: `Error: ${message} ${(prevTok || tok) ? `at ${formatCurrLine()}.` : ""}`
-    };
+  return {
+    id: "(error)",
+    zeroth: `Error: ${message} ${(prevTok || tok) ? `at ${formatCurrLine()}.` : ""}`
+  };
 }
 function formatCurrLine() {
   return `${tok ? tok.lineNumber + 1 : prevTok.lineNumber + 1}:${tok ? tok.columnNumber : prevTok.columnNumber}:${tok ? tok.columnTo : prevTok.columnTo}`;
@@ -183,7 +183,7 @@ function findWildcards(pat) {
         if (wildcard) {
           wildcards.push(wildcard);
         }
-      } else if (/^[a-z_]$/.test(pat[0])) {
+      } else if (/^[a-z_]$/.test(pat[0]) && !pat.includes("$question")) {
         wildcards.push(pat)
       }
     case "object":
@@ -193,6 +193,9 @@ function findWildcards(pat) {
         pat.forEach(patpart => {
           wildcards.push(...findWildcards(patpart));
         })
+      } else if (pat.type === "invocation") {
+        pat.wunth.species = "Destructuring[Array]";
+        wildcards.push(...findWildcards(pat.wunth));
       } else if (pat.species === "Destructuring[Object]") {
         const pats = arrayToObj([...pat]).map(([k, v]) => v);
         pats.forEach(patpart => {
@@ -381,7 +384,7 @@ function hasGet(statement) {
   if (statement.type === "get") {
     return true;
   }
-  for(const part of [statement.zeroth, statement.wunth, statement.twoth]) {
+  for (const part of [statement.zeroth, statement.wunth, statement.twoth]) {
     if (hasGet(part)) {
       return true;
     }
@@ -474,7 +477,7 @@ function expr() {
                     throw error("Unexpected keyword in parameter list.").zeroth;
                   }
                   const nextParam = expr(); // Any valid expression can be used in parameter position
-                  if(!findAndThrow(nextParam)) {
+                  if (!findAndThrow(nextParam)) {
                     zeroth.push(nextParam);
                   }
                   // Check for runtime type checks
@@ -567,15 +570,25 @@ function expr() {
               const pat = expr();
               const wildcards = findWildcards(pat);
               advance();
-              advance("$eq$gt");
-              const res = {
-                type: "function",
-                zeroth: wildcards,
-                wunth: [{
-                  type: "return",
-                  zeroth: expr()
-                }]
-              };
+              let res;
+              if (nextTok && nextTok.id !== "{") {
+                advance("$eq$gt");
+                res = {
+                  type: "function",
+                  zeroth: wildcards,
+                  wunth: [{
+                    type: "return",
+                    zeroth: expr()
+                  }]
+                };
+              } else {
+                isTok("$eq$gt");
+                res = {
+                  type: "function",
+                  zeroth: wildcards,
+                  wunth: block()
+                }
+              }
               advance();
               if (tok && tok.id !== "}") {
                 advance(",")
@@ -1021,7 +1034,7 @@ function block() {
   let i = 0;
   while (tok && tok.id !== "}" && i < 1e6) {
     const st = statement();
-    if(!findAndThrow(st)) {
+    if (!findAndThrow(st)) {
       statements.push(st);
     }
     advance();
@@ -1108,6 +1121,9 @@ module.exports = Object.freeze(function parse(tokGen) {
   // console.log(JSON.stringify(statementz, undefined, 4));
   if (!findAndThrow(statementz)) {
     if (isGoroutine(statementz)) {
+      if (statementz.some(statement => statement.type === "export")) {
+        throw error("Export and top-level get do not work well together. Until top-level await is supported, another solution is needed.").zeroth;
+      }
       return [
         {
           type: "def",
