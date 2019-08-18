@@ -691,6 +691,10 @@ function expr() {
         advance();
         type = "invocation";
         wunth = parseCol("(", ")");
+        if (wunth.every(param => param && param.type === "assignment")) {
+          wunth = [wunth.map(({zeroth, wunth}) => [`"`  + zeroth + `"`, wunth])];
+          wunth[0].species = "Object";
+        }
         // Is there a refinement after the end of the method call? A subscript? ANOTHER method call?
         if (isExprAhead()) {
           // If so, record it in twoth

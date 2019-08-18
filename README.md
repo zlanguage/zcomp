@@ -59,6 +59,6 @@ $ zcomp watch [path of Z to watch and transpile] [path of where to output the tr
 # Docs
 The docs are on the offical [Z Website](https://zlanguage.github.io/).
 
-# Z 0.2.22 is out!
+# Z 0.3.0 is out!
 New features:
-- Extractors, predicates, and blocks in `match` expressions.
+- Keyword arguments via implicit objects
