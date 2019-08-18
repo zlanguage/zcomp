@@ -59,6 +59,6 @@ $ zcomp watch [path of Z to watch and transpile] [path of where to output the tr
 # Docs
 The docs are on the offical [Z Website](https://zlanguage.github.io/).
 
-# Z 0.2.20 is out!
+# Z 0.2.22 is out!
 New features:
-- Inferred goroutines and top-level `get`
+- Extractors, predicates, and blocks in `match` expressions.

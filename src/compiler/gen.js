@@ -168,7 +168,7 @@ function stringifyPat(pat) {
   }
   if (pat.type === "invocation") {
     pat.wunth.species = "Destructuring[Array]";
-    return `matcher.extractor(${zStringify(pat.zeroth)}.extract, ${stringifyPat(pat.wunth)})`
+    return `matcher.extractor(${zStringify(pat.zeroth)}, ${stringifyPat(pat.wunth)})`
   }
   return zStringify(pat);
 }
