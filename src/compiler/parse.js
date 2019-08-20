@@ -1077,7 +1077,7 @@ function statement() {
       return res;
     } else {
       if (res !== undefined) {
-        console.log(res);
+        // console.log(res);
         return error("Invalid expression, expression must be an assignment or invocation if it does not involve a keyword.");
       }
     }

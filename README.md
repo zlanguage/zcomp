@@ -59,6 +59,6 @@ $ zcomp watch [path of Z to watch and transpile] [path of where to output the tr
 # Docs
 The docs are on the offical [Z Website](https://zlanguage.github.io/).
 
-# Z 0.3.0 is out!
+# Z 0.3.2 is out!
 New features:
-- Keyword arguments via implicit objects
+- Enums, `where` + `derive`, and traits.
