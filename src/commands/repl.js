@@ -23,7 +23,7 @@ class ReplCommand extends Command {
                 if (res !== "use strict" && !alreadyLogged) {
                     console.log(res);
                 }
-                if (code.includes(":") || code.includes("import") || code.includes("importstd")) {
+                if (code.includes(":") || code.includes("import") || code.includes("importstd") || code.includes("enum")) {
                     commands.push(code);
                 }
             } catch (err) {

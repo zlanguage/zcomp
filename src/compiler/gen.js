@@ -105,8 +105,8 @@ function genTwoth() {
   return r;
 }
 function isExpr(obj) {
-  return obj && ["subscript", "refinement", "invocation", "assignment", "function", "spread", "match", "range", "dds", "loopexpr", "ifexpr", "goroutine", 
-  "get"].includes(obj.type);
+  return obj && ["subscript", "refinement", "invocation", "assignment", "function", "spread", "match", "range", "dds", "loopexpr", "ifexpr", "goroutine",
+    "get"].includes(obj.type);
 }
 
 function genDestructuring(arr) {
@@ -510,6 +510,128 @@ generateStatement.exit = () => {
 }
 generateStatement.operator = () => {
   return `/* operator ${curr.zeroth} = ${curr.wunth} */`;
+}
+
+function generateGetters(fields) {
+  return fields.map(field => `get ${field}(){ return ${field}; }`).join(",\n\t\t");
+}
+function generateEquals(type, fields) {
+  return `"="(other) {
+      return other.constructor === ${type}${fields.length > 0 ? " && " : ""}${fields.map(field => `$eq(${field}, other.${field})`).join(" && ")};
+    }`;
+}
+function generateStatics(type, static = {}) {
+  let res = "";
+  Object.entries(static).forEach(([key, func]) => {
+    let anchor = curr;
+    curr = func;
+    const f = genExpr();
+    curr = anchor;
+    res += (
+`
+${type}.${key} = ${f};
+`
+    )
+  });
+  return res;
+}
+function generateParent(type, parts, static = {}) {
+  let res = (
+    `const ${type} = {
+  order: ${zStringify(parts)},
+  ${parts.join(",\n\t")}
+}`
+  );
+  res += generateStatics(type, static);
+  return res;
+}
+function generateTypeChecks(typeChecks, parent, child) {
+  let r = "";
+  typeChecks.forEach(([field, type]) => {
+    type = type.replace(/\$exclam$/, "");
+    r += (
+      `
+  if (typeOf(${field}) !== "${type}") { 
+    throw new Error("${parent}.${child}.${field} must be of type ${type}. However, you passed " + ${field} + " to ${parent}.${child} which is not of type ${type}.");
+  }
+`
+    );
+  })
+  return r;
+}
+function wrapFuncs(funcs, str) {
+  if (!Array.isArray(funcs) || funcs.length === 0) {
+    return str;
+  }
+  const open = funcs.map(func => {
+    let anchor = curr;
+    curr = func;
+    let res = genExpr();
+    curr = anchor;
+    return res;
+  }).join("(") + "(";
+  const close = ")".repeat(funcs.length);
+  return open + str + close;
+}
+generateStatement.enum = () => {
+  let r = "";
+  const parentType = curr.zeroth;
+  const types = [];
+  curr.wunth.forEach(type => {
+    let fields = [];
+    const typeChecks = [];
+    if (type.type === "invocation") {
+      fields = type.wunth;
+      if (Array.isArray(fields[0]) && fields[0].some(field => Array.isArray(field))) {
+        fields = fields[0].map(field => {
+          if (Array.isArray(field)) {
+            field[0] = field[0].replace(/"/g, "")
+            typeChecks.push(field);
+            return field[0];
+          }
+          return field;
+        })
+      }
+      type = type.zeroth;
+    }
+    types.push(type);
+    r += `function ${type}(${fields.join(", ")}) {
+  ${
+    fields[0] ?
+    (
+`
+  if($eq(Object.keys((${fields[0]} == null) ? { [Symbol()]: 0 } : ${fields[0]}), ${zStringify(fields.map(field => `"${field}"`))})) {
+    ({ ${fields.join(", ")} } = ${fields[0]});
+  }
+`
+    ):
+    ""
+  }
+  ${generateTypeChecks(typeChecks, parentType, type)}
+  return ${wrapFuncs(curr.derives, `{
+    type() { return "${parentType}"; },
+    get constructor() { return ${type}; },
+    get parent() { return ${parentType}; },
+    get fields() { return ${zStringify(fields.map(field => `"${field}"`))}; },
+    ${generateGetters(fields)}${fields.length > 0 ? "," : ""}
+    ${generateEquals(type, fields)}
+  }`) + ";\n}\n"}\n`;
+    r += `${type}.extract = function (val) {
+  if (val.constructor === ${type}) {
+    return [${fields.map(field => `val.${field}`).join(", ")}];
+  }
+  return undefined;
+};
+
+`;
+  })
+  if (curr.wunth[0] === parentType || curr.wunth[0].zeroth === parentType) {
+    r += `${parentType}.order = ${zStringify(types)};\n`;
+    r += generateStatics(parentType, curr.twoth);
+  } else {
+    r += generateParent(parentType, types, curr.twoth);
+  }
+  return r;
 }
 generateStatement.hoist = () => {
   let r = `var `;

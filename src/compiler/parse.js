@@ -691,7 +691,7 @@ function expr() {
         advance();
         type = "invocation";
         wunth = parseCol("(", ")");
-        if (wunth.every(param => param && param.type === "assignment")) {
+        if (wunth.length !== 0 && wunth.every(param => param && param.type === "assignment")) {
           wunth = [wunth.map(({zeroth, wunth}) => [`"`  + zeroth + `"`, wunth])];
           wunth[0].species = "Object";
         }
@@ -991,6 +991,57 @@ parseStatement.hoist = () => {
   res.type = "hoist";
   return res;
 }
+parseStatement.enum = () => {
+  advance("(keyword)")
+  const res = {
+    type: "enum",
+  }
+  if (nextTok.id === "(") {
+    const name = expr();
+    res.zeroth = name.zeroth;
+    res.wunth = [name];
+  } else {
+    res.zeroth = tok.id;
+    advance();
+    res.wunth = parseCol("{", "}");
+    if(!res.wunth.every(part => typeof part === "string" || part.type === "invocation")) {
+      return error("Only parenless constructors and normal constructors are allowed in enum declarations.");
+    }
+  }
+  if(nextTok && nextTok.id === "(keyword)" && nextTok.string === "derives") {
+    advance()
+    advance("(keyword)")
+    res.derives = parseCol("(", ")");
+  }
+  if(nextTok && nextTok.id === "(keyword)" && nextTok.string === "where") {
+    advance();
+    advance("(keyword)");
+    advance("{");
+    res.twoth = {};
+    if(tok.id !== "}") {
+      while (true) {
+        const key = tok.id;
+        advance();
+        const temp = expr();
+        const func = {
+          type: "function",
+          zeroth: temp.slice(0, -1),
+          wunth: temp[temp.length - 1].wunth
+        };
+        res.twoth[key] = func;
+        advance("}");
+        if(!tok){
+          break;
+        }
+        if(tok.id === "}") {
+          break;
+        }
+      }
+    }
+    isTok("}");
+  }
+  return res;
+}
 function parseDollarDirective() {
   let dollarDir = {
     type: "dds"
@@ -1018,6 +1069,7 @@ function statement() {
     return parseDollarDirective();
   } else {
     let res = expr();
+    
     if (res !== undefined && res.id === "(error)") {
       return res;
     }
@@ -1025,6 +1077,7 @@ function statement() {
       return res;
     } else {
       if (res !== undefined) {
+        console.log(res);
         return error("Invalid expression, expression must be an assignment or invocation if it does not involve a keyword.");
       }
     }
