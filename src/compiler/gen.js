@@ -537,10 +537,10 @@ ${type}.${key} = ${f};
 }
 function generateParent(type, parts, static = {}) {
   let res = (
-    `const ${type} = {
+    `let ${type} = {
   order: ${zStringify(parts)},
   ${parts.join(",\n\t")}
-}`
+};`
   );
   res += generateStatics(type, static);
   return res;
@@ -628,8 +628,14 @@ generateStatement.enum = () => {
   if (curr.wunth[0] === parentType || curr.wunth[0].zeroth === parentType) {
     r += `${parentType}.order = ${zStringify(types)};\n`;
     r += generateStatics(parentType, curr.twoth);
+    if (curr.staticDerives && curr.staticDerives.length > 0) {
+      r += `\n${parentType} = ${wrapFuncs(curr.staticDerives,parentType)}`;
+    }
   } else {
     r += generateParent(parentType, types, curr.twoth);
+    if (curr.staticDerives && curr.staticDerives.length > 0) {
+      r += `\n${parentType} = ${wrapFuncs(curr.staticDerives,parentType)}`;
+    }
   }
   return r;
 }

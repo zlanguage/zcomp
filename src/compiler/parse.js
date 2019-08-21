@@ -10,7 +10,7 @@ let metadata = {
     ddsdir: process.cwd()
 };
 const validNameOps = ["and", "or", "to"];
-const unOps = ["get"];
+const unOps = ["get", "static"];
 const ops = {
     to: -444,
     and: -333,
@@ -454,6 +454,11 @@ function expr() {
         break;
       case "(keyword)":
         switch (tok.string) {
+          case "static":
+            type = "static";
+            advance("(keyword)");
+            zeroth = tok.id;
+            break;
           case "go":
             advance("(keyword)")
             type = "goroutine"
@@ -1011,7 +1016,9 @@ parseStatement.enum = () => {
   if(nextTok && nextTok.id === "(keyword)" && nextTok.string === "derives") {
     advance()
     advance("(keyword)")
-    res.derives = parseCol("(", ")");
+    const derives = parseCol("(", ")");
+    res.derives = derives.filter(derive => derive.type !== "static");
+    res.staticDerives = derives.filter(derive => derive.type === "static").map(derive => derive.zeroth);
   }
   if(nextTok && nextTok.id === "(keyword)" && nextTok.string === "where") {
     advance();
@@ -1077,7 +1084,7 @@ function statement() {
       return res;
     } else {
       if (res !== undefined) {
-        // console.log(res);
+        console.log(res);
         return error("Invalid expression, expression must be an assignment or invocation if it does not involve a keyword.");
       }
     }

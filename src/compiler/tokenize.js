@@ -33,7 +33,7 @@ Capturing Group:
 [6] Number
 [7] Punctuator
 */
-const tokenRegExp = /(\u0020+|\t+)|(#.*)|("(?:[^"\\]|\\(?:[nr"\\]|u\{[0-9A-F]{4,6}\}))*")|\b(let|loop|if|else|func|break|import|export|match|return|def|try|on|settle|raise|importstd|meta|enter|exit|operator|hoist|go|get|enum|where|derives)\b|([A-Za-z_+\-/*%&|?^=<>'!][A-Za-z_0-9+\-/*%&|?^<>='!]*)|((?:0[box])?-?\d[\d_]*(?:\.[\d_]+)?(?:e\-?[\d_]+)?[a-z]*)|(\.{3}|[$(),.{}\[\]:])/y;
+const tokenRegExp = /(\u0020+|\t+)|(#.*)|("(?:[^"\\]|\\(?:[nr"\\]|u\{[0-9A-F]{4,6}\}))*")|\b(let|loop|if|else|func|break|import|export|match|return|def|try|on|settle|raise|importstd|meta|enter|exit|operator|hoist|go|get|enum|where|derives|static)\b|([A-Za-z_+\-/*%&|?^=<>'!][A-Za-z_0-9+\-/*%&|?^<>='!]*)|((?:0[box])?-?\d[\d_]*(?:\.[\d_]+)?(?:e\-?[\d_]+)?[a-z]*)|(\.{3}|[$(),.{}\[\]:])/y;
 /**
  * Create a token generator for a specific source.
  * @param {string | Array<string>} source If string is provided, string is split along newlines. If array is provided, array is used as the array of lines.

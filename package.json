@@ -1,7 +1,7 @@
 {
     "name": "@zlanguage/zcomp",
     "description": "The Z transpiler",
-    "version": "0.3.2",
+    "version": "0.3.3",
     "author": "N8",
     "bin": {
         "zcomp": "./bin/run"
@@ -47,6 +47,6 @@
         "prepack": "oclif-dev manifest",
         "test": "mocha",
         "version": "oclif-dev readme && git add README.md",
-        "build": "sudo npm install @zlanguage/zstdlib@latest --save && sudo git add . && sudo git commit -m \"$npm_package_version\" && sudo git push && sudo npm publish --access public"
+        "build": "sudo npm install @zlanguage/zstdlib@latest --save && npm test && sudo git add . && sudo git commit -m \"$npm_package_version\" && sudo git push && sudo npm publish --access public"
     }
 }
