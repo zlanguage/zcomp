@@ -600,7 +600,7 @@ generateStatement.enum = () => {
     fields[0] ?
     (
 `
-  if($eq(Object.keys((${fields[0]} == null) ? { [Symbol()]: 0 } : ${fields[0]}), ${zStringify(fields.map(field => `"${field}"`))})) {
+  if($eq(Object.keys((${fields[0]} == null) ? { [Symbol()]: 0 } : ${fields[0]}).sort(), ${zStringify(fields.map(field => `"${field}"`))}.sort())) {
     ({ ${fields.join(", ")} } = ${fields[0]});
   }
 `
