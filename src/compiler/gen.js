@@ -547,7 +547,7 @@ function generateParent(type, parts, static = {}) {
 }
 function generateTypeChecks(typeChecks, parent, child) {
   let r = "";
-  typeChecks.forEach(([field, type]) => {
+  typeChecks.filter(([field, type]) => type !== "_$exclam").forEach(([field, type]) => {
     type = type.replace(/\$exclam$/, "");
     r += (
       `

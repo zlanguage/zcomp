@@ -697,7 +697,7 @@ function expr() {
         type = "invocation";
         wunth = parseCol("(", ")");
         if (wunth.length !== 0 && wunth.every(param => param && param.type === "assignment")) {
-          wunth = [wunth.map(({zeroth, wunth}) => [`"`  + zeroth + `"`, wunth])];
+          wunth = [wunth.map(({ zeroth, wunth }) => [`"` + zeroth + `"`, wunth])];
           wunth[0].species = "Object";
         }
         // Is there a refinement after the end of the method call? A subscript? ANOTHER method call?
@@ -712,11 +712,71 @@ function expr() {
         advance();
         type = "subscript";
         wunth = expr(); // Unlike refinements, subscripts allow ANY expression for property access
-        advance();
-        isTok("]");
-        // Continue to the next part of the expression
-        if (isExprAhead()) {
-          twoth = expr();
+        // Handle slicing
+        if (typeIn(wunth, "assignment") || wunth === ":") {
+          // Begining slice [start:]
+          if (wunth.type === "assignment" && wunth.wunth === "]") {
+            type = "refinement";
+            const start = wunth.zeroth;
+            wunth = "slice";
+            twoth = {
+              type: "invocation",
+              zeroth: "slice",
+              wunth: [start]
+            }
+          } else if (wunth.type === "assignment") { // Handle dual slice [start:end]
+            type = "refinement";
+            const start = wunth.zeroth;
+            const end = wunth.wunth;
+            wunth = "slice";
+            twoth = {
+              type: "invocation",
+              zeroth: "slice",
+              wunth: [start, end]
+            }
+            advance();
+            isTok("]");
+          }
+          if (wunth === ":") {
+            // Full slice [:]
+            if (nextTok.id === "]") {
+              advance(":");
+              type = "refinement";
+              wunth = "slice";
+              twoth = {
+                type: "invocation",
+                zeroth: "slice",
+                wunth: []
+              }
+            } else {
+              // End slice [:end]
+              advance(":");
+              type = "refinement";
+              if(tok.number === undefined) {
+                return error("For now, end slices (slices in the format [:_]) can only accept raw numeric literals.");
+              }
+              const end = tok.number;
+              wunth = "slice";
+              twoth = {
+                type: "invocation",
+                zeroth: "slice",
+                wunth: [0, end]
+              }
+              advance("(number)");
+              isTok("]");
+            }
+          }
+          // Continue to the next part of the expression
+          if (isExprAhead()) {
+            twoth.twoth = expr();
+          }
+        } else {
+          advance();
+          isTok("]");
+          // Continue to the next part of the expression
+          if (isExprAhead()) {
+            twoth = expr();
+          }
         }
         break;
       case ":":
@@ -1009,23 +1069,26 @@ parseStatement.enum = () => {
     res.zeroth = tok.id;
     advance();
     res.wunth = parseCol("{", "}");
-    if(!res.wunth.every(part => typeof part === "string" || part.type === "invocation")) {
+    if (!res.wunth.every(part => typeof part === "string" || part.type === "invocation")) {
       return error("Only parenless constructors and normal constructors are allowed in enum declarations.");
     }
   }
-  if(nextTok && nextTok.id === "(keyword)" && nextTok.string === "derives") {
+  if (!res.wunth.filter(part => part.type === "invocation").every(invok => invok.wunth.every(part => Array.isArray(part) || typeof part === "string"))) {
+    return error(`Error in enum constructor parameter list. Enum name: ${res.zeroth}.`);
+  }
+  if (nextTok && nextTok.id === "(keyword)" && nextTok.string === "derives") {
     advance()
     advance("(keyword)")
     const derives = parseCol("(", ")");
     res.derives = derives.filter(derive => derive.type !== "static");
     res.staticDerives = derives.filter(derive => derive.type === "static").map(derive => derive.zeroth);
   }
-  if(nextTok && nextTok.id === "(keyword)" && nextTok.string === "where") {
+  if (nextTok && nextTok.id === "(keyword)" && nextTok.string === "where") {
     advance();
     advance("(keyword)");
     advance("{");
     res.twoth = {};
-    if(tok.id !== "}") {
+    if (tok.id !== "}") {
       while (true) {
         const key = tok.id;
         advance();
@@ -1037,10 +1100,10 @@ parseStatement.enum = () => {
         };
         res.twoth[key] = func;
         advance("}");
-        if(!tok){
+        if (!tok) {
           break;
         }
-        if(tok.id === "}") {
+        if (tok.id === "}") {
           break;
         }
       }
@@ -1076,7 +1139,7 @@ function statement() {
     return parseDollarDirective();
   } else {
     let res = expr();
-    
+
     if (res !== undefined && res.id === "(error)") {
       return res;
     }
@@ -1084,7 +1147,6 @@ function statement() {
       return res;
     } else {
       if (res !== undefined) {
-        console.log(res);
         return error("Invalid expression, expression must be an assignment or invocation if it does not involve a keyword.");
       }
     }
