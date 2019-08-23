@@ -59,6 +59,7 @@ $ zcomp watch [path of Z to watch and transpile] [path of where to output the tr
 # Docs
 The docs are on the offical [Z Website](https://zlanguage.github.io/).
 
-# Z 0.3.4 is out!
+# Z 0.3.5 is out!
 New features:
-- Unordered `enum` constructor parameters.
+- Slices
+- Bug Fixes
