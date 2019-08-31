@@ -37,7 +37,7 @@ class DirtCommand extends Command {
                             }
                             let transpiledFile;
                             try {
-                                transpiledFile = gen(parse(tokenize(data.toString())));
+                                transpiledFile = gen(parse(tokenize(data.toString()), false));
                             } catch (err) {
                                 this.log(`In file ${filepath}, error found:`);
                                 this.log(err);

@@ -19,7 +19,7 @@ class ReplCommand extends Command {
                 code = `log(${code})`;
             }
             try {
-                let res = eval(gen(parse(tokenize(commands.concat(code).join("\n")))));
+                let res = eval(gen(parse(tokenize(commands.concat(code).join("\n")), false)));
                 if (res !== "use strict" && !alreadyLogged) {
                     console.log(res);
                 }

@@ -21,7 +21,7 @@ class WatchCommand extends Command {
                 }
                 let res;
                 try {
-                    res = gen(parse(tokenize(data.toString())));
+                    res = gen(parse(tokenize(data.toString())), false);
                 } catch (err) {
                     this.log(err);
                 }
