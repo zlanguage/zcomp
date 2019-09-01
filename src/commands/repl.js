@@ -43,6 +43,7 @@ class ReplCommand extends Command {
             output: process.stdout
         });
         const commands = [];
+        const self = this;
         rl.question("zrepl>", async function ask(code) {
             if (code.startsWith(":")) {
                 const command = code[1];
@@ -67,7 +68,7 @@ class ReplCommand extends Command {
 
             } else {
                 if (lineBreakers.some(lb => code.endsWith(lb))) {
-                    code += await this.getLines(rl, code[code.length - 1]);
+                    code += await self.getLines(rl, code[code.length - 1]);
                 }
                 let alreadyLogged = false;
                 if (/^[A-Za-z_+\-/*%&|?^=<>'!][A-Za-z_0-9+\-/*%&|?^<>='!.]*$/.test(code) || code.startsWith("[")) {
