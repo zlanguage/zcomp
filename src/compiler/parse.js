@@ -1,11 +1,14 @@
 "use strict";
 // List of all warnings: [string]
-const warnings = [];
+let warnings = [];
 // An API for registering error objects will later be displayed.
 const errors = function() {
     let index = 0;
-    const errors = [];
+    let errors = [];
     return {
+        empty() {
+            errors = [];
+        },
         push(val) {
             if (errors[index] === undefined) {
                 errors[index] = val;
@@ -1610,6 +1613,8 @@ module.exports = Object.freeze(function parse(tokGen, debug = true) {
     // Re-init all the variables
     index = 0;
     metadata = {};
+    errors.empty();
+    warnings = [];
     [tok, nextTok] = [tokList[0], tokList[1]];
     // Gather statements
     const statementz = statements();
