@@ -40,7 +40,7 @@ class WdirCommand extends Command {
                             }
                             let transpiledFile;
                             try {
-                                transpiledFile = gen(parse(tokenize(data.toString())), false);
+                                transpiledFile = gen(parse(tokenize(data.toString()), false));
                             } catch (err) {
                                 this.log(`In file ${filepath}, error found:`);
                                 this.log(err);
