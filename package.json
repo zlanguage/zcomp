@@ -1,7 +1,7 @@
 {
     "name": "@zlanguage/zcomp",
     "description": "The Z transpiler",
-    "version": "0.3.10",
+    "version": "0.3.11",
     "author": "N8",
     "bin": {
         "zcomp": "./bin/run"
@@ -11,7 +11,7 @@
         "@oclif/command": "^1.5.17",
         "@oclif/config": "^1.13.2",
         "@oclif/plugin-help": "^2.2.0",
-        "@zlanguage/zstdlib": "^0.3.5"
+        "@zlanguage/zstdlib": "^0.3.19"
     },
     "devDependencies": {
         "@oclif/dev-cli": "^1.22.0",
