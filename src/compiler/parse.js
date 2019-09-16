@@ -498,6 +498,9 @@ function hasGet(statement) {
     if (statement.type === "function") {
         return false;
     }
+    if (statement.type === "go") {
+        return false;
+    }
     if (statement.type === "get") {
         return true;
     }
