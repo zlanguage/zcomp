@@ -67,7 +67,6 @@ $ zcomp watch [path of Z to watch and transpile] [path of where to output the tr
 # Docs
 The docs are on the offical [Z Website](https://zlanguage.github.io/).
 
-# Z 0.3.7 is out!
+# Z 0.3.13 is out!
 New features:
-- Bug fixes for parsing
-- REPL is much more powerful
+- `zcomp run` handles dependencies better
