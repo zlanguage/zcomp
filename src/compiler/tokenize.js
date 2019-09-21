@@ -32,8 +32,9 @@ Capturing Group:
 [5] Name
 [6] Number
 [7] Punctuator
+[8] RegExp
 */
-const tokenRegExp = /(\u0020+|\t+)|(#.*)|("(?:[^"\\]|\\(?:[nr"\\]|u\{[0-9A-F]{4,6}\}))*")|\b(let|loop|if|else|func|break|import|export|match|return|def|try|on|settle|raise|importstd|meta|enter|exit|operator|hoist|go|get|enum|where|derives|static)\b|([A-Za-z_+\-/*%&|?^=<>'!][A-Za-z_0-9+\-/*%&|?^<>='!]*)|((?:0[box])?-?\d[\d_]*(?:\.[\d_]+)?(?:e\-?[\d_]+)?[a-z]*)|(\.{2,3}|[@$(),.{}\[\]:])/y;
+const tokenRegExp = /(\u0020+|\t+)|(#.*)|("(?:[^"\\]|\\(?:[nr"\\]|u\{[0-9A-F]{4,6}\}))*")|\b(let|loop|if|else|func|break|import|export|match|return|def|try|on|settle|raise|importstd|meta|enter|exit|operator|hoist|go|get|enum|where|derives|static)\b|([A-Za-z_+\-/*%&|?^=<>'!][A-Za-z_0-9+\-/*%&|?^<>='!]*)|((?:0[box])?-?\d[\d_]*(?:\.[\d_]+)?(?:e\-?[\d_]+)?[a-z]*)|(\.{2,3}|[@$(),.{}\[\]:])|(`.+?`[gimsuy]*)/y;
 /**
  * Create a token generator for a specific source.
  * @param {string | Array<string>} source If string is provided, string is split along newlines. If array is provided, array is used as the array of lines.
@@ -192,6 +193,16 @@ function tokenize(source, comment = false) {
             }
             return {
                 id: captives[7],
+                lineNumber,
+                columnNumber,
+                columnTo
+            }
+        }
+        if (captives[8]) {
+            return {
+                id: "(regexp)",
+                string: captives[8].replace(/^`|`(.+)$/g, "").replace(/`$/, ""),
+                flags: captives[8].split("`")[2],
                 lineNumber,
                 columnNumber,
                 columnTo

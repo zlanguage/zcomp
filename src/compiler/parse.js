@@ -47,7 +47,7 @@ const validNameOps = ["and", "or", "to", "til", "by"];
 // Unary operations involving keywords.
 // get(arg) - JavaScript: `await (arg).from()`
 // static(arg) - Derives a trait on the enum itself
-const unOps = ["get", "static"];
+const unOps = ["get", "static", "sym", "bsym"];
 
 // Operators that can be broken over newlines, ex: |>
 const validStartLineOps = ["$or$gt"];
@@ -601,6 +601,9 @@ function expr({ infix = true } = {}) {
                 // Numbers are translated to raw numbers
                 zeroth = tok.number;
                 break;
+            case "(regexp)":
+                zeroth = RegExp(tok.string, tok.flags);
+                break;
             case "(":
                 // Parse destructuring
                 // Parens are never part of tuple literals - Z dosen't have them
@@ -904,6 +907,18 @@ function expr({ infix = true } = {}) {
                 advance();
                 zeroth = "...";
                 wunth = expr();
+                break;
+            case "@":
+                if (nextTok.alphanumeric === true) {
+                    advance();
+                    zeroth = "@" + tok.source;
+                } else if (nextTok.id === "@") {
+                    advance();
+                    advance();
+                    zeroth = "@@" + tok.source;
+                } else {
+                    zeroth = "@";
+                }
                 break;
             case "(error)":
                 // Return invalid tokens

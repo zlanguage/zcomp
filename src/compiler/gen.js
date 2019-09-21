@@ -27,6 +27,12 @@ function outdent() {
 // Stringifies an expression
 function zStringify(thing) {
   if (typeof thing === "string") {
+    if (thing.startsWith("@@")) {
+      return `Symbol.${thing.replace("@@", "")}`;
+    }
+    if (thing.startsWith("@")) {
+      return `Symbol.for("${thing.replace("@", "")}")`
+    }
     return thing;
   } else if (isExpr(thing)) {
     let anchor = curr;
