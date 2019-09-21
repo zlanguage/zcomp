@@ -99,7 +99,10 @@ class ReplCommand extends Command {
                         console.log(res);
                     }
                     if (
-                        code.includes(":") ||
+                        (
+                            code.includes(":") &&
+                            !code.startsWith("log([")
+                        ) ||
                         code.includes("import") ||
                         code.includes("importstd") ||
                         code.includes("enum")
