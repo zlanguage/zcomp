@@ -12,8 +12,8 @@ describe("Function Typing Tests", () => {
             expect(tokenize.length).to.equal(1);
         })
         it("should return a function.", () => {
-	    expect(tokenize(testStr)).to.be.a("function");
-	})
+            expect(tokenize(testStr)).to.be.a("function");
+        })
         it("should have returned a function that returns an object.", () => {
             expect(testTok).to.be.a("object");
         })
