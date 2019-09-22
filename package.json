@@ -12,6 +12,7 @@
         "@oclif/config": "^1.13.2",
         "@oclif/plugin-help": "^2.2.0",
         "@zlanguage/zstdlib": "^0.3.19",
+        "jest": "^24.9.0",
         "vlq": "^1.0.1"
     },
     "devDependencies": {

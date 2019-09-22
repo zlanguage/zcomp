@@ -1,7 +1,7 @@
 const { expect } = require("chai");
-const tokenize = require("../src/compiler/tokenize");
-const parse = require("../src/compiler/parse");
-const gen = require("../src/compiler/gen");
+const tokenize = require("./tokenize");
+const parse = require("./parse");
+const gen = require("./gen");
 const testStr = "let x: 0";
 const testTok = tokenize(testStr)();
 const testAst = parse(tokenize(testStr));
@@ -12,8 +12,8 @@ describe("Function Typing Tests", () => {
             expect(tokenize.length).to.equal(1);
         })
         it("should return a function.", () => {
-            expect(tokenize(testStr)).to.be.a("function");
-        })
+	    expect(tokenize(testStr)).to.be.a("function");
+	})
         it("should have returned a function that returns an object.", () => {
             expect(testTok).to.be.a("object");
         })
@@ -24,7 +24,7 @@ describe("Function Typing Tests", () => {
     describe("Parsing (parse.js)", () => {
         it("should take one parameter: the token generator.", () => {
             expect(parse.length).to.equal(1);
-        });
+        })
         it("should return an array of objects.", () => {
             expect(testAst).to.satisfy(ast => ast.every(node => typeof node === "object"));
         })

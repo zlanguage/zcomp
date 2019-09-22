@@ -588,9 +588,9 @@ function generateEquals(type, fields) {
     }`;
 }
 // Generates the static methods of an enum from a `where` block.
-function generateStatics(type, static = {}) {
+function generateStatics(type, static_item = {}) {
   let res = "";
-  Object.entries(static).forEach(([key, func]) => {
+  Object.entries(static_item).forEach(([key, func]) => {
     let anchor = curr;
     curr = func;
     const f = genExpr();
@@ -604,14 +604,14 @@ ${type}.${key} = ${f};
   return res;
 }
 // Generates the overarching parent type for an enum.
-function generateParent(type, parts, static = {}) {
+function generateParent(type, parts, static_item = {}) {
   let res = (
     `let ${type} = {
   order: ${zStringify(parts)},
   ${parts.join(",\n\t")}
 };`
   );
-  res += generateStatics(type, static);
+  res += generateStatics(type, static_item);
   return res;
 }
 // Generates type checks for an enum's fields.
