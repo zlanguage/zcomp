@@ -35,8 +35,16 @@ $ npm install -g globby
 Finally, navigate to the directory you're using Z in, and type:
 
 ```sh
-$ npm link zstdlib
+$ npm link @zlanguage/zstdlib
 ```
+
+
+However, if you are using Z for a web app (or npm package), and want to deploy it to the world, instead run the following two commands:
+```sh
+$ npm init
+$ npm install @zlanguage/zstdlib
+```
+This installs the Z standard library locally in just the paackage you need it for.
 
 # Use The Compiler
 
@@ -59,7 +67,6 @@ $ zcomp watch [path of Z to watch and transpile] [path of where to output the tr
 # Docs
 The docs are on the offical [Z Website](https://zlanguage.github.io/).
 
-# Z 0.3.7 is out!
+# Z 0.3.14 is out!
 New features:
-- Bug fixes for parsing
-- REPL is much more powerful
+- Symbol and regexp literals
