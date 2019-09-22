@@ -19,7 +19,7 @@ class ReplCommand extends Command {
         const string = /("(?:[^"\\]|\\(?:[nr"\\]|u\{[0-9A-F]{4,6}\}))*")/g;
         return new Promise((resolve, reject) => {
             rl.question("..", function recieve(code) {
-                res += code;
+                res += code + "\n";
                 code
                     .replace(string, "")
                     .split("")
@@ -89,6 +89,7 @@ class ReplCommand extends Command {
                     code = `log(${code})`;
                 }
                 try {
+                    console.log(code)
                     let res = eval(
                         gen(parse(tokenize(commands.concat(code).join("\n")), false))
                     );
