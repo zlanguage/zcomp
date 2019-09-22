@@ -89,7 +89,6 @@ class ReplCommand extends Command {
                     code = `log(${code})`;
                 }
                 try {
-                    console.log(code)
                     let res = eval(
                         gen(parse(tokenize(commands.concat(code).join("\n")), false))
                     );
