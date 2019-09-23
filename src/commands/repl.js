@@ -19,7 +19,7 @@ class ReplCommand extends Command {
         const string = /("(?:[^"\\]|\\(?:[nr"\\]|u\{[0-9A-F]{4,6}\}))*")/g;
         return new Promise((resolve, reject) => {
             rl.question("..", function recieve(code) {
-                res += code;
+                res += code + "\n";
                 code
                     .replace(string, "")
                     .split("")
@@ -83,7 +83,7 @@ class ReplCommand extends Command {
                     code.startsWith('"') ||
                     code.startsWith("`") ||
                     code.startsWith("@") ||
-                    /((?:0[box])?-?\d[\d_]*(?:\.[\d_]+)?(?:e\-?[\d_]+)?[a-z]*)/.test(code)
+                    /^((?:0[box])?-?\d[\d_]*(?:\.[\d_]+)?(?:e\-?[\d_]+)?[a-z]*)$/.test(code)
                 ) {
                     alreadyLogged = true;
                     code = `log(${code})`;
