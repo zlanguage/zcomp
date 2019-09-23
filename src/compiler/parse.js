@@ -277,6 +277,7 @@ function findWildcards(pat) {
             } else if (/^[a-z_]$/.test(pat[0]) && !pat.includes("$question")) {
                 wildcards.push(pat)
             }
+            break;
         case "object":
             if (pat.type === "spread") {
                 wildcards.push(pat.wunth);
@@ -286,13 +287,20 @@ function findWildcards(pat) {
                 })
             } else if (pat.type === "invocation") {
                 pat.wunth.species = "Destructuring[Array]";
-                wildcards.push(...findWildcards(pat.wunth));
+                if (pat.twoth) {
+                    wildcards.push(...findWildcards(pat.twoth))
+                } else {
+                    wildcards.push(...findWildcards(pat.wunth));
+                }
             } else if (pat.species === "Destructuring[Object]") {
                 const pats = arrayToObj([...pat]).map(([k, v]) => v);
                 pats.forEach(patpart => {
                     wildcards.push(...findWildcards(patpart))
                 })
+            } else if (pat.type === "refinement" || pat.type === "subscript") {
+                wildcards.push(...findWildcards(pat.twoth))
             }
+            break;
     }
     return Array.from(new Set(wildcards));
 }
@@ -909,10 +917,10 @@ function expr({ infix = true } = {}) {
                 wunth = expr();
                 break;
             case "@":
-                if (nextTok.alphanumeric === true) {
+                if (nextTok && nextTok.alphanumeric === true) {
                     advance();
                     zeroth = "@" + tok.source;
-                } else if (nextTok.id === "@") {
+                } else if (nextTok && nextTok.id === "@") {
                     advance();
                     advance();
                     zeroth = "@@" + tok.source;
@@ -925,12 +933,16 @@ function expr({ infix = true } = {}) {
                 return error(`Unexpected token(s) ${tok.string}`);
             default:
                 // As for alphanumerics, they just translated to their string values.
-                if (tok.alphanumeric || (prevTok.id === "[" && tok.id === ":") || tok.id === ")" || tok.id === "]" || tok.id === "@" || tok.id === "}") {
-                    // Check if the identifier was intended as an operator.
-                    warnBadOp(tok);
-                    zeroth = tok.id;
-                } else {
-                    // Other non-alphanumeric tokens become errors
+                try {
+                    if (tok.alphanumeric || (prevTok.id === "[" && tok.id === ":") || tok.id === ")" || tok.id === "]" || tok.id === "@" || tok.id === "}") {
+                        // Check if the identifier was intended as an operator.
+                        warnBadOp(tok);
+                        zeroth = tok.id;
+                    } else {
+                        // Other non-alphanumeric tokens become errors
+                        return error(`Unexpected token ${tok.id}`);
+                    }
+                } catch (_) {
                     return error(`Unexpected token ${tok.id}`);
                 }
                 break;
@@ -1182,7 +1194,7 @@ function expr({ infix = true } = {}) {
 // Object to store functions, each which parses a statement.
 let parseStatement = Object.create(null);
 
-parseStatement.let = () => {
+parseStatement.let = (name = "Let") => {
         let letStatement = {
             type: "let",
             zeroth: []
@@ -1195,7 +1207,7 @@ parseStatement.let = () => {
             if (assignment.type === "invocation" && assignment.zeroth === "$eq") {
                 warn("The assignment operator in Z is :, but you used =.");
             }
-            return error(`Let statement expects assignment.`);
+            return error(`${name} statement expects assignment.`);
         }
         letStatement.zeroth.push(assignment);
         // Parse additional assignments.
@@ -1207,7 +1219,7 @@ parseStatement.let = () => {
                 if (assignment.type === "invocation" && assignment.zeroth === "$eq") {
                     return error("The assignment operator in Z is :, but you used =.");
                 }
-                return error(`Let statement expects assignment.`);
+                return error(`${name} statement expects assignment.`);
             }
             letStatement.zeroth.push(assignment);
         }
@@ -1215,7 +1227,7 @@ parseStatement.let = () => {
     }
     // Def is like const
 parseStatement.def = () => {
-    const res = parseStatement.let();
+    const res = parseStatement.let("Def");
     res.type = "def";
     return res;
 }
@@ -1369,10 +1381,17 @@ parseStatement.raise = () => {
 
 parseStatement.importstd = () => {
     advance("(keyword)");
+    let imports = undefined;
+    const name = tok.id;
+    if (nextTok && nextTok.id === ".") {
+        advance();
+        advance();
+        imports = expr();
+    }
     return {
         type: "import",
-        zeroth: tok.id,
-        wunth: `"@zlanguage/zstdlib/src/js/${tok.id}"` // The npm package where the standard library lives.
+        zeroth: imports ? imports : tok.id,
+        wunth: `"@zlanguage/zstdlib/src/js/${name}"` // The npm package where the standard library lives.
     }
 }
 
@@ -1424,7 +1443,7 @@ parseStatement.operator = () => {
     }
     // hoist is like var
 parseStatement.hoist = () => {
-    const res = parseStatement.let();
+    const res = parseStatement.let("Hoist");
     res.type = "hoist";
     return res;
 }

@@ -5,4 +5,5 @@
 /tmp
 /yarn.lock
 node_modules
+coverage
 package.json~

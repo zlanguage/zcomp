@@ -162,6 +162,13 @@ function genDestructuring(arr) {
   }
   return arr;
 }
+// Utility function to detect namespaced extractors.
+function typeIn(thing, type) {
+  if (thing === undefined) {
+    return false;
+  }
+  return thing.type === type || typeIn(thing.zeroth, type) || typeIn(thing.wunth, type) || typeIn(thing.twoth, type);
+}
 // Transforms a pattern into calls to Z's matcher library
 function stringifyPat(pat) {
   if (typeof pat === "string" && pat.includes("$exclam")) { // Detect type
@@ -174,6 +181,9 @@ function stringifyPat(pat) {
   }
   if (typeof pat === "string" && pat.endsWith("$question")) {
     return `matcher.predicate(${pat.replace(/\$question$/, "")})`;
+  }
+  if (zStringify(pat).endsWith('?"]')) {
+    return `matcher.predicate(${zStringify(pat).replace(/\?"]/, '"]')})`;
   }
   if (pat.species === "Destructuring[Array]") {
     return `matcher.arr(${pat.map(stringifyPat).join(", ")})`;
@@ -196,13 +206,28 @@ function stringifyPat(pat) {
     return `matcher.range(${pat.zeroth}, ${pat.wunth})`
   }
   // Detect extractor
-  if (pat.type === "invocation") {
+  if (pat.type === "invocation" || typeIn(pat, "invocation")) {
     if (pat.zeroth === "to" || pat.zeroth === "til" || pat.zeroth === "by") {
       const range = zStringify(pat);
       return `matcher.range(${range}[0], ${range}[${range}.length - 1])`;
     }
-    pat.wunth.species = "Destructuring[Array]";
-    return `matcher.extractor(${zStringify(pat.zeroth)}, ${stringifyPat(pat.wunth)})`
+    let destruct = pat.wunth;
+    let temp = pat.twoth;
+    // Support namespaced extractors
+    while (temp) {
+      if (temp.type === "invocation" && temp.twoth === undefined) {
+        destruct = temp.wunth;
+        let cursor = pat;
+        while(cursor.twoth && cursor.twoth.twoth) {
+          cursor = cursor.twoth;
+        }
+        cursor.twoth = undefined;
+        break;
+      }
+      temp = temp.twoth;
+    }
+    destruct.species = "Destructuring[Array]";
+    return `matcher.extractor(${zStringify(pat.type === "invocation" ? pat.zeroth : pat)}, ${stringifyPat(destruct)})`
   }
   // Otherwise, use stringification to produce a value.
   return zStringify(pat);
