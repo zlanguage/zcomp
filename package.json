@@ -18,7 +18,7 @@
         "@oclif/dev-cli": "^1.22.0",
         "@types/chai": "^4.2.0",
         "chai": "^4.2.0",
-        "mocha": "^6.2.0",
+        "jest": "^24.9.0",
         "prettier": "^1.18.2"
     },
     "engines": {
@@ -44,10 +44,13 @@
         ]
     },
     "repository": "zlanguage/zcomp",
+    "jest": {
+        "verbose": true
+    },
     "scripts": {
         "postpack": "rm -f oclif.manifest.json",
         "prepack": "oclif-dev manifest",
-        "test": "mocha",
+        "test": "jest",
         "version": "oclif-dev readme && git add README.md",
         "build": "sudo npm install @zlanguage/zstdlib@latest --save && npm test && sudo git add . && sudo git commit -m \"$npm_package_version\" && sudo git push && sudo npm publish --access public"
     }

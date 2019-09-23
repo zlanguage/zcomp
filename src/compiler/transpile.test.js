@@ -1,9 +1,9 @@
 const { expect } = require("chai");
-const tokenize = require("../src/compiler/tokenize");
-const parse = require("../src/compiler/parse");
-const gen = require("../src/compiler/gen");
+const tokenize = require("./tokenize");
+const parse = require("./parse");
+const gen = require("./gen");
 const tests = {
-    "Arithmetic Operations": {
+    "math and string manipulations": {
         "3 + 3": 6,
         "2 - 2": 0,
         "2 - 9": -7,
@@ -25,7 +25,7 @@ const tests = {
         '"Hello" ++ " World"': "Hello World",
         '"[" ++ [1, 2, 3] ++ "]"': "[1,2,3]"
     },
-    "Relational and Boolean Logic Operators": {
+    "relational and boolean logic operators": {
         "true and false": false,
         "true or false": true,
         "true and false or false": false,
@@ -61,10 +61,11 @@ const tests = {
 function evalZ(z) {
     return eval(gen(parse(tokenize(z))));
 }
+
 Object.entries(tests).forEach(([testName, tests]) => {
     describe(testName, () => {
         Object.entries(tests).forEach(([expr, res]) => {
-            it(`should evaluate ${expr} ==> ${res}.`, () => {
+            it(`should evaluate ${expr} as ${res}`, () => {
                 expect(evalZ(expr)).to.eql(res);
             })
         })

@@ -1,0 +1,15 @@
+Tests_task:
+  matrix:
+    - container:
+        image: node:latest
+    - container:
+        image: node:dubnium
+    - container:
+        image: node:carbon
+  node_modules_cache:
+    folder: node_modules
+    fingerprint_script: |
+      cat package.json
+      cat package-lock.json
+    populate_script: npm i
+  script: npm test
