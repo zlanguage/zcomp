@@ -23,5 +23,5 @@ Tests_task:
     if [[ -z $CODE_COVERAGE_RUN ]]; then
       npm test
     else
-      npm test --collectCoverage true
+      npm cov
     fi
