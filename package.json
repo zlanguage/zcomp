@@ -6,7 +6,9 @@
     "bin": {
         "zcomp": "./bin/run"
     },
-    "bugs": "https://github.com/zlanguage/zcomp/issues",
+    "bugs": {
+        "url": "https://github.com/zlanguage/zcomp/issues"
+    },
     "dependencies": {
         "@oclif/command": "^1.5.17",
         "@oclif/config": "^1.13.2",
@@ -43,7 +45,10 @@
             "@oclif/plugin-help"
         ]
     },
-    "repository": "zlanguage/zcomp",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/zlanguage/zcomp.git"
+    },
     "jest": {
         "verbose": true
     },
@@ -51,8 +56,9 @@
         "postpack": "rm -f oclif.manifest.json",
         "prepack": "oclif-dev manifest",
         "test": "jest",
-        "cov": "jest --collectCoverage --coverageDirectory ./coverage/",
+        "coverage:generate": "jest --collectCoverage --coverageDirectory ./coverage/",
+        "coverage:report": "npm run coverage:generate && ./codecov",
         "version": "oclif-dev readme && git add README.md",
-        "build": "sudo npm install @zlanguage/zstdlib@latest --save && npm test && sudo git add . && sudo git commit -m \"$npm_package_version\" && sudo git push && sudo npm publish --access public"
+        "build": "npm install @zlanguage/zstdlib@latest --save && npm test && git commit -a -m \"Release $npm_package_version\" && git push && sudo npm publish --access public"
     }
 }

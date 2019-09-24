@@ -9,7 +9,9 @@ Tests_task:
     if [[ -z $CODE_COVERAGE_RUN ]]; then
       npm test
     else
-      npm run cov
+      curl -L -o ./codecov https://codecov.io/bash
+      chmod +x ./codecov
+      npm run coverage:report
     fi
   matrix:
     - container:
@@ -19,6 +21,7 @@ Tests_task:
         - name: "CodeCoverage@Node:Latest"
           env:
             CODE_COVERAGE_RUN: true
+            CODECOV_TOKEN: ENCRYPTED[230fd82953b0b0ed3fbde809dbad5bc8cf92a3b88e03d5b86c5124e01a890a12fde06130fb35af71c19ec4485d4519e3]
           code_coverage_artifacts:
             path: ./coverage/**
     - container:
