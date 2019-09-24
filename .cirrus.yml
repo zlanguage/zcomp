@@ -1,18 +1,4 @@
 Tests_task:
-  matrix:
-    - container:
-        image: node:latest
-      matrix:
-        - name: "Tests@Node:Latest"
-        - name: "CodeCoverage@Node:Latest"
-          env:
-            CODE_COVERAGE_RUN: true
-    - container:
-        image: node:dubnium
-      name: "Tests@Node:Dubnium"
-    - container:
-        image: node:carbon
-      name: "Tests@Node:Carbon"
   node_modules_cache:
     folder: node_modules
     fingerprint_script: |
@@ -25,3 +11,20 @@ Tests_task:
     else
       npm run cov
     fi
+  matrix:
+    - container:
+        image: node:latest
+      matrix:
+        - name: "Tests@Node:Latest"
+        - name: "CodeCoverage@Node:Latest"
+          env:
+            CODE_COVERAGE_RUN: true
+          code_coverage_artifacts:
+            path: /coverage
+            type: text/plain
+    - container:
+        image: node:dubnium
+      name: "Tests@Node:Dubnium"
+    - container:
+        image: node:carbon
+      name: "Tests@Node:Carbon"
