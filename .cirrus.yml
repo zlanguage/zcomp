@@ -21,7 +21,6 @@ Tests_task:
             CODE_COVERAGE_RUN: true
           code_coverage_artifacts:
             path: ./coverage/**
-            type: text/plain
     - container:
         image: node:dubnium
       name: "Tests@Node:Dubnium"
