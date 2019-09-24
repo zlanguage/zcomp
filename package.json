@@ -8,7 +8,7 @@
     },
     "bugs": {
         "url": "https://github.com/zlanguage/zcomp/issues"
-    }
+    },
     "dependencies": {
         "@oclif/command": "^1.5.17",
         "@oclif/config": "^1.13.2",
