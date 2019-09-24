@@ -9,7 +9,7 @@ Tests_task:
     if [[ -z $CODE_COVERAGE_RUN ]]; then
       npm test
     else
-      bash <(curl -s https://codecov.io/bash)
+      curl -o codecov https://coveralls.io/bash
       npm run coverage:report
     fi
   matrix:
