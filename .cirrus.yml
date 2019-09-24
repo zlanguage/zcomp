@@ -10,6 +10,7 @@ Tests_task:
       npm test
     else
       curl -L -o ./codecov https://codecov.io/bash
+      chmod +x ./codecov
       npm run coverage:report
     fi
   matrix:
