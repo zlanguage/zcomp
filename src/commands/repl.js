@@ -1,4 +1,6 @@
-const { Command } = require("@oclif/command");
+const {
+    Command
+} = require("@oclif/command");
 const readline = require("readline");
 const path = require("path");
 const fs = require("fs");
@@ -45,6 +47,7 @@ class ReplCommand extends Command {
             output: process.stdout
         });
         const commands = [];
+        const loaded = {};
         const self = this;
         rl.question("zrepl>", async function ask(code) {
             if (code.startsWith(":")) {
@@ -59,12 +62,26 @@ class ReplCommand extends Command {
                             if (err) {
                                 return console.log(err);
                             }
-                            data
-                                .toString()
-                                .split("\n")
-                                .forEach(ln => {
-                                    commands.push(ln);
-                                });
+                            if (Object.keys(loaded).includes(rest)) {
+                                const [from, to] = loaded[rest];
+                                commands.splice(
+                                    from,
+                                    to - from + 1,
+                                    ...data.toString().split("\n")
+                                )
+                                const dif = data.toString().split("\n").length - (to - from + 1)
+                                if (dif > 0) {
+                                    loaded[rest] = [from, to + dif]
+                                }
+                            } else {
+                                loaded[rest] = [commands.length, commands.length - 1 + data.toString().split("\n").length];
+                                data
+                                    .toString()
+                                    .split("\n")
+                                    .forEach(ln => {
+                                        commands.push(ln);
+                                    });
+                            }
                         });
                         break;
                     default:

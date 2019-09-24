@@ -67,7 +67,7 @@ $ zcomp watch [path of Z to watch and transpile] [path of where to output the tr
 # Docs
 The docs are on the offical [Z Website](https://zlanguage.github.io/).
 
-# Z 0.3.19 is out!
+# Z 0.3.20 is out!
 New features:
-- Extractors and Predicates are greatly improved
-- 60%+ Code Coverage
+- Strings are enhanced
+- Repl loads dependencies better.

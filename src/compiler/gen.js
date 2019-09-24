@@ -33,6 +33,22 @@ function zStringify(thing) {
     if (thing.startsWith("@")) {
       return `Symbol.for("${thing.replace("@", "")}")`
     }
+    if(thing.startsWith("\"")) {
+      return "\"" + thing.slice(1, -1).replace(/\\|\n|\t|\r|"/g, (p => {
+        switch (p) {
+          case "\"":
+            return "\\\"";
+          case "\n":
+            return "\\n";
+          case "\\":
+            return "\\\\";
+          case "\t":
+            return "\\t";
+          case "\r":
+            return "\\r"
+        }
+      })) + "\"";
+    }
     return thing;
   } else if (isExpr(thing)) {
     let anchor = curr;
@@ -196,7 +212,8 @@ function stringifyPat(pat) {
       if (patpart.type !== "assignment") {
         throw new Error("Object pattern matching expression requires value.");
       }
-      return `matcher.prop("${patpart.zeroth}", ${stringifyPat(patpart.wunth)})`;
+      const key = patpart.zeroth.startsWith("\"") ? patpart.zeroth : `"${patpart.zeroth}"`;
+      return `matcher.prop(${key}, ${stringifyPat(patpart.wunth)})`;
     }).join(", ")})`
   }
   if (pat.type === "spread") {
