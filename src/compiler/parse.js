@@ -1809,7 +1809,18 @@ function statements() {
             advance();
             continue;
         }
-
+        if (tok && tok.id === "(keyword)" && tok.string === "includestd") {
+            advance();
+            const currpath = process.cwd();
+            while (!fs.existsSync("node_modules")) {
+                process.chdir("..");
+            }
+            const file = fs.readFileSync(`node_modules/@zlanguage/zstdlib/src/macros/${tok.string}.zlang`)
+            statements.push(...parseMacro(tokenize(file.toString()), false));
+            advance();
+            process.chdir(currpath);
+            continue;
+        }
         nextStatement = statement();
         // Are there no statements left?
         if (nextStatement === undefined && nextTok === undefined) {

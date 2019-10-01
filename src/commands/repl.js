@@ -120,9 +120,11 @@ class ReplCommand extends Command {
                             code.includes(":") &&
                             !code.startsWith("log([")
                         ) ||
-                        code.includes("import") ||
-                        code.includes("importstd") ||
-                        code.includes("enum")
+                        code.trim().startsWith("import") ||
+                        code.trim().startsWith("importstd") ||
+                        code.trim().startsWith("enum") ||
+                        code.trim().startsWith("include") ||
+                        code.trim().startsWith("includestd")
                     ) {
                         commands.push(code);
                     }
