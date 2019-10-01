@@ -33,7 +33,7 @@ function zStringify(thing) {
     if (thing.startsWith("@")) {
       return `Symbol.for("${thing.replace("@", "")}")`
     }
-    if(thing.startsWith("\"")) {
+    if (thing.startsWith("\"")) {
       return "\"" + thing.slice(1, -1).replace(/\\|\n|\t|\r|"/g, (p => {
         switch (p) {
           case "\"":
@@ -139,7 +139,7 @@ function genTwoth() {
   let r = "";
   if (curr.twoth) {
     curr = curr.twoth;
-    if(curr.type !== "condrefinement") { // Restart the conditional refinement list after a conditional refinement chain ends.
+    if (curr.type !== "condrefinement") { // Restart the conditional refinement list after a conditional refinement chain ends.
       condrList = [];
     }
     r += genExprTwoth();
@@ -147,7 +147,7 @@ function genTwoth() {
   return r;
 }
 function isExpr(obj) {
-  return obj && ["subscript", "refinement", "invocation", "assignment", "function", "spread", "match", "range", "dds", "loopexpr", "ifexpr", "goroutine",
+  return obj && ["subscript", "refinement", "invocation", "assignment", "function", "spread", "match", "range", "loopexpr", "ifexpr", "goroutine",
     "get", "condrefinement", "condsubscript"].includes(obj.type);
 }
 
@@ -235,7 +235,7 @@ function stringifyPat(pat) {
       if (temp.type === "invocation" && temp.twoth === undefined) {
         destruct = temp.wunth;
         let cursor = pat;
-        while(cursor.twoth && cursor.twoth.twoth) {
+        while (cursor.twoth && cursor.twoth.twoth) {
           cursor = cursor.twoth;
         }
         cursor.twoth = undefined;
@@ -434,19 +434,6 @@ function genExpr() {
         const to = curr.wunth;
         r += `Array($plus($minus(${zStringify(to)}, ${zStringify(from)}), 1)).fill().map(function (_, index) { return $plus(index, ${zStringify(from)}) })`;
         break;
-      // Handle dollar directive
-      case "dds":
-        if (typeof curr.wunth === "string") { // If the dollar directive is a string, leave it's contents untouched.
-          r += `${curr.wunth}`;
-        } else if ((curr.wunth.type !== undefined) && (curr.wunth.zeroth !== undefined) && (curr.wunth.wunth !== undefined)) { // If it's an ast, generate it's contents.
-          let anchor = curr;
-          curr = curr.wunth;
-          r += genStatement();
-          curr = anchor;
-        } else { // Otherwise, stringify it's contents
-          r += zStringify(curr.wunth);
-        }
-        break;
       // List expressions become IIFEs
       case "loopexpr":
         r += "function(){\n  const res = [];\n"
@@ -638,7 +625,7 @@ function generateStatics(type, static_item = {}) {
     const f = genExpr();
     curr = anchor;
     res += (
-`
+      `
 ${type}.${key} = ${f};
 `
     )
@@ -712,16 +699,16 @@ generateStatement.enum = () => {
     // Generate the enum constructor function.
     r += `function ${type}(${fields.join(", ")}) {
   ${
-    fields[0] ? // Support keyword arguments to enums.
-    (
-`
+      fields[0] ? // Support keyword arguments to enums.
+        (
+          `
   if($eq(Object.keys((${fields[0]} == null) ? { [Symbol()]: 0 } : ${fields[0]}).sort(), ${zStringify(fields.map(field => `"${field}"`))}.sort())) {
     ({ ${fields.join(", ")} } = ${fields[0]});
   }
 `
-    ):
-    ""
-  }
+        ) :
+        ""
+      }
   ${generateTypeChecks(typeChecks, parentType, type)}
   return ${wrapFuncs(curr.derives, `{
     type() { return "${parentType}"; },
@@ -745,12 +732,12 @@ generateStatement.enum = () => {
     r += `${parentType}.order = ${zStringify(types)};\n`;
     r += generateStatics(parentType, curr.twoth);
     if (curr.staticDerives && curr.staticDerives.length > 0) {
-      r += `\n${parentType} = ${wrapFuncs(curr.staticDerives,parentType)}`;
+      r += `\n${parentType} = ${wrapFuncs(curr.staticDerives, parentType)}`;
     }
   } else { // Normal enums
     r += generateParent(parentType, types, curr.twoth);
     if (curr.staticDerives && curr.staticDerives.length > 0) {
-      r += `\n${parentType} = ${wrapFuncs(curr.staticDerives,parentType)}`;
+      r += `\n${parentType} = ${wrapFuncs(curr.staticDerives, parentType)}`;
     }
   }
   return r;
@@ -772,6 +759,14 @@ function genBlock(cleanup) { // cleanup is extra stuff that goes at the end of t
   indent();
   let anchor = curr;
   curr.forEach(statement => {
+    if (Array.isArray(statement) && statement.spreadOut) {
+      statement.forEach(subStatement => {
+        curr = subStatement;
+        r += genStatement();
+        r += "\n";
+      });
+      return;
+    }
     curr = statement;
     r += genStatement();
     r += "\n";
@@ -802,6 +797,15 @@ function genStatements(ast) {
   let r = "";
   while (index < ast.length) {
     curr = ast[index];
+    if (Array.isArray(curr)) {
+      curr.forEach(statement => {
+        curr = statement;
+        r += genStatement();
+        r += "\n";
+      })
+      index += 1;
+      continue;
+    }
     if (curr !== undefined) {
       r += genStatement();
       r += "\n";

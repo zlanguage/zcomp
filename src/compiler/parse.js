@@ -1,4 +1,8 @@
 "use strict";
+const gen = require("./gen");
+const tokenize = require("./tokenize");
+const { copy } = require("@zlanguage/zstdlib");
+const fs = require("fs");
 // List of all warnings: [string]
 let warnings = [];
 // An API for registering error objects will later be displayed.
@@ -31,6 +35,8 @@ const errors = function() {
         }
     }
 }();
+let macros = {};
+let isMacro = false;
 let prevTok;
 let tok;
 let nextTok;
@@ -602,6 +608,7 @@ function expr({ infix = true } = {}) {
     if (tok !== undefined) {
         switch (tok.id) {
             case "(string)":
+            case "(template)":
                 // Strings are encased in quotes
                 zeroth = `"${tok.string}"`;
                 break;
@@ -635,22 +642,6 @@ function expr({ infix = true } = {}) {
                 // Parse Array
                 zeroth = parseCol("[", "]")
                 zeroth = arrayToObj(zeroth); // Support parsing of object literals.
-                break;
-            case "$":
-                // Parse dollar directive
-                advance("$");
-                type = "dds";
-                // $"path" and $path are both valid dollar directives.
-                if (tok.alphanumeric) {
-                    zeroth = tok.id;
-                } else {
-                    zeroth = tok.string;
-                }
-                // Find the dollar directive
-                const transformer = require(metadata.ddsdir + zeroth);
-                advance();
-                // Apply it.
-                wunth = transformer(expr(), {...metadata });
                 break;
                 // Expressions starting with refinements are functions in disguise. .x = func x!.x
             case ".":
@@ -928,6 +919,22 @@ function expr({ infix = true } = {}) {
                     zeroth = "@";
                 }
                 break;
+            case "$":
+                advance();
+                // isMacro = true;
+                if (macros[tok.id] === undefined) {
+                    return error(`Undefined macro ${tok.id}.`);
+                }
+                const result = paramMacro()[0];
+                fallback();
+                if (result && result.type) {
+                    ({ type, zeroth, wunth, twoth } = result);
+                } else {
+                    zeroth = result;
+                }
+                // isMacro = false;
+                // advance();
+                break;
             case "(error)":
                 // Return invalid tokens
                 return error(`Unexpected token(s) ${tok.string}`);
@@ -965,7 +972,6 @@ function expr({ infix = true } = {}) {
                     zeroth = Number(`${zeroth}.${tok.number}`);
                     if (isExprAhead()) {
                         const temp = expr();
-                        console.log(JSON.stringify(temp, undefined, 4));
                         wunth = temp.wunth;
                         twoth = temp.twoth;
                         ({ type, zeroth, wunth, twoth } = mkChain(type, zeroth, wunth, twoth));
@@ -1002,10 +1008,12 @@ function expr({ infix = true } = {}) {
             case "...":
                 // Parse range
                 // Currently, range only can have a one-token prefix.
-                type = "range";
-                advance();
-                advance();
-                wunth = expr();
+                if (tok.lineNumber === nextTok.lineNumber) {
+                    type = "range";
+                    advance();
+                    advance();
+                    wunth = expr();
+                }
                 break;
             case "(":
                 // It's an invocation
@@ -1137,7 +1145,7 @@ function expr({ infix = true } = {}) {
         }
     }
     // Handle operator
-    if (nextTok && nextTok.alphanumeric && (validStartLineOps.includes(nextTok.id) ? true : nextTok.lineNumber === tok.lineNumber) && !nextTok.id.endsWith("$exclam") && nextTok.id !== "$eq$gt" && infix) {
+    if (nextTok && nextTok.alphanumeric && (validStartLineOps.includes(nextTok.id) ? true : nextTok.lineNumber === tok.lineNumber) && !nextTok.id.endsWith("$exclam") && nextTok.id !== "$eq$gt" && (isValidOp(nextTok.id) || nextTok.id === "pow") && infix) {
         // Check if operator may be invalid or be intended to mean something else. For example, the operator +2 probably was meant to mean + 2
         warnBadOp(nextTok);
         advance();
@@ -1520,29 +1528,94 @@ parseStatement.enum = () => {
     return res;
 }
 parseStatement.go = function() {
-        return {
-            type: "go",
-            zeroth: block()
-        }
+    return {
+        type: "go",
+        zeroth: block()
     }
-    // Dollar Directives are compile-time macros
-function parseDollarDirective() {
-    let dollarDir = {
-        type: "dds"
-    }
-    advance("$");
-    if (tok.alphanumeric) {
-        dollarDir.zeroth = tok.id;
-    } else {
-        dollarDir.zeroth = tok.string;
-    }
-    advance();
-    // Actually load the dollar directive.
-    const transformer = require(metadata.ddsdir + dollarDir.zeroth);
-    dollarDir.wunth = transformer(statement(), {...metadata });
-    return dollarDir;
 }
-// Keywords that can be used as valid statements or expressions.
+const blockSyms = {
+    "(": ")",
+    "[": "]",
+    "{": "}"
+}
+parseStatement.macro = function() {
+        advance("(keyword)");
+        advance("$");
+        const macroName = tok.id;
+        advance();
+        advance("(");
+        const params = [];
+        let symAmt = 1;
+        while (tok.id !== ")") {
+            (function param(p = params, term = ")") {
+                if (tok.id === "~") {
+                    advance("~");
+                    const capture = {
+                        name: tok.id
+                    }
+                    advance();
+                    advance(":");
+                    capture.captureType = tok.id;
+                    advance();
+                    if (tok.id !== term) {
+                        advance(",")
+                    }
+                    p.push(capture);
+                } else if (tok.id === "...") {
+                    advance("...");
+                    const opener = tok.id;
+                    const closer = blockSyms[opener];
+                    const capture = [];
+                    let comma = false;
+                    advance();
+                    while (tok.id !== closer) {
+                        param(capture, closer);
+                        if (prevTok.id === "," && tok.id === closer) {
+                            comma = true;
+                        }
+                    }
+                    advance();
+                    if (tok.id === ",") {
+                        advance();
+                    }
+                    p.push({
+                        name: "rest",
+                        captureType: "rest",
+                        start: opener,
+                        end: closer,
+                        comma,
+                        captureGroups: capture
+                    });
+                } else {
+                    p.push({
+                        name: tok.alphanumeric ? tok.id : tok.string,
+                        paramName: "$_".repeat(symAmt),
+                        captureType: "skip"
+                    })
+                    symAmt += 1;
+                    advance();
+                    if (tok.id !== term) {
+                        advance(",")
+                    }
+                }
+            })();
+        }
+        const macroBody = eval(gen([{
+            type: "invocation",
+            zeroth: "copy",
+            wunth: [{
+                type: "function",
+                zeroth: params.map(param => param.paramName ? param.paramName : param.name),
+                wunth: block()
+            }]
+        }]));
+        macros[macroName] = {
+            params,
+            macro: macroBody
+        }
+        return {};
+    }
+    // Keywords that can be used as valid statements or expressions.
 const exprKeywords = Object.freeze(["func", "match", "get"]);
 
 function statement() {
@@ -1553,8 +1626,6 @@ function statement() {
             return error("Invalid use of keyword.")
         }
         return parser();
-    } else if (tok && tok.id === "$") {
-        return parseDollarDirective();
     } else { // Otherwise, it's some kind of expressions
         let res = expr();
 
@@ -1564,9 +1635,10 @@ function statement() {
         if (typeIn(res, "assignment") || typeIn(res, "invocation") || typeIn(res, "get") || typeIn(res, "match") || typeIn(res, "function") || res && res.species === "Destructuring[Array]") { // If res is a valid standalone expression, return it.
             return res;
         } else {
-            if (res !== undefined) { // Otherwise, report an error.
-                return error("Invalid expression, expression must be an assignment or invocation if it does not involve a keyword.");
+            if (res !== undefined && !isMacro) { // Otherwise, report an error.
+                return error(`Invalid expression ${res}, expression must be an assignment or invocation if it does not involve a keyword.`);
             }
+            return res;
         }
     }
 }
@@ -1598,11 +1670,146 @@ function block() {
     }
     return statements;
 }
+
+function insertParams(node, params, cache = {}) {
+    switch (typeof node) {
+        case "string":
+            if (node.startsWith("_breadcrumb_")) {
+                const name = node.replace("_breadcrumb_", "");
+                return params[name];
+            }
+            if (node.startsWith("_id_")) {
+                const name = node.replace("_id_", "");
+                if (cache[name] === undefined) {
+                    cache[name] = name + "_" + Math.random().toString().slice(2, 5) + Math.random().toString().slice(2, 5);
+                }
+                return cache[name];
+            }
+            break;
+        case "object":
+            if (node.type === "spread" && node.wunth[0].type === "function") {
+                const { rest } = params;
+                const results = [];
+                const template = node.wunth[0].wunth;
+                rest.forEach((paramList, index) => {
+                    paramList = {...paramList, ...params };
+                    const cache = {};
+                    let use = copy(template);
+                    use = use.map(node => insertParams(node, paramList, cache))
+                    results.push(...use);
+                })
+                results.spreadOut = true;
+                return results;
+            }
+            if (node.zeroth) {
+                node.zeroth = insertParams(node.zeroth, params, cache);
+            }
+            if (node.wunth) {
+                node.wunth = insertParams(node.wunth, params, cache);
+            }
+            if (node.twoth) {
+                node.twoth = insertParams(node.twoth, params, cache);
+            }
+            if (Array.isArray(node.zeroth)) {
+                node.zeroth = node.zeroth.map(node => insertParams(node, params, cache))
+            }
+            if (Array.isArray(node.wunth)) {
+                node.wunth = node.wunth.map(node => insertParams(node, params, cache))
+            }
+            if (Array.isArray(node.twoth)) {
+                node.twoth = node.twoth.map(node => insertParams(node, params, cache))
+            }
+            break;
+    }
+    return node;
+}
+
+function paramMacro() {
+    const macroName = tok.id;
+    const macroParams = macros[macroName].params;
+    const params = {};
+    const ids = [];
+    macroParams.forEach(function handle(param, p = params) {
+        if (typeof p === "number") {
+            p = params;
+        }
+        const { name, captureType } = param;
+        switch (captureType) {
+            case "expr":
+                advance();
+                p[name] = expr();
+                break;
+            case "block":
+                p[name] = block();
+                p[name].spreadOut = true;
+                break;
+            case "id":
+                advance();
+                ids.push(name);
+                p[name] = tok.string ? tok.string : tok.id;
+                break;
+            case "skip":
+                advance();
+                p[name] = name.startsWith("\"") ? name : "\"" + name + "\"";
+                break;
+            case "rest":
+                advance();
+                isTok(param.start);
+                const capturedExprs = [];
+                while (nextTok && nextTok.id !== param.end) {
+                    let results = {};
+                    param.captureGroups.forEach(param => handle(param, results))
+                    capturedExprs.push(results);
+                    if (nextTok && nextTok.id !== param.end && param.comma) {
+                        advance();
+                    }
+                }
+                p.rest = capturedExprs;
+                advance();
+                break;
+        }
+    })
+    let macroString = macros[macroName].macro(...Object.values(params));
+    macroString = macroString.replace(/{{(.+?)}}/g, (_, match) => {
+        if (match.startsWith("~")) {
+            const type = match.slice(1);
+            if (ids.includes(type)) {
+                return params[type];
+            }
+            return "_breadcrumb_" + match.slice(1);
+        } else {
+            return "_id_" + match;
+        }
+    })
+    let ast = parseMacro(tokenize(macroString), false);
+    const cache = {};
+    ast = ast.map(node => insertParams(node, params, cache));
+    advance();
+    return ast;
+}
 // Gather all the statements together.
 function statements() {
     const statements = [];
     let nextStatement;
     while (true) {
+        if (tok && tok.id === "$") {
+            advance("$");
+            if (macros[tok.id] === undefined) {
+                statements.push(error(`Undefined macro ${tok.id}.`));
+                advance();
+                continue;
+            }
+            statements.push(...paramMacro());
+            continue;
+        }
+        if (tok && tok.id === "(keyword)" && tok.string === "include") {
+            advance();
+            const file = fs.readFileSync(tok.string);
+            statements.push(...parseMacro(tokenize(file.toString()), false));
+            advance();
+            continue;
+        }
+
         nextStatement = statement();
         // Are there no statements left?
         if (nextStatement === undefined && nextTok === undefined) {
@@ -1612,7 +1819,9 @@ function statements() {
             break;
         }
         if (nextStatement.type === undefined && nextTok === undefined && nextStatement.id !== "(error)") {
-            break;
+            if (!isMacro) {
+                break;
+            }
         }
         // Handle suffix if: "something if cond"
         if (nextTok && nextTok.id === "(keyword)" && nextTok.string === "if" && nextTok.lineNumber === tok.lineNumber) {
@@ -1671,9 +1880,33 @@ function findAndThrow(ast, topLevel = true) {
     return errorFound;
 }
 
-// Tie everything together with one function.
-module.exports = Object.freeze(function parse(tokGen, debug = true) {
-    // Generate a list of tokens.
+function parseMacro(tokGen, exp = true) {
+    isMacro = true;
+    const oldTokList = tokList;
+    const oldPrevTok = prevTok;
+    const oldTok = tok;
+    const oldNextTok = nextTok;
+    const oldIndex = index;
+    tokList = function() {
+        let res = [];
+        for (let i;
+            (i = tokGen()) !== undefined;) {
+            res.push(i);
+        }
+        return res;
+    }();
+    [tok, nextTok] = [tokList[0], tokList[1]];
+    index = 0;
+    const statementz = exp ? [expr()] : statements();
+    tokList = oldTokList;
+    [prevTok, tok, nextTok] = [oldPrevTok, oldTok, oldNextTok];
+    index = oldIndex;
+    isMacro = false;
+    return exp ? statementz[0] : statementz;
+}
+
+function parse(tokGen, debug = true) {
+    // Generate a list of tokens
     tokList = function() {
         let res = [];
         for (let i;
@@ -1685,6 +1918,7 @@ module.exports = Object.freeze(function parse(tokGen, debug = true) {
     // Re-init all the variables
     index = 0;
     metadata = {};
+    macros = {};
     errors.empty();
     warnings = [];
     [tok, nextTok] = [tokList[0], tokList[1]];
@@ -1737,4 +1971,6 @@ module.exports = Object.freeze(function parse(tokGen, debug = true) {
         }
     }
     return [];
-})
+}
+// Tie everything together with one function.
+module.exports = Object.freeze(parse);

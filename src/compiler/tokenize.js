@@ -34,7 +34,7 @@ Capturing Group:
 [7] Punctuator
 [8] RegExp
 */
-const tokenRegExp = /(\u0020+|\t+)|(#.*)|("(?:[^"\\]|\\(?:[nrt"\\]|u\{[0-9A-F]{4,6}\}))*")|\b(let|loop|if|else|func|break|import|export|match|return|def|try|on|settle|raise|importstd|meta|enter|exit|operator|hoist|go|get|enum|where|derives|static)\b|([A-Za-z_+\-/*%&|?^=<>'!][A-Za-z_0-9+\-/*%&|?^<>='!]*)|((?:0[box])?-?\d[\d_]*(?:\.[\d_]+)?(?:e\-?[\d_]+)?[a-z]*)|(\.{2,3}|[@$(),.{}\[\]:])|(`.+?`[gimsuy]*)/y;
+const tokenRegExp = /(\u0020+|\t+)|(#.*)|("(?:[^"\\]|\\(?:[nrt"\\]|u\{[0-9A-F]{4,6}\}))*")|\b(let|loop|if|else|func|break|import|export|match|return|def|try|on|settle|raise|importstd|meta|enter|exit|operator|hoist|go|get|enum|where|derives|static|macro|include|includestd)\b|([A-Za-z_+\-/*%&|?^=<>'!][A-Za-z_0-9+\-/*%&|?^<>='!]*)|((?:0[box])?-?\d[\d_]*(?:\.[\d_]+)?(?:e\-?[\d_]+)?[a-z]*)|(\.{2,3}|~{|}~|[~@$(),.{}\[\]:])|(`.+?`[gimsuy]*)/y;
 /**
  * Create a token generator for a specific source.
  * @param {string | Array<string>} source If string is provided, string is split along newlines. If array is provided, array is used as the array of lines.
@@ -53,6 +53,9 @@ function tokenize(source, comment = false) {
     let lineNumber = 0;
     // Refinements are not mangled
     let dotLast = false;
+    let insideTemplate = false;
+    let template = [];
+    let linesDone = [];
     let line = lines[0];
     // Keep trackc of where the token is on the line
     tokenRegExp.lastIndex = 0;
@@ -74,8 +77,17 @@ function tokenize(source, comment = false) {
                 tokenGenerator()
             );
         }
-        // Figure out the current token.
+        console.log
+            // Figure out the current token.
         let captives = tokenRegExp.exec(line);
+        if (insideTemplate && captives[7] !== "}~" && !linesDone.includes(lineNumber)) {
+            template.push(line);
+            linesDone.push(lineNumber)
+            return tokenGenerator();
+        }
+        if (insideTemplate && captives[7] !== "}~") {
+            return tokenGenerator();
+        }
         // If no tokens were matched, it's an error.
         if (!captives) {
             let res = {
@@ -190,6 +202,23 @@ function tokenize(source, comment = false) {
                 dotLast = true; // This means a refinement is coming. The next alphanumeric identifier will not be mangled.
             } else {
                 dotLast = false;
+            }
+            if (captives[7] === "~{") {
+                insideTemplate = true;
+                return tokenGenerator();
+            }
+            if (captives[7] === "}~") {
+                insideTemplate = false;
+                const temp = template;
+                template = [];
+                linesDone = [];
+                return {
+                    id: "(template)",
+                    string: temp.slice(0, -1).map(x => x.trim()).join("\n"),
+                    lineNumber,
+                    columnNumber,
+                    columnTo
+                }
             }
             return {
                 id: captives[7],
