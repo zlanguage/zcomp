@@ -1540,7 +1540,11 @@ const blockSyms = {
 }
 parseStatement.macro = function() {
         advance("(keyword)");
-        advance("$");
+        if (tok.id === "(keyword)" && tok.string === "operator") {
+            advance("(keyword)");
+        } else {
+            advance("$");
+        }
         const macroName = tok.id;
         advance();
         advance("(");
@@ -1609,6 +1613,31 @@ parseStatement.macro = function() {
                 wunth: block()
             }]
         }]));
+        if (Object.keys(macros).includes(macroName)) {
+            const oldMacro = macros[macroName];
+            if (oldMacro.divergencePoint === undefined) {
+                const otherParams = oldMacro.params;
+                otherParams.forEach((param, index) => {
+                    if (param.captureType === "skip" && param.name !== params[index].name) {
+                        macros[macroName] = {
+                            divergencePoint: index,
+                            options: [param.name, params[index].name],
+                            paths: [oldMacro, {
+                                params,
+                                macro: macroBody
+                            }]
+                        }
+                    }
+                });
+            } else {
+                macros[macroName].options.push(params[macros[macroName].divergencePoint].name);
+                macros[macroName].paths.push({
+                    params,
+                    macro: macroBody
+                });
+            }
+            return {};
+        }
         macros[macroName] = {
             params,
             macro: macroBody
@@ -1726,262 +1755,334 @@ function insertParams(node, params, cache = {}) {
 
 function paramMacro() {
     const macroName = tok.id;
-    const macroParams = macros[macroName].params;
+    let macroParams = macros[macroName].params;
+    if (macros[macroName].divergencePoint !== undefined) {
+        macroParams = macros[macroName].paths[0].params;
+    }
     const params = {};
     const ids = [];
+    let correctPath;
+    let err;
     macroParams.forEach(function handle(param, p = params) {
-        if (typeof p === "number") {
-            p = params;
+                const { name, captureType } = param;
+                if (p === macros[macroName].divergencePoint) {
+                    const ops = macros[macroName].options;
+                    advance();
+                    correctPath = ops.indexOf(tok.id);
+                    if (correctPath === -1) {
+                        err = error(`Macro "${macroName}" is only overloaded for the following identifiers: ${ops.map(op => `"${op}"`).join(", ")}. There is no overload available for "${tok.id}".`)
+      }
+      params[name] = name.startsWith("\"") ? name : "\"" + name + "\"";
+      return;
+    }
+    if (typeof p === "number") {
+      p = params;
+    }
+    switch (captureType) {
+      case "expr":
+        advance();
+        p[name] = expr();
+        break;
+      case "block":
+        p[name] = block();
+        p[name].spreadOut = true;
+        break;
+      case "id":
+        advance();
+        ids.push(name);
+        p[name] = tok.string ? tok.string : tok.id;
+        break;
+      case "skip":
+        advance();
+        isTok(name.replace(/^\"|"$/g, ""));
+        p[name] = name.startsWith("\"") ? name : "\"" + name + "\"";
+        break;
+      case "rest":
+        advance();
+        isTok(param.start);
+        const capturedExprs = [];
+        while (nextTok && nextTok.id !== param.end) {
+          let results = {};
+          param.captureGroups.forEach(param => handle(param, results))
+          capturedExprs.push(results);
+          if (nextTok && nextTok.id !== param.end && param.comma) {
+            advance();
+          }
         }
-        const { name, captureType } = param;
-        switch (captureType) {
-            case "expr":
-                advance();
-                p[name] = expr();
-                break;
-            case "block":
-                p[name] = block();
-                p[name].spreadOut = true;
-                break;
-            case "id":
-                advance();
-                ids.push(name);
-                p[name] = tok.string ? tok.string : tok.id;
-                break;
-            case "skip":
-                advance();
-                p[name] = name.startsWith("\"") ? name : "\"" + name + "\"";
-                break;
-            case "rest":
-                advance();
-                isTok(param.start);
-                const capturedExprs = [];
-                while (nextTok && nextTok.id !== param.end) {
-                    let results = {};
-                    param.captureGroups.forEach(param => handle(param, results))
-                    capturedExprs.push(results);
-                    if (nextTok && nextTok.id !== param.end && param.comma) {
-                        advance();
-                    }
-                }
-                p.rest = capturedExprs;
-                advance();
-                break;
-        }
-    })
-    let macroString = macros[macroName].macro(...Object.values(params));
-    macroString = macroString.replace(/{{(.+?)}}/g, (_, match) => {
-        if (match.startsWith("~")) {
-            const type = match.slice(1);
-            if (ids.includes(type)) {
-                return params[type];
-            }
-            return "_breadcrumb_" + match.slice(1);
-        } else {
-            return "_id_" + match;
-        }
-    })
-    let ast = parseMacro(tokenize(macroString), false);
-    const cache = {};
-    ast = ast.map(node => insertParams(node, params, cache));
-    advance();
-    return ast;
+        p.rest = capturedExprs;
+        advance();
+        break;
+    }
+  })
+  if (err) {
+    return [err];
+  }
+  let macroString;
+  if (correctPath !== undefined) {
+    macroString = macros[macroName].paths[correctPath].macro(...Object.values(params));
+  } else {
+    macroString = macros[macroName].macro(...Object.values(params));
+  }
+  macroString = macroString.replace(/{{(.+?)}}/g, (_, match) => {
+    if (match.startsWith("~")) {
+      const type = match.slice(1);
+      if (ids.includes(type)) {
+        return params[type];
+      }
+      return "_breadcrumb_" + match.slice(1);
+    } else {
+      return "_id_" + match;
+    }
+  })
+  let ast = parseMacro(tokenize(macroString), false);
+  const cache = {};
+  ast = ast.map(node => insertParams(node, params, cache));
+  advance();
+  return ast;
+}
+function pureMacro(macroName, params) {
+  const ids = [];
+  let macroString = macros[macroName].macro(...Object.values(params));
+  macroString = macroString.replace(/{{(.+?)}}/g, (_, match) => {
+    if (match.startsWith("~")) {
+      const type = match.slice(1);
+      if (ids.includes(type)) {
+        return params[type];
+      }
+      return "_breadcrumb_" + match.slice(1);
+    } else {
+      return "_id_" + match;
+    }
+  })
+  let ast = parseMacro(tokenize(macroString), false);
+  const cache = {};
+  ast = ast.map(node => insertParams(node, params, cache));
+  return ast;
 }
 // Gather all the statements together.
 function statements() {
-    const statements = [];
-    let nextStatement;
-    while (true) {
-        if (tok && tok.id === "$") {
-            advance("$");
-            if (macros[tok.id] === undefined) {
-                statements.push(error(`Undefined macro ${tok.id}.`));
-                advance();
-                continue;
-            }
-            statements.push(...paramMacro());
-            continue;
-        }
-        if (tok && tok.id === "(keyword)" && tok.string === "include") {
-            advance();
-            const file = fs.readFileSync(tok.string);
-            statements.push(...parseMacro(tokenize(file.toString()), false));
-            advance();
-            continue;
-        }
-        if (tok && tok.id === "(keyword)" && tok.string === "includestd") {
-            advance();
-            const currpath = process.cwd();
-            while (!fs.existsSync("node_modules")) {
-                process.chdir("..");
-            }
-            const file = fs.readFileSync(`node_modules/@zlanguage/zstdlib/src/macros/${tok.string}.zlang`)
-            statements.push(...parseMacro(tokenize(file.toString()), false));
-            advance();
-            process.chdir(currpath);
-            continue;
-        }
-        nextStatement = statement();
-        // Are there no statements left?
-        if (nextStatement === undefined && nextTok === undefined) {
-            break;
-        }
-        if (nextStatement === undefined) {
-            break;
-        }
-        if (nextStatement.type === undefined && nextTok === undefined && nextStatement.id !== "(error)") {
-            if (!isMacro) {
-                break;
-            }
-        }
-        // Handle suffix if: "something if cond"
-        if (nextTok && nextTok.id === "(keyword)" && nextTok.string === "if" && nextTok.lineNumber === tok.lineNumber) {
-            advance();
-            advance("(keyword)");
-            nextStatement = {
-                type: "if",
-                zeroth: expr(),
-                wunth: [nextStatement]
-            }
-        }
-        // Otherwise, continue
-        statements.push(nextStatement);
-        // Start a new list of errors.
-        errors.next();
+  const statements = [];
+  let nextStatement;
+  while (true) {
+    if (tok && tok.id === "$") {
+      advance("$");
+      if (macros[tok.id] === undefined) {
+        statements.push(error(`Undefined macro ${tok.id}.`));
         advance();
+        continue;
+      }
+      statements.push(...paramMacro());
+      continue;
     }
-    // Go back to the beginning of the list of errors.
-    errors.restart();
-    return statements;
+    if (tok && tok.id === "(keyword)" && tok.string === "include") {
+      advance();
+      const file = fs.readFileSync(tok.string);
+      statements.push(...parseMacro(tokenize(file.toString()), false));
+      advance();
+      continue;
+    }
+    if (tok && tok.id === "(keyword)" && tok.string === "includestd") {
+      advance();
+      const currpath = process.cwd();
+      while (!fs.existsSync("node_modules")) {
+        process.chdir("..");
+      }
+      const file = fs.readFileSync(`node_modules/@zlanguage/zstdlib/src/macros/${tok.string}.zlang`)
+      statements.push(...parseMacro(tokenize(file.toString()), false));
+      advance();
+      process.chdir(currpath);
+      continue;
+    }
+    nextStatement = statement();
+    // Are there no statements left?
+    if (nextStatement === undefined && nextTok === undefined) {
+      break;
+    }
+    if (nextStatement === undefined) {
+      break;
+    }
+    if (nextStatement.type === undefined && nextTok === undefined && nextStatement.id !== "(error)") {
+      if (!isMacro) {
+        break;
+      }
+    }
+    // Handle suffix if: "something if cond"
+    if (nextTok && nextTok.id === "(keyword)" && nextTok.string === "if" && nextTok.lineNumber === tok.lineNumber) {
+      advance();
+      advance("(keyword)");
+      nextStatement = {
+        type: "if",
+        zeroth: expr(),
+        wunth: [nextStatement]
+      }
+    }
+    // Otherwise, continue
+    statements.push(nextStatement);
+    // Start a new list of errors.
+    errors.next();
+    advance();
+  }
+  // Go back to the beginning of the list of errors.
+  errors.restart();
+  return statements;
 }
 
 function arrayWrap(arr) {
-    if (!Array.isArray(arr)) {
-        return [arr];
-    }
-    return arr;
+  if (!Array.isArray(arr)) {
+    return [arr];
+  }
+  return arr;
 }
 
 // Look for more errors and add them to the list.
 // Return true if errors were found.
 function findAndThrow(ast, topLevel = true) {
-    let errorFound = false;
-    arrayWrap(ast).forEach(part => {
-        if (part && part.id === "(error)") {
-            errors.push(part);
-            errorFound = true;
-        } else if (part && part.type) {
-            if (part && part.zeroth) {
-                errorFound = findAndThrow(part.zeroth, false);
-            }
-            if (part && part.wunth) {
-                errorFound = findAndThrow(part.wunth, false);
-            }
-            if (part && part.twoth) {
-                errorFound = findAndThrow(part.twoth), false;
-            }
-        }
-        if (topLevel) {
-            errors.next();
-        }
-    });
-    if (errors.length > 0) {
-        return true;
+  let errorFound = false;
+  arrayWrap(ast).forEach(part => {
+    if (part && part.id === "(error)") {
+      errors.push(part);
+      errorFound = true;
+    } else if (part && part.type) {
+      if (part && part.zeroth) {
+        errorFound = findAndThrow(part.zeroth, false);
+      }
+      if (part && part.wunth) {
+        errorFound = findAndThrow(part.wunth, false);
+      }
+      if (part && part.twoth) {
+        errorFound = findAndThrow(part.twoth), false;
+      }
     }
-    return errorFound;
+    if (topLevel) {
+      errors.next();
+    }
+  });
+  if (errors.length > 0) {
+    return true;
+  }
+  return errorFound;
 }
-
 function parseMacro(tokGen, exp = true) {
-    isMacro = true;
-    const oldTokList = tokList;
-    const oldPrevTok = prevTok;
-    const oldTok = tok;
-    const oldNextTok = nextTok;
-    const oldIndex = index;
-    tokList = function() {
-        let res = [];
-        for (let i;
-            (i = tokGen()) !== undefined;) {
-            res.push(i);
-        }
-        return res;
-    }();
-    [tok, nextTok] = [tokList[0], tokList[1]];
-    index = 0;
-    const statementz = exp ? [expr()] : statements();
-    tokList = oldTokList;
-    [prevTok, tok, nextTok] = [oldPrevTok, oldTok, oldNextTok];
-    index = oldIndex;
-    isMacro = false;
-    return exp ? statementz[0] : statementz;
+  isMacro = true;
+  const oldTokList = tokList;
+  const oldPrevTok = prevTok;
+  const oldTok = tok;
+  const oldNextTok = nextTok;
+  const oldIndex = index;
+  tokList = function() {
+    let res = [];
+    for (let i; (i = tokGen()) !== undefined;) {
+      res.push(i);
+    }
+    return res;
+  }();
+  [tok, nextTok] = [tokList[0], tokList[1]];
+  index = 0;
+  const statementz = exp ? [expr()] : statements();
+  tokList = oldTokList;
+  [prevTok, tok, nextTok] = [oldPrevTok, oldTok, oldNextTok];
+  index = oldIndex;
+  isMacro = false;
+  return exp ? statementz[0] : statementz;
 }
 
+function resolveOpMacros(ast) {
+  ast.forEach((statement, index) => {
+    if (statement.type === "invocation" && Object.keys(macros).includes(statement.zeroth)) {
+      const macroName = statement.zeroth;
+      const paramNames = macros[macroName].params.map(param => param.name);
+      const params = {};
+      params[paramNames[0]] = resolveOpMacros([statement.wunth[0]])[0];
+      params[paramNames[1]] = resolveOpMacros([statement.wunth[1]])[0];;
+      ast[index] = pureMacro(macroName, params)[0];
+    }
+    if (statement.zeroth && statement.zeroth.type === "invocation" && Object.keys(macros).includes(statement.zeroth.zeroth)) {
+      statement.zeroth = resolveOpMacros([statement.zeroth])[0];
+    }
+    if (statement.wunth && statement.wunth.type === "invocation" && Object.keys(macros).includes(statement.wunth.zeroth)) {
+      statement.wunth = resolveOpMacros([statement.wunth])[0];
+    }
+    if (statement.twoth && statement.twoth.type === "invocation" && Object.keys(macros).includes(statement.twoth.zeroth)) {
+      statement.twoth = resolveOpMacros([statement.twoth])[0];
+    }
+    if (Array.isArray(statement.zeroth)) {
+      statement.zeroth = resolveOpMacros(statement.zeroth);
+    }
+    if (Array.isArray(statement.wunth)) {
+      statement.wunth = resolveOpMacros(statement.wunth);
+    }
+    if (Array.isArray(statement.twoth)) {
+      statement.wunth = resolveOpMacros(statemnet.wunth);
+    }
+  });
+  return ast;
+}
 function parse(tokGen, debug = true) {
-    // Generate a list of tokens
-    tokList = function() {
-        let res = [];
-        for (let i;
-            (i = tokGen()) !== undefined;) {
-            res.push(i);
-        }
-        return res;
-    }();
-    // Re-init all the variables
-    index = 0;
-    metadata = {};
-    macros = {};
-    errors.empty();
-    warnings = [];
-    [tok, nextTok] = [tokList[0], tokList[1]];
-    // Gather statements
-    const statementz = statements();
-    // Display warnings
-    if (warnings.length > 0 && debug) {
-        console.log(`${warnings.length} warning${warnings.length === 1 ? "" : "s"} generated:`);
-        warnings.forEach(warning => {
-            console.log(warning);
-        })
+  // Generate a list of tokens
+  tokList = function() {
+    let res = [];
+    for (let i; (i = tokGen()) !== undefined;) {
+      res.push(i);
     }
-    // console.log(JSON.stringify(statementz, undefined, 4));
-    if (!findAndThrow(statementz)) {
-        // Resolve top-level get.
-        if (isGoroutine(statementz)) {
-            if (statementz.some(statement => statement.type === "export")) {
-                throw error("Export and top-level get do not work well together. Until top-level await is supported, another solution is needed. Try exporting a promise instead.").zeroth;
+    return res;
+  }();
+  // Re-init all the variables
+  index = 0;
+  metadata = {};
+  macros = {};
+  errors.empty();
+  warnings = [];
+  [tok, nextTok] = [tokList[0], tokList[1]];
+  // Gather statements
+  const statementz = resolveOpMacros(statements());
+  // Display warnings
+  if (warnings.length > 0 && debug) {
+    console.log(`${warnings.length} warning${warnings.length === 1 ? "" : "s"} generated:`);
+    warnings.forEach(warning => {
+      console.log(warning);
+    })
+  }
+  // console.log(JSON.stringify(statementz, undefined, 4));
+  if (!findAndThrow(statementz)) {
+    // Resolve top-level get.
+    if (isGoroutine(statementz)) {
+      if (statementz.some(statement => statement.type === "export")) {
+        throw error("Export and top-level get do not work well together. Until top-level await is supported, another solution is needed. Try exporting a promise instead.").zeroth;
+      }
+      return [
+        {
+          type: "def",
+          zeroth: [{
+            type: "assignment",
+            zeroth: "$main",
+            wunth: {
+              type: "goroutine",
+              zeroth: [],
+              wunth: statementz
             }
-            return [{
-                    type: "def",
-                    zeroth: [{
-                        type: "assignment",
-                        zeroth: "$main",
-                        wunth: {
-                            type: "goroutine",
-                            zeroth: [],
-                            wunth: statementz
-                        }
-                    }]
-                },
-                {
-                    type: "invocation",
-                    zeroth: "$main",
-                    wunth: []
-                }
-            ]
+          }]
+        },
+        {
+          type: "invocation",
+          zeroth: "$main",
+          wunth: []
         }
-        return statementz;
+      ]
     }
-    // If debug mode is on, print out a list of errors.
-    if (debug) {
-        console.log(`${errors.length} error${errors.length === 1 ? "" : "s"} generated:`);
-        errors.forEach(error => {
-            console.log(error.zeroth);
-        })
-    } else { // Otherwise, just throw the first one.
-        if (errors.first() != null) {
-            throw errors.first().zeroth;
-        }
+    return statementz;
+  }
+  // If debug mode is on, print out a list of errors.
+  if (debug) {
+    console.log(`${errors.length} error${errors.length === 1 ? "" : "s"} generated:`);
+    errors.forEach(error => {
+      console.log(error.zeroth);
+    })
+  } else { // Otherwise, just throw the first one.
+    if (errors.first() != null) {
+      throw errors.first().zeroth;
     }
-    return [];
+  }
+  return [];
 }
 // Tie everything together with one function.
 module.exports = Object.freeze(parse);
