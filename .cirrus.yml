@@ -26,7 +26,7 @@ Tests_task:
             echo "always-auth=true" > ~/.npmrc
             make publish
           env:
-            NPMJS_PASS: aDummyObject
+            NPMJS_PASS: ENCRYPTED[26181d2447fe13add10ca986fc1551717fa77ed15e8acf3fb887fd52bbf13008af982745baedd4e3de6e9bea47f8b5f5]
         - name: "CodeCoverage@Node:Latest"
           env:
             CODE_COVERAGE_RUN: true
