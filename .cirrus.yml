@@ -49,7 +49,7 @@ Tests_task:
     - container:
         image: node:carbon
       name: "Tests@Node:Carbon"
-    - osx_container:
+    - osx_instance:
         image: mojave-xcode
       name: "Tests@Darwin"
       env:
