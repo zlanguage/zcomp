@@ -4,20 +4,29 @@ Tests_task:
     fingerprint_script: |
       cat package.json
       cat package-lock.json
-    populate_script: npm i
+    populate_script: make install
   script: |
     if [[ -z $CODE_COVERAGE_RUN ]]; then
-      npm test
+      make
     else
-      curl -L -o ./codecov https://codecov.io/bash
-      chmod +x ./codecov
-      npm run coverage:report
+      make reportcoverage
     fi
   matrix:
     - container:
         image: node:latest
       matrix:
         - name: "Tests@Node:Latest"
+        - name: "Deploy@Node:Latest"
+          only_if: $CIRRUS_TAG != ""
+          push_script: |
+            touch ~/.npmrc
+            echo "registry=https://registry.npmjs.com/" > ~/.npmrc
+            echo "_auth=\"${NPMJS_PASS}\""
+            echo "email=n8programs@gmail.com" > ~/.npmrc
+            echo "always-auth=true" > ~/.npmrc
+            make publish
+          env:
+            NPMJS_PASS: ENCRYPTED[26181d2447fe13add10ca986fc1551717fa77ed15e8acf3fb887fd52bbf13008af982745baedd4e3de6e9bea47f8b5f5]
         - name: "CodeCoverage@Node:Latest"
           env:
             CODE_COVERAGE_RUN: true
