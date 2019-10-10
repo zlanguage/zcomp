@@ -9,7 +9,6 @@ Tests_task:
     if [[ -z $CODE_COVERAGE_RUN ]]; then
       make
     else
-      make coverage
       curl -L -o ./codecov https://codecov.io/bash
       chmod +x ./codecov
       npm run coverage:report
