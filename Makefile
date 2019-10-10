@@ -1,5 +1,5 @@
 build:
-	npm install @zlanguage/zstdlib@latest --save
+	npm install
 	npm test
 .PHONY: build
 
