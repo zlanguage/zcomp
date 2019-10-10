@@ -7,11 +7,11 @@ Tests_task:
     populate_script: npm i
   script: |
     if [[ -z $CODE_COVERAGE_RUN ]]; then
-      npm test
+      make test
     else
       curl -L -o ./codecov https://codecov.io/bash
       chmod +x ./codecov
-      npm run coverage:report
+      make coverage
     fi
   matrix:
     - container:
