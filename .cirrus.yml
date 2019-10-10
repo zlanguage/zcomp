@@ -6,20 +6,13 @@ Tests_task:
       cat package-lock.json
     populate_script: npm i
   script: |
-    if [[ -z $HOMEBREW_NO_ANALYTICS ]]; then
-      echo "Running in Docker, no extra setup required."
-      if [[ -z $CODE_COVERAGE_RUN ]]; then
-        make
-      else
-        make coverage
-        curl -L -o ./codecov https://codecov.io/bash
-        chmod +x ./codecov
-        npm run coverage:report
-      fi
-    else
-      echo "Running on Darwin machine, installing Node..."
-      brew install node
+    if [[ -z $CODE_COVERAGE_RUN ]]; then
       make
+    else
+      make coverage
+      curl -L -o ./codecov https://codecov.io/bash
+      chmod +x ./codecov
+      npm run coverage:report
     fi
   matrix:
     - container:
@@ -49,8 +42,3 @@ Tests_task:
     - container:
         image: node:carbon
       name: "Tests@Node:Carbon"
-    - osx_instance:
-        image: mojave-xcode
-      name: "Tests@Darwin"
-      env:
-        HOMEBREW_NO_ANALYTICS: 1
