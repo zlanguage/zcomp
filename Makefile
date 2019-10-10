@@ -19,3 +19,4 @@ reportcoverage:
   curl -L -o ./codecov https://codecov.io/bash
   chmod +x ./codecov
   npm run coverage:report
+.PHONY: reportcoverage
