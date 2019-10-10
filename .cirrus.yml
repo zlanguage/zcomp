@@ -18,15 +18,11 @@ Tests_task:
         - name: "Tests@Node:Latest"
         - name: "Deploy@Node:Latest"
           only_if: $CIRRUS_TAG != ""
-          push_script: |
-            touch ~/.npmrc
-            echo "registry=https://registry.npmjs.com/" > ~/.npmrc
-            echo "_auth=\"${NPMJS_PASS}\""
-            echo "email=n8programs@gmail.com" > ~/.npmrc
-            echo "always-auth=true" > ~/.npmrc
-            make publish
+          push_script: make publish
           env:
-            NPMJS_PASS: ENCRYPTED[26181d2447fe13add10ca986fc1551717fa77ed15e8acf3fb887fd52bbf13008af982745baedd4e3de6e9bea47f8b5f5]
+            NPM_PASS: ENCRYPTED[26181d2447fe13add10ca986fc1551717fa77ed15e8acf3fb887fd52bbf13008af982745baedd4e3de6e9bea47f8b5f5]
+            NPM_USER: n8programs
+            NPM_EMAIL: n8programs@gmail.com
         - name: "CodeCoverage@Node:Latest"
           env:
             CODE_COVERAGE_RUN: true
