@@ -18,5 +18,7 @@ coverage: build
 .PHONY: coverage
 
 publish: build
+	npm install -g npm-cli-login
+	npm-cli-login
 	npm publish --access public
 .PHONY: publish
