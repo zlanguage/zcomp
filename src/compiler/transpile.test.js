@@ -63,6 +63,8 @@ const evalTests = {
         "copy(console[\"log\"])": console.log,
         "copy(console.log.call)": console.log.call,
         "copy(console[\"log\"].call)": console.log.call,
+        "copy(console..log..call)": console.log.call,
+        "copy(console..foo..call)": undefined,
         "copy(\"Hello\").slice(0, -1)": "Hell",
         "copy(undefined..x..y)": undefined,
         "\"Hello\"..slice(0, -1)": "Hell"
@@ -140,6 +142,67 @@ const evalTests = {
             { x: number!, y: number! } => "A point-like object.",
             _ => "no"
         }`]: "A point-like object."
+    },
+    "macros": {
+        [`macro $hello () {
+            return ~{
+                "Hey"
+            }~
+        }
+        copy($hello)`]: "Hey",
+        [`macro $join(~l:expr, ~r:expr) {
+            return ~{
+                {{~l}} ++ " " ++ {{~r}}
+            }~
+        }
+        copy($join "Hello" "World")`]: "Hello World",
+        [`macro $proc(~body:block) {
+            return ~{
+                func () {
+                    {{~body}}
+                }
+            }~
+        }
+        copy($proc {
+            return 3
+        })()`]: 3,
+        [`macro operator ->(~param:expr, ~body:expr) {
+            return ~{
+                func ({{~param}}) {
+                    return {{~body}}
+                }
+            }~
+        }
+        copy(x -> x * 2)(5)`]: 10,
+        [`macro $do (~body:block, while, ~cond:expr) {
+            return ~{
+               loop {
+                   {{~body}}
+                   if not({{~cond}}) {
+                       break
+                   }
+               }
+           }~   
+       }
+       
+       macro $do (~body:block, until, ~cond:expr) {
+            return ~{
+               loop {
+                   {{~body}}
+                   if {{~cond}} {
+                       break
+                   }
+               }
+           }~   
+       }
+       
+       macro $do (~body:block, unless, ~cond:expr) {
+            return ~{
+             if not({{~cond}}) {
+               {{~body}}
+             }
+           }~   
+       }`]: "use strict"
     }
 }
 
