@@ -1,6 +1,6 @@
 {
     "name": "@zlanguage/zcomp",
-    "description": "The Z transpiler",
+    "description": "The Z language transpiler",
     "version": "0.4.2",
     "author": "N8",
     "bin": {
@@ -13,7 +13,7 @@
         "@oclif/command": "^1.5.17",
         "@oclif/config": "^1.13.2",
         "@oclif/plugin-help": "^2.2.0",
-        "@zlanguage/zstdlib": "^0.4.0",
+        "@zlanguage/zstdlib": "latest",
         "vlq": "^1.0.1"
     },
     "devDependencies": {
@@ -58,8 +58,6 @@
         "test": "jest",
         "coverage:generate": "jest --collectCoverage --coverageDirectory ./coverage/",
         "coverage:report": "npm run coverage:generate && ./codecov",
-        "cov": "npm run coverage:report",
-        "version": "oclif-dev readme && git add README.md",
-        "build": "npm install @zlanguage/zstdlib@latest --save && npm test && git commit -a -m \"Release $npm_package_version\" && git push && sudo npm publish --access public"
+        "version": "oclif-dev readme && git add README.md"
     }
 }
