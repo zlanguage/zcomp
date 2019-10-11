@@ -1,4 +1,4 @@
-const IParse = require('./parse')
+let IParse = require('./parse')
 
 beforeEach(() => {
     IParse.tok = 1;
