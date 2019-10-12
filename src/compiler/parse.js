@@ -921,6 +921,10 @@ function expr({ infix = true } = {}) {
                 break;
             case "$":
                 advance();
+                if (tok.id === "Z") {
+                    zeroth = "$Z";
+                    break;
+                }
                 // isMacro = true;
                 if (macros[tok.id] === undefined) {
                     return error(`Undefined macro ${tok.id}.`);
@@ -1763,7 +1767,7 @@ function paramMacro() {
     const ids = [];
     let correctPath;
     let err;
-    macroParams.forEach(function handle(param, p = params) {
+    macroParams.every(function handle(param, p = params) {
                 const { name, captureType } = param;
                 if (p === macros[macroName].divergencePoint) {
                     const ops = macros[macroName].options;
@@ -1771,9 +1775,13 @@ function paramMacro() {
                     correctPath = ops.indexOf(tok.id);
                     if (correctPath === -1) {
                         err = error(`Macro "${macroName}" is only overloaded for the following identifiers: ${ops.map(op => `"${op}"`).join(", ")}. There is no overload available for "${tok.id}".`)
+        return false;
       }
       params[name] = name.startsWith("\"") ? name : "\"" + name + "\"";
-      return;
+      macros[macroName].paths[correctPath].params.slice(macros[macroName].divergencePoint + 1).forEach((param, p) => {
+        handle(param, p + macros[macroName].divergencePoint + 1);
+      });
+      return false;
     }
     if (typeof p === "number") {
       p = params;
@@ -1813,6 +1821,7 @@ function paramMacro() {
         advance();
         break;
     }
+    return true;
   })
   if (err) {
     return [err];
@@ -1864,7 +1873,7 @@ function statements() {
   const statements = [];
   let nextStatement;
   while (true) {
-    if (tok && tok.id === "$") {
+    if (tok && tok.id === "$" && nextTok.id !== "Z") {
       advance("$");
       if (macros[tok.id] === undefined) {
         statements.push(error(`Undefined macro ${tok.id}.`));
@@ -1987,34 +1996,36 @@ function parseMacro(tokGen, exp = true) {
 }
 
 function resolveOpMacros(ast) {
-  ast.forEach((statement, index) => {
-    if (statement.type === "invocation" && Object.keys(macros).includes(statement.zeroth)) {
-      const macroName = statement.zeroth;
-      const paramNames = macros[macroName].params.map(param => param.name);
-      const params = {};
-      params[paramNames[0]] = resolveOpMacros([statement.wunth[0]])[0];
-      params[paramNames[1]] = resolveOpMacros([statement.wunth[1]])[0];;
-      ast[index] = pureMacro(macroName, params)[0];
-    }
-    if (statement.zeroth && statement.zeroth.type === "invocation" && Object.keys(macros).includes(statement.zeroth.zeroth)) {
-      statement.zeroth = resolveOpMacros([statement.zeroth])[0];
-    }
-    if (statement.wunth && statement.wunth.type === "invocation" && Object.keys(macros).includes(statement.wunth.zeroth)) {
-      statement.wunth = resolveOpMacros([statement.wunth])[0];
-    }
-    if (statement.twoth && statement.twoth.type === "invocation" && Object.keys(macros).includes(statement.twoth.zeroth)) {
-      statement.twoth = resolveOpMacros([statement.twoth])[0];
-    }
-    if (Array.isArray(statement.zeroth)) {
-      statement.zeroth = resolveOpMacros(statement.zeroth);
-    }
-    if (Array.isArray(statement.wunth)) {
-      statement.wunth = resolveOpMacros(statement.wunth);
-    }
-    if (Array.isArray(statement.twoth)) {
-      statement.wunth = resolveOpMacros(statemnet.wunth);
-    }
-  });
+  if (Array.isArray(ast)) {
+    ast.forEach((statement, index) => {
+      if (statement.type === "invocation" && Object.keys(macros).includes(statement.zeroth)) {
+        const macroName = statement.zeroth;
+        const paramNames = macros[macroName].params.map(param => param.name);
+        const params = {};
+        params[paramNames[0]] = resolveOpMacros([statement.wunth[0]])[0];
+        params[paramNames[1]] = resolveOpMacros([statement.wunth[1]])[0];;
+        ast[index] = pureMacro(macroName, params)[0];
+      }
+      if (statement.zeroth && statement.zeroth.type === "invocation" && Object.keys(macros).includes(statement.zeroth.zeroth)) {
+        statement.zeroth = resolveOpMacros([statement.zeroth])[0];
+      }
+      if (statement.wunth && statement.wunth.type === "invocation" && Object.keys(macros).includes(statement.wunth.zeroth)) {
+        statement.wunth = resolveOpMacros([statement.wunth])[0];
+      }
+      if (statement.twoth && statement.twoth.type === "invocation" && Object.keys(macros).includes(statement.twoth.zeroth)) {
+        statement.twoth = resolveOpMacros([statement.twoth])[0];
+      }
+      if (Array.isArray(statement.zeroth)) {
+        statement.zeroth = resolveOpMacros(statement.zeroth);
+      }
+      if (Array.isArray(statement.wunth)) {
+        statement.wunth = resolveOpMacros(statement.wunth);
+      }
+      if (Array.isArray(statement.twoth)) {
+        statement.wunth = resolveOpMacros(statement.wunth);
+      }
+    });
+  }
   return ast;
 }
 function parse(tokGen, debug = true) {
@@ -2042,7 +2053,7 @@ function parse(tokGen, debug = true) {
       console.log(warning);
     })
   }
-  // console.log(JSON.stringify(statementz, undefined, 4));
+  console.log(JSON.stringify(statementz, undefined, 4));
   if (!findAndThrow(statementz)) {
     // Resolve top-level get.
     if (isGoroutine(statementz)) {

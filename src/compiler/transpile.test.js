@@ -1,4 +1,6 @@
-const { expect } = require("chai");
+const {
+    expect
+} = require("chai");
 const tokenize = require("./tokenize");
 const parse = require("./parse");
 const gen = require("./gen");
@@ -221,6 +223,170 @@ const transpileTests = {
         'import ramda.src.map': `const map = stone(require("ramda/src/map"));`,
         "importstd gr": 'const gr = stone(require("@zlanguage/zstdlib/src/js/gr"));',
         "export fooey": "module.exports = stone(fooey);"
+    },
+    "control flow": {
+        "if foo { log(bar) }": `if (assertBool(foo)) {
+            log(bar);
+        }`,
+        "if foo { log(bar) } else if fooey { log(baree) } else { log(foobar) }": `if (assertBool(foo)) {
+            log(bar);
+          } else {
+            if (assertBool(fooey)) {
+              log(baree);
+            } else {
+              log(foobar);
+            }
+          }`,
+        'loop { log("YAY") }': `while (true) {
+            log("YAY");
+          }`
+    },
+    "error handling": {
+        [`try {
+            raise "FOOEY"
+          } on err {
+            settle err
+          }`]: `try {
+            throw new Error("FOOEY");
+          } catch (err) {
+            err["settled"] = true;
+            if (assertBool($eq(err["settled"], undefined))) {
+              throw new Error("Error err not settled.")
+            }
+          }
+          `
+    },
+    "goroutines": {
+        [`copy(go func () {
+            get fooey()
+          })`]: `copy(async function () {
+            await fooey()._from();
+          });
+          `,
+        [`go {
+            get fooey()
+        }`]: `(async function () {
+            await fooey()._from();
+          })();
+          `
+    },
+    "enums": {
+        [`enum Foo {
+            Bar(x: number!),
+            Baz(y: _!, z: number!)
+          } derives (Nada) where {
+            foobar () {}
+          } `]: `function Bar(x) {
+  
+            if($eq(Object.keys((x == null) ? { [Symbol()]: 0 } : x).sort(), ["x"].sort())) {
+              ({ x } = x);
+            }
+          
+            
+            if (typeOf(x) !== "number") { 
+              throw new Error("Foo.Bar.x must be of type number. However, you passed " + x + " to Foo.Bar which is not of type number.");
+            }
+          
+            return Nada({
+              type() { return "Foo"; },
+              get constructor() { return Bar; },
+              get parent() { return Foo; },
+              get fields() { return ["x"]; },
+              get x(){ return x; },
+              "="(other) {
+                return other.constructor === Bar && $eq(x, other.x);
+              }
+            });
+          }
+          
+          Bar.extract = function (val) {
+            if (val.constructor === Bar) {
+              return [val.x];
+            }
+            return undefined;
+          };
+          
+          function Baz(y, z) {
+            
+            if($eq(Object.keys((y == null) ? { [Symbol()]: 0 } : y).sort(), ["y", "z"].sort())) {
+              ({ y, z } = y);
+            }
+          
+            
+            if (typeOf(z) !== "number") { 
+              throw new Error("Foo.Baz.z must be of type number. However, you passed " + z + " to Foo.Baz which is not of type number.");
+            }
+          
+            return Nada({
+              type() { return "Foo"; },
+              get constructor() { return Baz; },
+              get parent() { return Foo; },
+              get fields() { return ["y", "z"]; },
+              get y(){ return y; },
+                  get z(){ return z; },
+              "="(other) {
+                return other.constructor === Baz && $eq(y, other.y) && $eq(z, other.z);
+              }
+            });
+          }
+          
+          Baz.extract = function (val) {
+            if (val.constructor === Baz) {
+              return [val.y, val.z];
+            }
+            return undefined;
+          };
+          
+          let Foo = {
+            order: [Bar, Baz],
+            Bar,
+              Baz
+          };
+          Foo.foobar = function () {
+          };
+          
+          `,
+        [`enum Point(x: number!, y: number!) where {
+            nada () {}
+          }`]: `function Point(x, y) {
+      
+            if($eq(Object.keys((x == null) ? { [Symbol()]: 0 } : x).sort(), ["x", "y"].sort())) {
+              ({ x, y } = x);
+            }
+          
+            
+            if (typeOf(x) !== "number") { 
+              throw new Error("Point.Point.x must be of type number. However, you passed " + x + " to Point.Point which is not of type number.");
+            }
+          
+            if (typeOf(y) !== "number") { 
+              throw new Error("Point.Point.y must be of type number. However, you passed " + y + " to Point.Point which is not of type number.");
+            }
+          
+            return {
+              type() { return "Point"; },
+              get constructor() { return Point; },
+              get parent() { return Point; },
+              get fields() { return ["x", "y"]; },
+              get x(){ return x; },
+                  get y(){ return y; },
+              "="(other) {
+                return other.constructor === Point && $eq(x, other.x) && $eq(y, other.y);
+              }
+            };
+          }
+          
+          Point.extract = function (val) {
+            if (val.constructor === Point) {
+              return [val.x, val.y];
+            }
+            return undefined;
+          };
+          
+          Point.order = [Point];
+          
+          Point.nada = function () {
+          };`
     }
 }
 
@@ -246,7 +412,7 @@ Object.entries(transpileTests).forEach(([testName, tests]) => {
     describe(testName, () => {
         Object.entries(tests).forEach(([expr, res]) => {
             it(`should transpile ${expr} to ${res == null ? res : res.toString()}`, () => {
-                expect(transpileZ(expr).replace(/\n$/, "")).to.eql(res.replace(/\n$/, ""));
+                expect(transpileZ(expr).split("\n").map(x => x.trim()).join("")).to.eql(res.split("\n").map(x => x.trim()).join(""));
             })
         })
     })

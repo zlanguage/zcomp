@@ -1,3 +1,8 @@
+## [0.4.4] - 2019-10-12
+### Added
+- Infix macros
+- Overloaded macros
+- `$Z` macro to access gloabl namespace
 ## [0.4.0] - 2019-10-01
 ### Added
 - Macro system and `include`
@@ -169,3 +174,4 @@
 [0.3.19]: https://www.npmjs.com/package/@zlanguage/zcomp/v/0.3.19
 [0.3.20]: https://www.npmjs.com/package/@zlanguage/zcomp/v/0.3.20
 [0.4.0]: https://www.npmjs.com/package/@zlanguage/zcomp/v/0.4.0
+[0.4.4]: https://www.npmjs.com/package/@zlanguage/zcomp/v/0.4.4
