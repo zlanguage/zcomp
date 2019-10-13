@@ -2053,7 +2053,7 @@ function parse(tokGen, debug = true) {
       console.log(warning);
     })
   }
-  console.log(JSON.stringify(statementz, undefined, 4));
+  // console.log(JSON.stringify(statementz, undefined, 4));
   if (!findAndThrow(statementz)) {
     // Resolve top-level get.
     if (isGoroutine(statementz)) {
