@@ -123,6 +123,7 @@ class ReplCommand extends Command {
                         code.trim().startsWith("import") ||
                         code.trim().startsWith("importstd") ||
                         code.trim().startsWith("enum") ||
+                        code.trim().startsWith("macro") ||
                         code.trim().startsWith("include") ||
                         code.trim().startsWith("includestd")
                     ) {
