@@ -199,7 +199,7 @@ function arrayToObj(arr) {
         if (typeof field === "string" || typeof field === "number") {
             return {
                 type: "assignment",
-                zeroth: `"` + field + `"`,
+                zeroth: `"` + demangle(field) + `"`,
                 wunth: field
             }
         }
@@ -636,6 +636,15 @@ function expr({ infix = true } = {}) {
             case "{":
                 // Object destructuring
                 zeroth = parseCol("{", "}")
+                zeroth.forEach((d, index) => {
+                    if (validOpName.test(d)) {
+                        zeroth[index] = {
+                            type: "assignment",
+                            zeroth: `"${demangle(d)}"`,
+                            wunth: d
+                        }
+                    }
+                })
                 zeroth.species = "Destructuring[Object]";
                 break;
             case "[":
@@ -1071,72 +1080,12 @@ function expr({ infix = true } = {}) {
                 advance();
                 type = "subscript";
                 wunth = expr(); // Unlike refinements, subscripts allow ANY expression for property access
-                // Handle slicing (this will be changed at some point in the future, do not use in Z projects).
-                if (typeIn(wunth, "assignment") || wunth === ":") {
-                    // Begining slice [start:]
-                    if (wunth.type === "assignment" && wunth.wunth === "]") {
-                        type = "refinement";
-                        const start = wunth.zeroth;
-                        wunth = "slice";
-                        twoth = {
-                            type: "invocation",
-                            zeroth: "slice",
-                            wunth: [start]
-                        }
-                    } else if (wunth.type === "assignment") { // Handle dual slice [start:end]
-                        type = "refinement";
-                        const start = wunth.zeroth;
-                        const end = wunth.wunth;
-                        wunth = "slice";
-                        twoth = {
-                            type: "invocation",
-                            zeroth: "slice",
-                            wunth: [start, end]
-                        }
-                        advance();
-                        isTok("]");
-                    }
-                    if (wunth === ":") {
-                        // Full slice [:]
-                        if (nextTok.id === "]") {
-                            advance(":");
-                            type = "refinement";
-                            wunth = "slice";
-                            twoth = {
-                                type: "invocation",
-                                zeroth: "slice",
-                                wunth: []
-                            }
-                        } else {
-                            // End slice [:end]
-                            advance(":");
-                            type = "refinement";
-                            if (tok.number === undefined) {
-                                return error("For now, end slices (slices in the format [:_]) can only accept raw numeric literals.");
-                            }
-                            const end = tok.number;
-                            wunth = "slice";
-                            twoth = {
-                                type: "invocation",
-                                zeroth: "slice",
-                                wunth: [0, end]
-                            }
-                            advance("(number)");
-                            isTok("]");
-                        }
-                    }
-                    // Continue to the next part of the expression
-                    if (isExprAhead()) {
-                        twoth.twoth = expr();
-                    }
-                } else {
-                    advance();
-                    isTok("]");
-                    // Continue to the next part of the expression
-                    if (isExprAhead()) {
-                        twoth = expr();
-                        ({ type, zeroth, wunth, twoth } = mkChain(type, zeroth, wunth, twoth));
-                    }
+                advance();
+                isTok("]");
+                // Continue to the next part of the expression
+                if (isExprAhead()) {
+                    twoth = expr();
+                    ({ type, zeroth, wunth, twoth } = mkChain(type, zeroth, wunth, twoth));
                 }
                 break;
             case ":":
@@ -1394,16 +1343,10 @@ parseStatement.raise = () => {
 parseStatement.importstd = () => {
     advance("(keyword)");
     let imports = undefined;
-    const name = tok.id;
-    if (nextTok && nextTok.id === ".") {
-        advance();
-        advance();
-        imports = expr();
-    }
     return {
         type: "import",
-        zeroth: imports ? imports : tok.id,
-        wunth: `"@zlanguage/zstdlib/src/js/${name}"` // The npm package where the standard library lives.
+        zeroth: tok.id,
+        wunth: `"@zlanguage/zstdlib/src/js/${tok.id}"` // The npm package where the standard library lives.
     }
 }
 

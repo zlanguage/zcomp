@@ -16,6 +16,7 @@ const evalTests = {
         "0.5 + 0.25": 0.75,
         "0.125 - 0.25 * 0.5": 0,
         "0.125 / 4 * 10": 0.3125,
+        "-3.2 + -3": -6.2,
         "2 ^ 3": 8,
         "2 pow 3": 8,
         "2 ^ 3 ^ 3": 512,
@@ -98,7 +99,7 @@ const evalTests = {
         Red().succ().toString()`]: "Orange()"
     },
     "loop expressions": {
-        "[] ++ loop(x <- 1 to 10) x": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        "[] ++ loop(x <- 1...10) x": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         "[] ++ loop(x <- 1 to 10, if x % 2 = 0) x * 2": [4, 8, 12, 16, 20],
         "[] ++ loop(x <- 1 to 10, y: x * 2, if y % 4 = 0) x": [2, 4, 6, 8, 10],
         "[] ++ loop(x <- 1 to 3, if x % 2 = 0, y <- 1 to 3, z: x * y) z": [2, 4, 6]
@@ -204,6 +205,9 @@ const evalTests = {
                {{~body}}
              }
            }~   
+       }`]: "use strict",
+        [`macro $switch (...{case, ~body:block},) {
+
        }`]: "use strict"
     }
 }
@@ -224,10 +228,19 @@ const transpileTests = {
         "importstd gr": 'const gr = stone(require("@zlanguage/zstdlib/src/js/gr"));',
         "export fooey": "module.exports = stone(fooey);"
     },
+    "$Z Macro": {
+        "log($Z)": "log($Z);"
+    },
+    "include": {
+        'includestd "imperative"': ""
+    },
     "control flow": {
         "if foo { log(bar) }": `if (assertBool(foo)) {
             log(bar);
         }`,
+        "log(bar) if foo": `if (assertBool(foo)) {
+          log(bar);
+      }`,
         "if foo { log(bar) } else if fooey { log(baree) } else { log(foobar) }": `if (assertBool(foo)) {
             log(bar);
           } else {
@@ -268,7 +281,14 @@ const transpileTests = {
         }`]: `(async function () {
             await fooey()._from();
           })();
-          `
+          `,
+        "get foo": `const $main = async function () {
+          await foo._from();
+        };
+        $main();`
+    },
+    "comments": {
+        "# Hola": ""
     },
     "enums": {
         [`enum Foo {
@@ -387,6 +407,27 @@ const transpileTests = {
           
           Point.nada = function () {
           };`
+    },
+    "advanced function & features": {
+        "x number!: 3": `x = assertType("number", 3);`,
+        [`func (x number!) number! {
+        return x
+      }`]: `function (x) {
+        if (!($eq(typeOf(x), "number"))) { throw new Error("Enter failed") }
+        return assertType("number", x);
+      };`,
+        "func () { exit { log(\"Hello World\") } }": `function (){ try {  {
+  
+      } } finally { if (!(log("Hello World"))) { throw new Error("Exit failed") } } };`,
+        "Math.pow(@, @)": `curry(function ($, $$) {
+        return Math["pow"]($, $$);
+      });`,
+        ".val": `function (obj) {
+        return obj["val"];
+      };`
+    },
+    "metadata": {
+        "operator +: 1000": "/* operator $plus = 1000 */"
     }
 }
 
