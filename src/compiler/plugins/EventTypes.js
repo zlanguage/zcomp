@@ -19,6 +19,21 @@ export default class Event {
   }
 }
 
+export class InjectableEvent extends Event {
+  constructor(defaultValue) {
+    this.value = defaultValue
+    super()
+  }
+
+  setReturnValue(newValue) {
+    this.value = newValue
+  }
+
+  getReturnValue() {
+    return this.value
+  }
+}
+
 export class CompileFileEvent extends Event {
   constructor(filename) {
     this.filename = filename
@@ -30,9 +45,9 @@ export class CompilerStartupEvent extends Event {
   // I guess this is cancellable?
 }
 
-export class CompilerCodeGenerationEvent extends Event {
+export class CompilerCodeGenerationEvent extends InjectableEvent {
   constructor(code) {
-    this.code = code
+    this.value = code
     super()
   }
 }
