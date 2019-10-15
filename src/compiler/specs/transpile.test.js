@@ -1,9 +1,9 @@
 const {
     expect
 } = require("chai");
-const tokenize = require("./tokenize");
-const parse = require("./parse");
-const gen = require("./gen");
+const tokenize = require("../tokenize");
+const parse = require("../parse");
+const gen = require("../gen");
 const evalTests = {
     "math and string manipulations": {
         "3 + 3": 6,
