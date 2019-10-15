@@ -837,7 +837,7 @@ module.exports = Object.freeze(
   function gen(ast, prelude = true) {
     index = 0
     padstart = 0
-    let val = (prelude? res : "") + genStatements(ast));
+    let val = (prelude? res : "") + genStatements(ast)
     let event = new eventTypes.CompilerCodeGenerationEvent(val)
     val = event.getReturnValue()
     // For debugging purposes, the prelude may sometimes be removed.
