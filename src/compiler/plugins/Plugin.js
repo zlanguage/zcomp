@@ -4,11 +4,11 @@ class Plugin {
   constructor() {
   }
 
-  function onApply(applicationEvent) {
+  onApply(applicationEvent) {
     this.onEvent(applicationEvent)
   }
 
-  function onEvent(event) {
+  onEvent(event) {
     if(!event instanceof types.Event) {
       return [
         null
