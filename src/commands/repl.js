@@ -1,13 +1,19 @@
 const {
     Command
 } = require("@oclif/command");
-const readline = require("readline");
-const path = require("path");
-const fs = require("fs");
-const tokenize = require("../compiler/tokenize");
-const parse = require("../compiler/parse");
-const gen = require("../compiler/gen");
-const lineBreakers = ["(", "{", "["];
+const readline = require("readline")
+const path = require("path")
+const fs = require("fs")
+const tokenize = require("../compiler/tokenize")
+const parse = require("../compiler/parse")
+const gen = require("../compiler/gen")
+const lineBreakers = [
+  "(",
+  "{",
+  "["
+]
+const eventTypes = require("../compiler/plugins/EventTypes")
+
 class ReplCommand extends Command {
     getLines(rl, opener) {
         const symMap = {
@@ -42,6 +48,11 @@ class ReplCommand extends Command {
         });
     }
     async run() {
+        // events get triggered at head
+        let event = new eventTypes.ReadEvalPrintLoopStartupEvent()
+        if (event.isCancelled()) {
+            return
+        }
         const rl = readline.createInterface({
             input: process.stdin,
             output: process.stdout
