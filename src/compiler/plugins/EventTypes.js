@@ -3,7 +3,6 @@ const plugMan = require("./PluginManager")
 class Event {
   constructor() {
     this.cancelled = false
-    this.notifyPlugins()
   }
 
   cancel() {
@@ -21,8 +20,8 @@ class Event {
 
 class InjectableEvent extends Event {
   constructor(defaultValue) {
-    this.value = defaultValue
     super()
+    this.value = defaultValue
   }
 
   setReturnValue(newValue) {
@@ -30,14 +29,15 @@ class InjectableEvent extends Event {
   }
 
   getReturnValue() {
-    return super.isCancelled()? this.value : null
+    return this.isCancelled()? this.value : null
   }
 }
 
 class CompileFileEvent extends Event {
   constructor(filename) {
-    this.filename = filename
     super()
+    this.filename = filename
+    this.notifyPlugins()
   }
 }
 
@@ -51,15 +51,17 @@ class CompilerStartupEvent extends Event {
 
 class CompilerCodeGenerationEvent extends InjectableEvent {
   constructor(code) {
-    this.value = code
     super()
+    this.value = code
+    this.notifyPlugins()
   }
 }
 
 class PluginApplyEvent extends Event {
   constructor(plugin) {
-    this.plugin = plugin
     super()
+    this.plugin = plugin
+    this.notifyEvents()
   }
 }
 
