@@ -63,11 +63,11 @@ class PluginApplyEvent extends Event {
   }
 }
 
-module.exports = [
+module.exports = {
   Event,
   InjectableEvent,
   PluginApplyEvent,
   ReadEvalPrintLoopStartupEvent,
   CompilerCodeGenerationEvent,
   CompileFileEvent
-]
+}
