@@ -10,7 +10,9 @@ class Plugin {
 
   function onEvent(event) {
     if(!event instanceof types.Event) {
-      return
+      return [
+        null
+      ]
     }
   }
 }
