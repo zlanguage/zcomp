@@ -3,8 +3,12 @@ export default class Event {
     this.cancelled = false
   }
 
-  function cancel() {
+  cancel() {
     this.cancelled = true
+  }
+
+  isCancelled() {
+    return this.cancelled
   }
 }
 
@@ -17,6 +21,13 @@ export class CompileFileEvent extends Event {
 
 export class CompilerStartupEvent extends Event {
   // I guess this is cancellable?
+}
+
+export class CompilerCodeGenerationEvent extends Event {
+  constructor(code) {
+    super()
+    this.code = code
+  }
 }
 
 export class PluginApplyEvent extends Event {
