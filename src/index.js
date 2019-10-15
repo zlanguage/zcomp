@@ -1,1 +1,5 @@
-module.exports = require("@oclif/command");
+function startUp() {
+  return require("@oclif/command")
+}
+
+export default startUp()
