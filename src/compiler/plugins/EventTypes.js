@@ -21,8 +21,8 @@ export default class Event {
 
 export class CompileFileEvent extends Event {
   constructor(filename) {
-    super()
     this.filename = filename
+    super()
   }
 }
 
@@ -32,14 +32,14 @@ export class CompilerStartupEvent extends Event {
 
 export class CompilerCodeGenerationEvent extends Event {
   constructor(code) {
-    super()
     this.code = code
+    super()
   }
 }
 
 export class PluginApplyEvent extends Event {
   constructor(plugin) {
-    super()
     this.plugin = plugin
+    super()
   }
 }
