@@ -1,12 +1,16 @@
 // Find the built-in Z Runtime
-const runtime = require("@zlanguage/zstdlib");
+const runtime = require("@zlanguage/zstdlib")
+const plugs = require("./plugins/PluginManager")
+const eventTypes = require("./plugins/EventTypes")
+
 // Get all the primitives defined by it
-const prims = Object.keys(runtime);
+const prims = Object.keys(runtime)
+
 // Generate a "prelude"
 let res = `"use strict";
 
 const $Z = require("@zlanguage/zstdlib")
-const matcher = require("@zlanguage/zstdlib/src/js/matcher");
+const matcher = require("@zlanguage/zstdlib/src/js/matcher")
 
 ${prims.map(name => `const ${name} = $Z.${name};`).join("\n")}
 
@@ -89,6 +93,7 @@ function zStringify(thing) {
     return thing;
   }
 }
+
 function genParameterList() {
   let r = curr.wunth.map(parameter => {
     curr = parameter;
@@ -96,11 +101,13 @@ function genParameterList() {
   });
   return r.join(", ");
 }
+
 // For conditional refinements.
 let condrList = [];
+
 // Generates a chianed expression.
 function genExprTwoth() {
-  let r = "";
+  let r = ""
   switch (curr.type) {
     case "refinement":
       r += `["${curr.wunth}"]`;
@@ -146,6 +153,7 @@ function genTwoth() {
   }
   return r;
 }
+
 function isExpr(obj) {
   return obj && ["subscript", "refinement", "invocation", "assignment", "function", "spread", "match", "range", "loopexpr", "ifexpr", "goroutine",
     "get", "condrefinement", "condsubscript"].includes(obj.type);
@@ -575,6 +583,7 @@ generateStatement.raise = () => {
 generateStatement.settle = () => {
   return `${curr.zeroth}["settled"] = true;`;
 }
+
 generateStatement.meta = () => {
   return `/* meta ${curr.zeroth} = ${"\"" + curr.wunth + "\""} */`; // Meta statements become comments just so you know that they are there.
 }
@@ -593,6 +602,7 @@ generateStatement.enter = () => {
 generateStatement.exit = () => {
   return "";
 }
+
 generateStatement.operator = () => {
   return `/* operator ${curr.zeroth} = ${curr.wunth} */`; // Like meta, operator translates into a comment so you know it's there.
 }
@@ -616,6 +626,7 @@ function generateEquals(type, fields) {
       return other.constructor === ${type}${fields.length > 0 ? " && " : ""}${fields.map(field => `$eq(${field}, other.${field})`).join(" && ")};
     }`;
 }
+
 // Generates the static methods of an enum from a `where` block.
 function generateStatics(type, static_item = {}) {
   let res = "";
@@ -630,8 +641,9 @@ ${type}.${key} = ${f};
 `
     )
   });
-  return res;
+  return res
 }
+
 // Generates the overarching parent type for an enum.
 function generateParent(type, parts, static_item = {}) {
   let res = (
@@ -643,6 +655,7 @@ function generateParent(type, parts, static_item = {}) {
   res += generateStatics(type, static_item);
   return res;
 }
+
 // Generates type checks for an enum's fields.
 function generateTypeChecks(typeChecks, parent, child) {
   let r = "";
@@ -656,7 +669,7 @@ function generateTypeChecks(typeChecks, parent, child) {
 `
     );
   })
-  return r;
+  return r
 }
 // Will wrap and expression with functions.
 function wrapFuncs(funcs, str) {
@@ -673,6 +686,7 @@ function wrapFuncs(funcs, str) {
   const close = ")".repeat(funcs.length);
   return open + str + close;
 }
+
 generateStatement.enum = () => {
   let r = "";
   const parentType = curr.zeroth;
@@ -742,6 +756,7 @@ generateStatement.enum = () => {
   }
   return r;
 }
+
 generateStatement.hoist = () => {
   let r = `var `;
   let assignmentArray = [];
@@ -754,6 +769,7 @@ generateStatement.hoist = () => {
   curr = anchor;
   return r + ";";
 }
+
 function genBlock(cleanup) { // cleanup is extra stuff that goes at the end of the block
   let r = " {\n";
   indent();
@@ -780,6 +796,7 @@ function genBlock(cleanup) { // cleanup is extra stuff that goes at the end of t
   r += "}".padStart(1 + padstart);
   return r;
 }
+
 function genStatement(extraAdv) {
   let res;
   if (curr.type === undefined) {
@@ -793,6 +810,7 @@ function genStatement(extraAdv) {
   condrList = [];
   return res.padStart(padstart + res.length);
 }
+
 function genStatements(ast) {
   let r = "";
   while (index < ast.length) {
@@ -814,8 +832,15 @@ function genStatements(ast) {
   }
   return r;
 }
-module.exports = Object.freeze(function gen(ast, prelude = true) {
-  index = 0;
-  padstart = 0;
-  return prelude ? res + genStatements(ast) : genStatements(ast); // For debugging purposes, the prelude may sometimes be removed.
-});
+
+module.exports = Object.freeze(
+  function gen(ast, prelude = true) {
+    index = 0
+    padstart = 0
+    let val = (prelude? res : "") + genStatements(ast));
+    let event = new eventTypes.CompilerCodeGenerationEvent(val)
+    val = event.getReturnValue()
+    // For debugging purposes, the prelude may sometimes be removed.
+    return val == null? ("") : (val)
+  }
+)
