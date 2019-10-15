@@ -7,7 +7,7 @@ export default function apply(plugin) {
   if(!plugin instanceof plug.Plugin) {
     console.error("Failed to apply plugin as the type was incorrect.")
   } else {
-    val safe = true
+    let safe = true
     loadedPlugins.forEach(pi => {
       if(pi == plugin) {
         safe = false
