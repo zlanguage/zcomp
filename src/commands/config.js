@@ -2,6 +2,7 @@ const { Command, flags } = require("@oclif/command")
 const fs = require("fs")
 const path = require("path")
 const plugMan = require("../compiler/plugins/PluginManager")
+let index = require("../index")
 
 class ConfigCommand extends Command {
   async run() {
@@ -10,13 +11,15 @@ class ConfigCommand extends Command {
     if (!theJson) {
       throw new Error("CONFIG command expects the location of the JSON file to be passed.")
     }
-    var content = fs.readFileSync(path.join(process.cwd(), theJson))
-    var dict = JSON.parse(content)
+    let content = fs.readFileSync(path.join(process.cwd(), theJson))
+    let dict = JSON.parse(content)
     dict["plugins"].length > 0 ? (
       dict["plugins"].forEach(entry => {
-        const plugin = require(entry)
+        index.addConfig(dict)
       })
-    ) : var dummy = "" // nothing to parse
+    ) : (
+      // yeah no this isn't very pretty but whatever
+    )
   }
 }
 
