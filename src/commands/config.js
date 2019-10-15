@@ -11,6 +11,11 @@ class ConfigCommand extends Command {
     }
     var content = fs.readFileSync(path.join(process.cwd(), theJson))
     var dict = JSON.parse(content)
+    dict["plugins"].length > 0 ? (
+      dict["plugins"].forEach(entry => {
+        const plugin = require(entry)
+      })
+    ) : var dummy = "" // nothing to parse
   }
 }
 
