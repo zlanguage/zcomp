@@ -30,7 +30,7 @@ export class InjectableEvent extends Event {
   }
 
   getReturnValue() {
-    return this.value
+    return super.isCancelled()? this.value : null
   }
 }
 
