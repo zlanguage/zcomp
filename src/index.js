@@ -1,14 +1,15 @@
+const pluginMan = require("./compiler/plugins/PluginManager")
+
 let jsons = []
 
 export function addConfig(configDict) {
   jsons.append(configDict)
 }
 
-export function getConfigs() {
-  return jsons
-}
-
 function startUp() {
+  jsons["pluginClasses"].forEach(pc => {
+    pluginMan.apply(require(pc))
+  })
   return require("@oclif/command")
 }
 
