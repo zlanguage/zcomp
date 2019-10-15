@@ -1,6 +1,9 @@
+const plugMan = require("./PluginManager")
+
 export default class Event {
   constructor() {
     this.cancelled = false
+    this.notifyPlugins()
   }
 
   cancel() {
@@ -9,6 +12,10 @@ export default class Event {
 
   isCancelled() {
     return this.cancelled
+  }
+
+  notifyPlugins() {
+    plugMan.triggerEvent(this)
   }
 }
 
