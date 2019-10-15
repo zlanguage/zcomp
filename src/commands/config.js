@@ -13,13 +13,12 @@ class ConfigCommand extends Command {
     }
     let content = fs.readFileSync(path.join(process.cwd(), theJson))
     let dict = JSON.parse(content)
-    dict["plugins"].length > 0 ? (
-      dict["plugins"].forEach(entry => {
-        index.addConfig(dict)
-      })
-    ) : (
-      // yeah no this isn't very pretty but whatever
-    )
+    dict["plugins"].length > 0
+     ? dict["plugins"].forEach(entry => index.addConfig(dict))
+     : noop()
+  }
+
+  async noop() {
   }
 }
 
