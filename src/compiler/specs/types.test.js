@@ -1,7 +1,7 @@
 const { expect } = require("chai");
-const tokenize = require("./tokenize");
-const parse = require("./parse");
-const gen = require("./gen");
+const tokenize = require("../tokenize");
+const parse = require("../parse");
+const gen = require("../gen");
 const testStr = "let x: 0";
 const testTok = tokenize(testStr)();
 const testAst = parse(tokenize(testStr));
