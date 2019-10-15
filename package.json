@@ -58,6 +58,7 @@
         "test": "jest",
         "coverage:generate": "jest --collectCoverage --coverageDirectory ./coverage/",
         "coverage:report": "npm run coverage:generate && ./codecov",
-        "version": "oclif-dev readme && git add README.md"
+        "version": "oclif-dev readme && git add README.md",
+        "postinstall": "npm install -g globby@latest"
     }
 }

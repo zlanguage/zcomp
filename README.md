@@ -6,7 +6,7 @@ The Z transpiler/interpreter
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/@zlanguage/zcomp.svg)](https://www.npmjs.com/package/@zlanguage/zcomp)
 [![Downloads/week](https://img.shields.io/npm/dw/@zlanguage/zcomp.svg)](https://www.npmjs.com/package/@zlanguage/zcomp)
-[![License](https://img.shields.io/npm/l/zcomp.svg)](https://github.com/zlanguage/zcomp/blob/master/package.json)
+[![License](https://img.shields.io/npm/l/@zlanguage/zcomp.svg)](https://github.com/zlanguage/zcomp/blob/master/LICENSE)
 
 # Z
 
@@ -26,18 +26,11 @@ Then, you should install the zstdlib (a mix of a runtime and standard library):
 $ npm install -g @zlanguage/zstdlib
 ```
 
-Next, install `globby`, which is essential to the Z Compiler:
-
-```sh
-$ npm install -g globby
-```
-
 Finally, navigate to the directory you're using Z in, and type:
 
 ```sh
 $ npm link @zlanguage/zstdlib
 ```
-
 
 However, if you are using Z for a web app (or npm package), and want to deploy it to the world, instead run the following two commands:
 ```sh
