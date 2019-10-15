@@ -1,6 +1,6 @@
 const plugMan = require("./PluginManager")
 
-export default class Event {
+class Event {
   constructor() {
     this.cancelled = false
     this.notifyPlugins()
@@ -19,7 +19,7 @@ export default class Event {
   }
 }
 
-export class InjectableEvent extends Event {
+class InjectableEvent extends Event {
   constructor(defaultValue) {
     this.value = defaultValue
     super()
@@ -34,31 +34,40 @@ export class InjectableEvent extends Event {
   }
 }
 
-export class CompileFileEvent extends Event {
+class CompileFileEvent extends Event {
   constructor(filename) {
     this.filename = filename
     super()
   }
 }
 
-export class ReadEvalPrintLoopStartupEvent extends Event {
+class ReadEvalPrintLoopStartupEvent extends Event {
   // not sure what plugin authors may want with this, but here it is
 }
 
-export class CompilerStartupEvent extends Event {
+class CompilerStartupEvent extends Event {
   // I guess this is cancellable?
 }
 
-export class CompilerCodeGenerationEvent extends InjectableEvent {
+class CompilerCodeGenerationEvent extends InjectableEvent {
   constructor(code) {
     this.value = code
     super()
   }
 }
 
-export class PluginApplyEvent extends Event {
+class PluginApplyEvent extends Event {
   constructor(plugin) {
     this.plugin = plugin
     super()
   }
 }
+
+module.exports = [
+  Event,
+  InjectableEvent,
+  PluginApplyEvent,
+  ReadEvalPrintLoopStartupEvent,
+  CompilerCodeGenerationEvent,
+  CompileFileEvent
+]
