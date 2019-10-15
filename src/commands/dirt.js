@@ -12,7 +12,7 @@ class DirtCommand extends Command {
       throw new Error("DIRT command expects indir.");
     }
     if (!outdir) {
-      throw new Error("DIRT commands expects outdir.");
+      throw new Error("DIRT command expects outdir.");
     }
     const inPath = path.join(process.cwd(), indir);
     const outPath = path.join(process.cwd(), outdir);
