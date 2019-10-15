@@ -29,8 +29,8 @@ function triggerEvent(event) {
   loadedPlugins.forEach(it => it.onEvent(event))
 }
 
-module.exports = [
-  Object.freeze(apply),
-  Object.freeze(triggerLoads),
-  Object.freeze(triggerEvent)
-]
+module.exports = {
+  apply,
+  triggerLoads,
+  triggerEvent
+}
