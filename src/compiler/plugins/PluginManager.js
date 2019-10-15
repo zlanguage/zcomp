@@ -7,13 +7,18 @@ const types = require("./EventTypes")
  */
 let loadedPlugins = []
 
-export function apply(plugin) {
+export default function apply(plugin) {
   if(!plugin instanceof plug.Plugin) {
     console.error("Failed to apply plugin as the type was incorrect.")
+  } else {
+    loadedPlugins.append(plugin)
   }
-  loadedPlugins.append(plugin)
 }
 
 export function triggerLoads() {
   loadedPlugins.forEach(it => it.onApply(new types.PluginApplyEvent(it)))
+}
+
+export function triggerEvent(event) {
+  loadedPlugins.forEach(it => it.onEvent(event))
 }
