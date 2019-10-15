@@ -41,6 +41,10 @@ export class CompileFileEvent extends Event {
   }
 }
 
+export class ReadEvalPrintLoopStartupEvent extends Event {
+  // not sure what plugin authors may want with this, but here it is
+}
+
 export class CompilerStartupEvent extends Event {
   // I guess this is cancellable?
 }
