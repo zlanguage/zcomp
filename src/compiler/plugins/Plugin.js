@@ -17,4 +17,4 @@ class Plugin {
   }
 }
 
-export default Plugin
+module.exports = Plugin
