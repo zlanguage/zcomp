@@ -3,8 +3,7 @@ class Event {
     this.cancelled = false
     this.downstream = downstream
     this.notifyPlugins = () => {
-      const plugMan = require("./PluginManager")
-      plugMan.triggerEvent(this.downstream)
+      require("./PluginManager").triggerEvent(this.downstream)
     }
   }
 
@@ -33,7 +32,7 @@ class CompilerStartupEvent extends Event {
   // I guess this is cancellable?
 }
 
-class CompilerCodeGenerationEvent extends InjectableEvent {
+class CompilerCodeGenerationEvent extends Event {
   constructor(code) {
     super(this)
     this.value = code
