@@ -41,9 +41,7 @@ class CompilerCodeGenerationEvent extends Event {
   }
 
   getReturnValue() {
-    let e = this.isCancelled()? this.value : ""
-    console.log("debug " + e)
-    return e
+    return !this.isCancelled()? this.value : ""
   }
 }
 
