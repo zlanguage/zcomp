@@ -9,11 +9,6 @@ class Plugin {
   }
 
   onEvent(event) {
-    if(!event instanceof types.Event) {
-      return [
-        null
-      ]
-    }
   }
 }
 
