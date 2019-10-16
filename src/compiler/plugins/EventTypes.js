@@ -1,9 +1,10 @@
 class Event {
-  constructor() {
+  constructor(downstream) {
     this.cancelled = false
+    this.downstream = downstream
     this.notifyPlugins = () => {
       const plugMan = require("./PluginManager")
-      plugMan.triggerEvent(this)
+      plugMan.triggerEvent(this.downstream)
     }
   }
 
@@ -16,24 +17,9 @@ class Event {
   }
 }
 
-class InjectableEvent extends Event {
-  constructor(defaultValue) {
-    super()
-    this.value = defaultValue
-  }
-
-  setReturnValue(newValue) {
-    this.value = newValue
-  }
-
-  getReturnValue() {
-    return this.isCancelled()? this.value : null
-  }
-}
-
 class CompileFileEvent extends Event {
   constructor(filename) {
-    super()
+    super(this)
     this.filename = filename
     this.notifyPlugins()
   }
@@ -49,14 +35,25 @@ class CompilerStartupEvent extends Event {
 
 class CompilerCodeGenerationEvent extends InjectableEvent {
   constructor(code) {
-    super(code)
+    super(this)
+    this.value = code
     this.notifyPlugins()
+  }
+
+  setReturnValue(newValue) {
+    this.value = newValue
+  }
+
+  getReturnValue() {
+    let e = this.isCancelled()? this.value : ""
+    console.log("debug " + e)
+    return e
   }
 }
 
 class PluginApplyEvent extends Event {
   constructor(plugin) {
-    super()
+    super(this)
     this.plugin = plugin
     this.notifyEvents()
   }
@@ -64,7 +61,6 @@ class PluginApplyEvent extends Event {
 
 module.exports = {
   Event,
-  InjectableEvent,
   PluginApplyEvent,
   ReadEvalPrintLoopStartupEvent,
   CompilerCodeGenerationEvent,
