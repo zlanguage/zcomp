@@ -49,8 +49,7 @@ class CompilerStartupEvent extends Event {
 
 class CompilerCodeGenerationEvent extends InjectableEvent {
   constructor(code) {
-    super()
-    this.value = code
+    super(code)
     this.notifyPlugins()
   }
 }
