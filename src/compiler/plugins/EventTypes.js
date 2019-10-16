@@ -1,9 +1,8 @@
 class Event {
-  constructor(downstream) {
+  constructor() {
     this.cancelled = false
-    this.downstream = downstream
     this.notifyPlugins = () => {
-      require("./PluginManager").triggerEvent(this.downstream)
+      require("./PluginManager").triggerEvent(this)
     }
   }
 
@@ -18,23 +17,21 @@ class Event {
 
 class CompileFileEvent extends Event {
   constructor(filename) {
-    super(this)
+    super()
     this.filename = filename
     this.notifyPlugins()
   }
 }
 
 class ReadEvalPrintLoopStartupEvent extends Event {
-  // not sure what plugin authors may want with this, but here it is
 }
 
 class CompilerStartupEvent extends Event {
-  // I guess this is cancellable?
 }
 
 class CompilerCodeGenerationEvent extends Event {
   constructor(code) {
-    super(this)
+    super()
     this.value = code
     this.notifyPlugins()
   }
@@ -52,7 +49,7 @@ class CompilerCodeGenerationEvent extends Event {
 
 class PluginApplyEvent extends Event {
   constructor(plugin) {
-    super(this)
+    super()
     this.plugin = plugin
     this.notifyEvents()
   }
