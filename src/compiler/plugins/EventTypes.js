@@ -1,9 +1,8 @@
-const plugMan = require("./PluginManager")
-
 class Event {
   constructor() {
     this.cancelled = false
     this.notifyPlugins = () => {
+      const plugMan = require("./PluginManager")
       plugMan.triggerEvent(this)
     }
   }
