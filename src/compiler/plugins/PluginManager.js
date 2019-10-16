@@ -30,7 +30,7 @@ function triggerEvent(event) {
 }
 
 module.exports = {
-  Object.freeze(apply),
-  Object.freeze(triggerLoads),
-  Object.freeze(triggerEvent)
+  apply: Object.freeze(apply),
+  triggerLoads: Object.freeze(triggerLoads),
+  triggerEvent: Object.freeze(triggerEvent)
 }
