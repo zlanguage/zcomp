@@ -841,6 +841,6 @@ module.exports = Object.freeze(
     let event = new eventTypes.CompilerCodeGenerationEvent(val)
     val = event.getReturnValue()
     // For debugging purposes, the prelude may sometimes be removed.
-    return val == null? ("") : (val)
+    return val
   }
 )
