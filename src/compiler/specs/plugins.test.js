@@ -22,7 +22,7 @@ describe("Event types tests", () => {
         try {
             new Plugin.onApply(new EventTypes.PluginApplyEvent());
             throw new Error("No error was thrown.")
-        } catch {
+        } catch (e) {
 
         }
     })
