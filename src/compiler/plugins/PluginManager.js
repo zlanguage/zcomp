@@ -6,7 +6,6 @@ let loadedPlugins = []
 function apply(plugin) {
   if(!plugin instanceof plug.Plugin) {
     console.error("Failed to apply plugin as the type was incorrect.")
-    return plugin
   } else {
     let safe = true
     loadedPlugins.forEach(pi => {
