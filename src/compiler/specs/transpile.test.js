@@ -269,7 +269,7 @@ const transpileTests = {
           }
           `
     },
-    "goroutines": {
+    "coroutines": {
         [`copy(go func () {
             get fooey()
           })`]: `copy(async function () {
@@ -442,7 +442,7 @@ function transpileZ(z) {
 Object.entries(evalTests).forEach(([testName, tests]) => {
     describe(testName, () => {
         Object.entries(tests).forEach(([expr, res]) => {
-            it(`should evaluate ${expr} as ${res == null ? res : res.toString()}`, () => {
+            it(`should evaluate ${expr} as ${res == null? res : res.toString()}`, () => {
                 expect(evalZ(expr)).to.eql(res);
             })
         })
