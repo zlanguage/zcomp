@@ -269,7 +269,7 @@ const transpileTests = {
           }
           `
     },
-    "coroutines": {
+    "goroutines": {
         [`copy(go func () {
             get fooey()
           })`]: `copy(async function () {
