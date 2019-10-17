@@ -1,15 +1,17 @@
 const types = require("./EventTypes")
 
 class Plugin {
-  constructor() {
-  }
+    constructor() {}
 
-  onApply(applicationEvent) {
-    this.onEvent(applicationEvent)
-  }
+    onApply(applicationEvent) {
+        this.onEvent(applicationEvent)
+    }
 
-  onEvent(event) {
-  }
+    onEvent(event) {
+        if (!(event instanceof types.Event)) {
+            return null
+        }
+    }
 }
 
 module.exports = Plugin
