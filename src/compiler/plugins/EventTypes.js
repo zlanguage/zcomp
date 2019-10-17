@@ -16,9 +16,10 @@ class Event {
 }
 
 class CompileFileEvent extends Event {
-  constructor(filename) {
+  constructor(filename, outfilename) {
     super()
     this.filename = filename
+    this.outfilename = outfilename
     this.notifyPlugins()
   }
 }
