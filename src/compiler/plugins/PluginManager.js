@@ -4,7 +4,7 @@ const types = require("./EventTypes")
 let loadedPlugins = []
 
 function apply(plugin) {
-  if(!plugin instanceof plug.Plugin) {
+  if(!(plugin instanceof plug.Plugin)) {
     console.error("Failed to apply plugin as the type was incorrect.")
   } else {
     let safe = true
