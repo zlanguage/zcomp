@@ -141,6 +141,6 @@ class ReplCommand extends Command {
     }
 }
 
-ReplCommand.description = `A repl for evaluating Z code.`;
+ReplCommand.description = "A REPL for evaluating Z code.";
 
 module.exports = ReplCommand;
