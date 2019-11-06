@@ -82,7 +82,7 @@ class WdirCommand extends Command {
   }
 }
 
-WdirCommand.description = `Watches a directory for changes, and transpiles it when they happen.`;
+WdirCommand.description = "Watches a directory for changes, and transpiles it when they happen.";
 
 WdirCommand.args = [
   {
