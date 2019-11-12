@@ -18,7 +18,7 @@
     },
     "devDependencies": {
         "@oclif/dev-cli": "^1.22.0",
-        "@types/chai": "^4.2.4",
+        "@types/chai": "^4.2.5",
         "chai": "^4.2.0",
         "jest": "^24.9.0",
         "prettier": "^1.19.1"
