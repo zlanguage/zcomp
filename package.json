@@ -1,7 +1,7 @@
 {
     "name": "@zlanguage/zcomp",
     "description": "The Z language transpiler",
-    "version": "0.4.5",
+    "version": "0.5.0",
     "author": "N8",
     "bin": {
         "zcomp": "./bin/run"
@@ -17,9 +17,13 @@
         "vlq": "^1.0.1"
     },
     "devDependencies": {
+        "@babel/core": "^7.7.5",
+        "@babel/preset-env": "^7.7.6",
         "@oclif/dev-cli": "^1.22.0",
         "@types/chai": "^4.2.6",
         "chai": "^4.2.0",
+        "gulp": "^4.0.2",
+        "gulp-babel": "^8.0.0-beta.2",
         "jest": "^24.9.0",
         "prettier": "^1.19.1"
     },
@@ -56,6 +60,7 @@
         "postpack": "rm -f oclif.manifest.json",
         "prepack": "oclif-dev manifest",
         "test": "jest",
+        "build": "gulp",
         "coverage:generate": "jest --collectCoverage --coverageDirectory ./coverage/",
         "coverage:report": "npm run coverage:generate && ./codecov",
         "version": "oclif-dev readme && git add README.md",

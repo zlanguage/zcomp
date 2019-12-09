@@ -1,6 +1,10 @@
 build:
-	npm test
+	npm build
 .PHONY: build
+
+test:
+  npm test
+.PHONY: test
 
 install:
 	npm install
