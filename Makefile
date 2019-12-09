@@ -3,7 +3,7 @@ build:
 .PHONY: build
 
 test:
-  npm test
+	npm test
 .PHONY: test
 
 install:
