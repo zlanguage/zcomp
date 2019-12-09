@@ -7,3 +7,5 @@
 node_modules
 coverage
 package.json~
+src
+*.tgz
