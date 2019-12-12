@@ -9,7 +9,7 @@ Tests_task:
     if [[ -z $CODE_COVERAGE_RUN ]]; then
       make test
     else
-      make reportcoverage
+      make codecov
     fi
   matrix:
     - container:
