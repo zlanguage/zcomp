@@ -650,7 +650,7 @@ function generateTypeChecks(typeChecks, parent, child) {
     type = type.replace(/\$exclam$/, "");
     r += (
       `
-  if (typeOf(${field}) !== "${type}") { 
+  if (typeOf(${field}) !== "${type}") {
     throw new Error("${parent}.${child}.${field} must be of type ${type}. However, you passed " + ${field} + " to ${parent}.${child} which is not of type ${type}.");
   }
 `
@@ -814,6 +814,7 @@ function genStatements(ast) {
   }
   return r;
 }
+
 module.exports = Object.freeze(function gen(ast, prelude = true) {
   index = 0;
   padstart = 0;

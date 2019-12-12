@@ -35,12 +35,7 @@ Capturing Group:
 [8] RegExp
 */
 const tokenRegExp = /(\u0020+|\t+)|(#.*)|("(?:[^"\\]|\\(?:[nrt"\\]|u\{[0-9A-F]{4,6}\}))*")|\b(let|loop|if|else|func|break|import|export|match|return|def|try|on|settle|raise|importstd|meta|enter|exit|operator|hoist|go|get|enum|where|derives|static|macro|include|includestd)\b|([A-Za-z_+\-/*%&|?^=<>'!][A-Za-z_0-9+\-/*%&|?^<>='!]*)|((?:0[box])?-?\d[\d_]*(?:\.[\d_]+)?(?:e\-?[\d_]+)?[a-z]*)|(\.{2,3}|~{|}~|[~@$(),.{}\[\]:])|(`.+?`[gimsuy]*)/y;
-/**
- * Create a token generator for a specific source.
- * @param {string | Array<string>} source If string is provided, string is split along newlines. If array is provided, array is used as the array of lines.
- * @param {boolean} comment Should comments be tokenized and returned from the generator?
- * @returns {() => void | {id: string, lineNumber: number, columnNumber: number, string ?: string, columnTo ?: number, readonly ?: boolean, alphanumeric ?: boolean, number ?: number, source ?: string}} A function that generates the next token.
- */
+
 function tokenize(source, comment = false) {
     // Handle multiline comments
     source = source.replace(new RegExp("/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/", "g"), "");

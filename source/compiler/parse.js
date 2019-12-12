@@ -3,6 +3,7 @@ const gen = require("./gen");
 const tokenize = require("./tokenize");
 const { copy } = require("@zlanguage/zstdlib");
 const fs = require("fs");
+
 // List of all warnings: [string]
 let warnings = [];
 // An API for registering error objects will later be displayed.
@@ -1402,6 +1403,7 @@ parseStatement.hoist = () => {
     res.type = "hoist";
     return res;
 }
+
 parseStatement.enum = () => {
     advance("(keyword)")
     const res = {
@@ -1474,17 +1476,20 @@ parseStatement.enum = () => {
     }
     return res;
 }
+
 parseStatement.go = function() {
     return {
         type: "go",
         zeroth: block()
     }
 }
+
 const blockSyms = {
     "(": ")",
     "[": "]",
     "{": "}"
 }
+
 parseStatement.macro = function() {
         advance("(keyword)");
         if (tok.id === "(keyword)" && tok.string === "operator") {
@@ -1971,6 +1976,7 @@ function resolveOpMacros(ast) {
   }
   return ast;
 }
+
 function parse(tokGen, debug = true) {
   // Generate a list of tokens
   tokList = function() {
