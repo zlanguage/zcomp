@@ -1,12 +1,13 @@
 const { expect } = require("chai");
-const tokenize = require("./tokenize");
-const parse = require("./parse");
-const gen = require("./gen");
+const tokenize = require("../src/compiler/tokenize");
+const parse = require("../src/compiler/parse");
+const gen = require("../src/compiler/gen");
 const testStr = "let x: 0";
 const testTok = tokenize(testStr)();
 const testAst = parse(tokenize(testStr));
 const testGened = gen(parse(tokenize(testStr)));
-describe("Function Typing Tests", () => {
+
+context("Function Typing Tests", () => {
     describe("Tokenization (tokenize.js)", () => {
         it("should take one (non-optional) parameter.", () => {
             expect(tokenize.length).to.equal(1);

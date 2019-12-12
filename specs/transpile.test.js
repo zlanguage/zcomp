@@ -1,9 +1,9 @@
 const {
     expect
 } = require("chai");
-const tokenize = require("./tokenize");
-const parse = require("./parse");
-const gen = require("./gen");
+const tokenize = require("../src/compiler/tokenize");
+const parse = require("../src/compiler/parse");
+const gen = require("../src/compiler/gen");
 const evalTests = {
     "math and string manipulations": {
         "3 + 3": 6,
@@ -185,9 +185,9 @@ const evalTests = {
                        break
                    }
                }
-           }~   
+           }~
        }
-       
+
        macro $do (~body:block, until, ~cond:expr) {
             return ~{
                loop {
@@ -196,15 +196,15 @@ const evalTests = {
                        break
                    }
                }
-           }~   
+           }~
        }
-       
+
        macro $do (~body:block, unless, ~cond:expr) {
             return ~{
              if not({{~cond}}) {
                {{~body}}
              }
-           }~   
+           }~
        }`]: "use strict",
         [`macro $switch (...{case, ~body:block},) {
 
@@ -297,16 +297,16 @@ const transpileTests = {
           } derives (Nada) where {
             foobar () {}
           } `]: `function Bar(x) {
-  
+
             if($eq(Object.keys((x == null) ? { [Symbol()]: 0 } : x).sort(), ["x"].sort())) {
               ({ x } = x);
             }
-          
-            
-            if (typeOf(x) !== "number") { 
+
+
+            if (typeOf(x) !== "number") {
               throw new Error("Foo.Bar.x must be of type number. However, you passed " + x + " to Foo.Bar which is not of type number.");
             }
-          
+
             return Nada({
               type() { return "Foo"; },
               get constructor() { return Bar; },
@@ -318,25 +318,25 @@ const transpileTests = {
               }
             });
           }
-          
+
           Bar.extract = function (val) {
             if (val.constructor === Bar) {
               return [val.x];
             }
             return undefined;
           };
-          
+
           function Baz(y, z) {
-            
+
             if($eq(Object.keys((y == null) ? { [Symbol()]: 0 } : y).sort(), ["y", "z"].sort())) {
               ({ y, z } = y);
             }
-          
-            
-            if (typeOf(z) !== "number") { 
+
+
+            if (typeOf(z) !== "number") {
               throw new Error("Foo.Baz.z must be of type number. However, you passed " + z + " to Foo.Baz which is not of type number.");
             }
-          
+
             return Nada({
               type() { return "Foo"; },
               get constructor() { return Baz; },
@@ -349,14 +349,14 @@ const transpileTests = {
               }
             });
           }
-          
+
           Baz.extract = function (val) {
             if (val.constructor === Baz) {
               return [val.y, val.z];
             }
             return undefined;
           };
-          
+
           let Foo = {
             order: [Bar, Baz],
             Bar,
@@ -364,25 +364,25 @@ const transpileTests = {
           };
           Foo.foobar = function () {
           };
-          
+
           `,
         [`enum Point(x: number!, y: number!) where {
             nada () {}
           }`]: `function Point(x, y) {
-      
+
             if($eq(Object.keys((x == null) ? { [Symbol()]: 0 } : x).sort(), ["x", "y"].sort())) {
               ({ x, y } = x);
             }
-          
-            
-            if (typeOf(x) !== "number") { 
+
+
+            if (typeOf(x) !== "number") {
               throw new Error("Point.Point.x must be of type number. However, you passed " + x + " to Point.Point which is not of type number.");
             }
-          
-            if (typeOf(y) !== "number") { 
+
+            if (typeOf(y) !== "number") {
               throw new Error("Point.Point.y must be of type number. However, you passed " + y + " to Point.Point which is not of type number.");
             }
-          
+
             return {
               type() { return "Point"; },
               get constructor() { return Point; },
@@ -395,16 +395,16 @@ const transpileTests = {
               }
             };
           }
-          
+
           Point.extract = function (val) {
             if (val.constructor === Point) {
               return [val.x, val.y];
             }
             return undefined;
           };
-          
+
           Point.order = [Point];
-          
+
           Point.nada = function () {
           };`
     },
@@ -417,7 +417,7 @@ const transpileTests = {
         return assertType("number", x);
       };`,
         "func () { exit { log(\"Hello World\") } }": `function (){ try {  {
-  
+
       } } finally { if (!(log("Hello World"))) { throw new Error("Exit failed") } } };`,
         "Math.pow(@, @)": `curry(function ($, $$) {
         return Math["pow"]($, $$);
