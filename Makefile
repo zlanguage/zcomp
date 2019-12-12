@@ -2,7 +2,7 @@ build:
 	npm build
 .PHONY: build
 
-test:
+test: build
 	npm test
 .PHONY: test
 
@@ -21,7 +21,7 @@ coverage: build
 	npm run coverage:generate
 .PHONY: coverage
 
-publish: build
+publish: test
 	npm install -g npm-cli-login
 	npm-cli-login
 	npm publish --access public
