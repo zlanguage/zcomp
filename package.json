@@ -54,15 +54,16 @@
     "url": "https://github.com/zlanguage/zcomp.git"
   },
   "jest": {
-    "verbose": true
+    "verbose": true,
+    "collectCoverage": true,
+    "coverageDirectory": "./coverage/"
   },
   "scripts": {
     "postpack": "rm -f oclif.manifest.json",
     "prepack": "oclif-dev manifest",
     "test": "jest",
     "build": "gulp",
-    "coverage:generate": "jest --collectCoverage --coverageDirectory ./coverage/",
-    "coverage:report": "npm run coverage:generate && ./codecov",
+    "coverage": "npm run test && ./codecov",
     "version": "oclif-dev readme && git add README.md",
     "postinstall": "npm install -g globby@latest",
     "prettier": "prettier --write **/*.{json,js,yml}"
