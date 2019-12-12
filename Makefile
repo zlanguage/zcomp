@@ -1,5 +1,5 @@
 build:
-	npm build
+	npm run-script build
 .PHONY: build
 
 test: build
