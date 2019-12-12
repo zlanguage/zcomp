@@ -1,25 +1,21 @@
 build:
-	npm run-script build
+	npm run build
 .PHONY: build
 
 test: build
-	npm test
+	npm run test
 .PHONY: test
 
 install:
-	npm install
+	npm i
 .PHONY: install
 
-reportcoverage:
+codecov: test
 	rm -rf ./codecov
 	curl -L -o ./codecov https://codecov.io/bash
 	chmod +x ./codecov
-	npm run coverage:report
+	./codecov
 .PHONY: reportcoverage
-
-coverage: build
-	npm run coverage:generate
-.PHONY: coverage
 
 publish: test
 	npm install -g npm-cli-login
