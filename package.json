@@ -17,8 +17,8 @@
         "vlq": "^1.0.1"
     },
     "devDependencies": {
-        "@babel/core": "^7.7.5",
-        "@babel/preset-env": "^7.7.7",
+        "@babel/core": "^7.7.7",
+        "@babel/preset-env": "^7.7.6",
         "@oclif/dev-cli": "^1.22.0",
         "@types/chai": "^4.2.7",
         "chai": "^4.2.0",
