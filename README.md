@@ -2,6 +2,7 @@
 
 
 The Z transpiler/interpreter
+(*No longer actively mantained. Contact me if you'd like to contribute)
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/@zlanguage/zcomp.svg)](https://www.npmjs.com/package/@zlanguage/zcomp)
