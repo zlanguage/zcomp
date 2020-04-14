@@ -11,7 +11,7 @@
     },
     "dependencies": {
         "@oclif/command": "^1.5.17",
-        "@oclif/config": "^1.14.0",
+        "@oclif/config": "^1.15.0",
         "@oclif/plugin-help": "^2.2.3",
         "@zlanguage/zstdlib": "^0.4.1",
         "vlq": "^1.0.1"
