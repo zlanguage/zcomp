@@ -10,7 +10,7 @@
         "url": "https://github.com/zlanguage/zcomp/issues"
     },
     "dependencies": {
-        "@oclif/command": "^1.5.17",
+        "@oclif/command": "^1.6.0",
         "@oclif/config": "^1.14.0",
         "@oclif/plugin-help": "^2.2.3",
         "@zlanguage/zstdlib": "^0.4.1",
