@@ -1,6 +1,7 @@
 {
   "name": "@zlanguage/zcomp",
   "description": "The Z language transpiler.",
+  "version": "0.5.0",
   "author": "N8",
   "bin": {
     "zcomp": "node src/commands/index.js"
