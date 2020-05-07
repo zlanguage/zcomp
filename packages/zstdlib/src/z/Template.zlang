@@ -1,0 +1,35 @@
+def templateRegExp: RegExp("\\{\\{(.+?)(:(.+))?\\}\\}", "g")
+def fetchProp: func(propList, obj) {
+    if =(propList.length, 1) {
+        return obj[propList[0]]
+    }
+    return fetchProp(propList.slice(1), obj[propList[0]])
+}
+def stdFuncs: [:]
+def template: func(string, funcs) {
+    if not(funcs) {
+        funcs: stdFuncs
+    }
+    return [
+        "resolve": func (data) {
+            return string.replace(templateRegExp, func (ignore, prop, funcstr) {
+                if not(funcstr) {
+                    funcstr: ""
+                }
+                let res: undefined
+                if not(prop.includes(".")) {
+                    res: data[prop]
+                } else {
+                    def propList: prop.split(".")
+                    res: fetchProp(propList, data)
+                }
+                def transformer: funcs[funcstr.slice(1)]
+                if =(typeOf(transformer), "function") {
+                    res: transformer(res)
+                }
+                return res
+            })
+        }
+    ]
+}
+export template

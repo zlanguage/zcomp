@@ -1,0 +1,64 @@
+import Decimal: "./Decimal"
+def sequence: func (biop) func (start, term) {
+    start: Decimal(start)
+    return [
+        "approx": func (amt, ...prefs) {
+            amt: Decimal(amt)
+            let result: start
+            {} ++ loop (num <- start to amt) result: biop(result, term(num, ...prefs))
+            return result
+        }
+    ]
+}
+def taylor: [
+    "sum": sequence(+),
+    "prod": sequence(*),
+    "seq": sequence
+]
+
+def fac: func (num) {
+    if num = 0 {
+        return 1
+    }
+    return Decimal(1) to num |> .reduce(*)
+}
+taylor.E: taylor.sum(0, func Decimal(1)./(fac(x!), digit!))
+taylor.PI: taylor.sum(0, func (x, digit) {
+    x: Decimal(x)
+    if x = 0 {
+        return 4
+    }
+    let sign: 1
+    if not(x / 2 = Decimal.floor(x / 2))  {
+        sign: -1
+    }
+    return Decimal(4)./(x * 2 + 1, digit) * sign
+})
+taylor.sin: taylor.sum(0, func (k, x) {
+    x: Decimal(x)
+    if k = 0 {
+        return x
+    }
+    let sign: 1
+    if k % 2 = 1 {
+        sign: -1
+    }
+    def amt: k * 2 + 1
+    def expResult: Array(amt |> .toNumber()).fill(x).reduce(*)
+    return expResult / fac(amt) * sign
+})
+taylor.cos: taylor.sum(0, func (k, x) {
+    x: Decimal(x)
+    if k = 0 {
+        return 1
+    }
+    let sign: 1
+    if k % 2 = 1 {
+        sign: -1
+    }
+    def amt: k * 2
+    def expResult: Array(amt |> .toNumber()).fill(x).reduce(*)
+    return expResult / fac(amt) * sign
+})
+
+export taylor

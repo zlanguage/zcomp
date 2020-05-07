@@ -1,0 +1,51 @@
+import cheerio
+import gr: "./gr"
+def mkView: func (txts) {
+    let sc: undefined
+    txts: stone(txts)
+    return [
+        "sentences": func () {
+            if not(sc = undefined) {
+                return sc
+            }
+            def sentences: [""]
+            let idx: 0
+            txts.forEach(func (txt) {
+                if not(txt.includes(".")) {
+                    sentences[idx]: sentences[idx] ++ txt
+                } else {
+                    def (end, start): txt.split(".")
+                    sentences[idx]: sentences[idx] ++ end ++ "."
+                    idx: idx + 1
+                    sentences[idx]: start
+                }
+            })
+            sc: stone(sentences.map(.trim()))
+            return sc
+        },
+        "thingsAbout": func (thing string!) {
+            thing: RegExp(thing)
+            return this.sentences().filter(func thing.test(string!))
+        },
+        "raw": func txts
+    ]
+}
+def scrapy: func (url, ch: chan()) {
+    def main: func () {
+        def ': cheerio.load(get gr.page(url))
+        def txts: []
+        def findText: func () {
+            if this.nodeType = 3 and not(this.parent.type = "script") and not(JS.==(this.data, 0)) {
+                txts.push(this.data)
+            } else {
+                '(this).contents().each(findText)
+            }
+        }
+        '(":root").contents().each(findText)
+        send(mkView(txts), ch)
+    }
+    main()
+    return ch 
+}
+
+export scrapy

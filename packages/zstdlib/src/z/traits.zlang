@@ -1,0 +1,211 @@
+import F: "./F"
+def Show: func (obj) {
+    obj.toString: func () {
+        let r: ++(obj.constructor.name, "(")
+        r: ++(r, obj.fields.map(func field! ++ ": " ++ obj[field!]).join(", "))
+        return r ++ ")"
+    }
+    return obj
+}
+
+def Ord: func (obj) {
+    obj["<"]: func (other) {
+        if not(other.parent = obj.parent) {
+            return false
+        }
+        def order: obj.parent.order
+        def objIndex: order.findIndex(func con! = obj.constructor)
+        def otherIndex: order.findIndex(func con! = other.constructor)
+        if objIndex < otherIndex {
+            return true
+        } else if objIndex = otherIndex {
+            # return >=(obj.fields.filter(func obj[field!] < other[field!]).length, /(obj.fields.length, 2))
+            let i: 0
+            def fields: obj.fields
+            loop {
+                if i >= fields.length {
+                    break
+                }
+                if obj[fields[i]] < other[fields[i]] {
+                    return true
+                }
+                if obj[fields[i]] > other[fields[i]] {
+                    return false
+                }
+                i: i + 1
+            }
+        }
+        return false
+    }
+    return obj
+}
+
+def Read: func (obj) {
+    def parse: func (arg) {
+        if not(Number.isNaN(Number(arg))) {
+            return Number(arg)
+        } else if arg = "true" {
+            return true
+        } else if arg = "false" {
+            return false
+        } else if arg = "null" {
+            return null
+        } else if arg = "undefined" {
+            return undefined
+        } else if arg = "NaN" {
+            return NaN
+        } else if arg = "Infinity" {
+            return Infinity
+        }
+        return arg
+    }
+    obj.read: func (str string!) {
+        def type: str.split("(")[0]
+        def constructor: obj.order.find(func struct!.name = type)
+        let args: undefined
+        try {
+            args: str.split("(")[1].slice(0, -1).split(",").map(func str!.trim())
+        } on err {
+            args: []
+            settle err
+        }
+        if not(args.some(func arg!.includes(":"))) {
+            def readArgs: args.map(parse)
+            return constructor(...readArgs)
+        } else {
+            def params: [:]
+            args.forEach(func (arg) {
+                def key: arg.split(":")[0].trim()
+                def value: parse(arg.split(":")[1].trim())
+                params[key]: value
+            })
+            return constructor(params)
+        }
+        
+    }
+    return obj
+}
+
+def Copy: func (obj) {
+    obj.copy: func (spec) {
+        obj.fields.forEach(func (field) {
+                if not(spec.hasOwnProperty(field)) {
+                    spec[field]: obj[field]
+                }
+        })
+        def newSpec: [:]
+        obj.fields.forEach(func (field) {
+            newSpec[field]: spec[field]
+        })
+        return obj.constructor(newSpec)
+    }
+    return obj
+}
+
+def Enum: func (obj) {
+    def order: obj.parent.order
+    def index: order.findIndex(func con! = obj.constructor)
+    obj.prev: func () {
+        return order[index - 1]()
+    }
+    obj.succ: func () {
+        return order[index + 1]()
+    }
+    obj.to: func (othercon) {
+        othercon: othercon.constructor
+        def target: order.findIndex(func con! = othercon)
+        if target >= index {
+            def res: [obj.constructor()]
+            let tracker: obj
+            let tempIndex: index
+            loop {
+                if tempIndex >= target {
+                    break
+                }
+                tracker: tracker.succ()
+                res.push(tracker)
+                tempIndex: tempIndex + 1
+            }
+            return res
+        } else {
+            def res: [obj.constructor()]
+            let tracker: obj
+            let tempIndex: index
+            loop {
+                if tempIndex <= target {
+                    break
+                }
+                tracker: tracker.prev()
+                res.push(tracker)
+                tempIndex: tempIndex - 1
+            }
+            return res
+        }
+    }
+    return obj
+}
+def PlusMinus: func (obj) {
+    def order: obj.parent.order
+    def index: order.findIndex(func con! = obj.constructor)
+    obj["+"]: func (other) {
+        def otherIndex: order.findIndex(func con! = other.constructor)
+        if not(index = otherIndex) {
+            def sum: index + otherIndex
+            return order[sum % order.length]()
+        } else {
+            def args: []
+            obj.fields.forEach(func (field) {
+                args.push(obj[field] + other[field])
+            })
+            return obj.constructor(...args)
+        }
+    }
+    obj["-"]: func (other) {
+        def otherIndex: order.findIndex(func con! = other.constructor)
+        if not(index = otherIndex) {
+            let dif: index - otherIndex
+            if dif < 0 {
+                dif: order.length + dif
+            }
+            return order[dif % order.length]()
+        } else {
+            def args: []
+            obj.fields.forEach(func (field) {
+                args.push(obj[field] - other[field])
+            })
+            return obj.constructor(...args)
+        }
+    }
+    return obj
+}
+def Json: func (obj) {
+    obj.toJSON: func () {
+        def res: [
+            "type": obj.constructor.name
+        ]
+        obj.fields.forEach(func (field) {
+            res[field]: obj[field]
+        })
+        return res
+    }
+    return obj
+}
+def Curry: func (obj) {
+    Object.keys(obj).forEach(func (key) {
+        if typeOf(obj[key]) = "function" {
+            obj[key]: curry(obj[key])
+        }
+    })
+    return obj
+}
+
+export [
+    "Show": Show,
+    Read,
+    Ord,
+    Copy,
+    Enum,
+    PlusMinus,
+    Json,
+    Curry
+]

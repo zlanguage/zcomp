@@ -1,0 +1,421 @@
+import constructs: "./constructs.js"
+def {_raise}: constructs
+
+def unary: func (f) func (a) f(a)
+def map: curry(func (f function!, arr array!) {
+    return loop (
+        a <- arr
+    ) f(a)
+})
+
+def flatMap: curry(func (f function!, arr array!) {
+    return loop (
+        a <- arr,
+        b <- f(a)
+    ) b
+})
+
+def filter: curry(func (f function!, arr array!) {
+    return loop (
+        a <- arr,
+        if f(a)
+    ) a
+})
+
+def reject: curry(func (f function!, arr array!) {
+    return loop (
+        a <- arr,
+        if not(f(a))
+    ) a
+})
+
+def prop: curry(func (p string!, obj) {
+    return obj[p]
+})
+
+def invoke: curry(func (args array!, f function!) {
+    return f(...args)
+})
+
+def reduce: curry(func (f function!, i, arr array!) {
+    return arr.reduce(f, i)
+})
+
+def reverse: func (arr) {
+    if typeOf(arr) = "string" {
+        return arr.reverse()
+    }
+    return [...arr].reverse()
+}
+
+def reduceRight: curry(func (f function!, i, arr array!) {
+    return arr.reduceRight(f, i)
+})
+
+def every: curry(func (f function!, arr array!) {
+    return arr.every(unary(f))
+})
+
+def some: curry(func (f function!, arr array!) {
+    return arr.some(unary(f))
+})
+
+
+def constant: func (a) func a
+
+def add: curry(+)
+def sub: curry(-)
+def mul: curry(*)
+def div: curry(/)
+def mod: curry(%)
+def neg: mul(-1)
+def append: curry(func (a, b) b ++ a)
+def cat: curry(func a! ++ b!)
+def inc: add(1)
+def dec: add(-1)
+def T: constant(true)
+def F: constant(false)
+def N: constant(null)
+def U: constant(undefined)
+def I: constant(Infinity)
+def NN: constant(NaN)
+
+def id: func a!
+
+def predArrayTest: curry(func (method string!, preds array<function>!, arr array!) {
+    return preds[method](func pred!(arr))
+})
+def all: predArrayTest("every")
+
+def any: predArrayTest("some")
+
+def bothTwo: curry(func (preds array<function>!, arr array!) {
+    enter {
+        preds.length = 2
+    }
+    return all(preds, arr)
+})
+
+def complement: curry(func (f function!, v) {
+    return not(f(v))
+})
+
+def contains: curry(func (v, col) match col {
+    { includes: function! } => col.includes(v),
+    { contains: function! } => col.contains(v),
+    _ => _raise("Cannot check for element presence with contains or includes method.")
+})
+
+def count: curry(func (f function!, arr array!) {
+    let count: 0
+    arr.forEach(func (elem) {
+        if f(elem) {
+            count: count + 1
+        }
+    })
+    return count
+})
+
+def zero: curry(func (f function!, arr array!) count(f, arr) = 0)
+def one: curry(func (f function!, arr array!) count(f, arr) = 1)
+def allButOne: curry(func (f function!, arr array!) count(f, arr) = arr.length - 1)
+
+def methodInvoke: curry(func (methodName, arg, context) {
+    if context[methodName] and typeOf(context[methodName]) = "function" {
+        return context[methodName](arg)
+    }
+    _raise("The object " ++ context ++ " has no method called " ++ methodName ++ ".")
+})
+
+def startsWith: methodInvoke("startsWith")
+def endsWith: methodInvoke("endsWith")
+def indexOf: methodInvoke("indexOf")
+def find: methodInvoke("find")
+def findIndex: methodInvoke("findIndex")
+
+def eitherTwo: curry(func (preds array<function>!, arr array!) {
+    enter {
+        preds.length = 2
+    }
+    return any(preds, arr)
+})
+
+def equals: curry(=)
+
+def flatten: func (arr array!) {
+    return arr.reduce(func(t, v){
+        let toFlatten: undefined
+        if Array.isArray(v) {
+            toFlatten: flatten(v)
+        } else {
+            toFlatten: [v]
+        }
+        t.push(...toFlatten)
+        return t
+    }, [])
+}
+
+def forEach: func (f function!, arr array!) {
+    arr.forEach(unary(f))
+    return arr
+}
+
+def fromEntries: func (entries array!) {
+    def res: [:]
+    entries.forEach(func ((k, v)) { 
+        res[k]: v
+    })
+    return res
+}
+
+def entries: Object.entries
+
+def has: methodInvoke("hasOwnProperty")
+
+def head: func col![0]
+
+def tail: func col!.slice(1)
+
+def double: mul(2)
+def triple: mul(3)
+
+def indentical: curry(Object.is)
+def identity: func a!
+
+def ifElse: curry(func (pred function!, _if function!, _else function!) {
+    if pred() {
+        _if()
+    } else {
+        _else()
+    }
+})
+
+def |: curry(func (f function!, val) {
+    return f(val)
+})
+def init: reverse >> tail >> reverse
+
+def isNil: func x! = undefined or x! = null
+
+def join: methodInvoke("join")
+
+def keys: Object.keys
+
+def last: head >> reverse
+
+def lastIndexOf: methodInvoke("lastIndexOf")
+
+def length: prop("length")
+
+def max: curry(Math.max, 2)
+
+def merge: curry(func (a, b) Object.assign({}, a, b))
+
+def min: curry(Math.min, 2)
+
+def pipe: func (fns array<function>!){
+    return func (val) {
+        return fns.reduce(func (v, f) f(v), val)
+    }
+}
+
+def compose: pipe >> reverse
+
+def prepend: methodInvoke("unshift")
+
+def propEq: curry(func (prop, value, obj) obj[prop] = value)
+
+def range: curry(func (from, to) {
+    return Array(to - from + 1).fill().map(func (_, index) index + from)
+})
+
+def sort: curry(func (c function!, arr array!) {
+    return [...arr].sort(c)
+})
+
+def sortBy: sort
+
+def split: methodInvoke("split")
+
+def sum: reduce(func t! + v!, 0)
+
+def take: curry(func (amount number!, col) {
+    return col.slice(0, amount)
+})
+
+def takeLast: curry(func (amount number!, col) {
+    return col.slice(neg(amount))
+})
+
+def test: curry(func (regex, str string!) {
+    return regex.test(str)
+})
+
+def toLower: func str!.toLowerCase()
+
+def toUpper: func str!.toUpperCase()
+
+def trim: func str!.trim()
+
+def toPairs: Object.entries
+
+def toString: func any!.toString()
+
+def unique: func (arr array!) {
+    def theSet: JS.new(Set, arr)
+    return [...theSet]
+}
+
+def values: Object.values
+
+def without: curry(func (exclude array!, arr array!) {
+    return loop (
+        a <- arr,
+        if not(exclude.includes(a))
+    ) a
+})
+
+def takeWhile: curry(func (taker function!, arr array!) {
+    let res: []
+    arr.every(func (elem) {
+        let takerRes: taker(elem)
+        if takerRes {
+            res.push(elem)
+        }
+        return takerRes
+    })
+    return res
+})
+
+def dropWhile: curry(func (dropper function!, arr array!) {
+    let res: []
+    let endOfDropReached: false
+    arr.forEach(func (elem) {
+        if not(endOfDropReached) {
+            let dropperRes: dropper(elem) |> not
+            if dropperRes {
+                res.push(elem)
+                endOfDropReached: true
+            }
+        } else {
+            res.push(elem)
+        }
+    })
+    return res
+})
+
+def zip: curry(func (as array!, bs array!) {
+    def entrs: entries(as)
+    def trimEnd: dropWhile(func arr!.includes(undefined))
+    return id(loop (
+        (i, a) <- entrs,
+        b: bs[i]
+    ) [a, b]) |> reverse |> trimEnd |> reverse
+})
+
+def zipWith: curry(func (f function!, as array!, bs array!) {
+    def entrs: entries(as)
+    def trimEnd: dropWhile(func arr!.includes(undefined))
+    return id(id(loop (
+        (i, a) <- entrs,
+        b: bs[i]
+    ) [a, b]) |> reverse |> trimEnd |> reverse).map(func ((a, b)) f(a, b))
+})
+
+export [
+    "unary": unary,
+    map,
+    filter,
+    reject,
+    reduce,
+    flatMap,
+    |,
+    prop,
+    invoke,
+    reverse,
+    reduceRight,
+    every,
+    some,
+    constant,
+    add,
+    sub,
+    mul,
+    div,
+    mod,
+    neg,
+    append,
+    cat,
+    inc,
+    dec,
+    T,
+    F,
+    N,
+    U,
+    I,
+    NN,
+    id,
+    predArrayTest,
+    all,
+    any,
+    bothTwo,
+    complement,
+    contains,
+    count,
+    zero,
+    one,
+    allButOne,
+    methodInvoke,
+    startsWith,
+    endsWith,
+    indexOf,
+    find,
+    findIndex,
+    eitherTwo,
+    equals,
+    flatten,
+    forEach,
+    fromEntries,
+    entries,
+    has,
+    head,
+    tail,
+    double,
+    triple,
+    indentical,
+    identity,
+    ifElse,
+    init,
+    isNil,
+    join,
+    keys,
+    last,
+    lastIndexOf,
+    length,
+    max,
+    merge,
+    min,
+    pipe,
+    compose,
+    prepend,
+    propEq,
+    range,
+    sort,
+    sortBy,
+    split,
+    sum,
+    take,
+    takeLast,
+    test,
+    toLower,
+    toUpper,
+    trim,
+    toPairs,
+    toString,
+    unique,
+    values,
+    without,
+    takeWhile,
+    dropWhile,
+    zip,
+    zipWith
+]

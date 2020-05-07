@@ -1,18 +1,12 @@
 {
-  "name": "@zlanguage/zcomp",
-  "description": "The Z language transpiler.",
+  "name": "@zlanguage/zstdlib",
+  "description": "The Z language standard library.",
   "author": "N8",
-  "bin": {
-    "zcomp": "./bin/run"
-  },
   "bugs": {
     "url": "https://github.com/zlanguage/zcomp/issues"
   },
   "dependencies": {
-    "@zlanguage/zstdlib": "^0.4.1",
-    "commander": "^5.1.0",
-    "globby": "^11.0.0",
-    "vlq": "^1.0.1"
+    "cheerio": "^1.0.0-rc.3"
   },
   "engines": {
     "node": ">=10.0.0"
@@ -21,15 +15,17 @@
   "keywords": [
     "Z",
     "language",
-    "compiler"
+    "standard",
+    "library"
   ],
   "license": "MIT",
-  "main": "src/commands/index.js",
+  "main": "index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/zlanguage/zcomp.git"
   },
   "devDependencies": {
-    "@types/commander": "^2.12.2"
+    "@zlanguage/zcomp": "*"
   }
 }
+

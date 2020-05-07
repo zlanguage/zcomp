@@ -1,0 +1,49 @@
+macro $while (~cond:expr, ~body:block) {
+    return ~{
+        loop {
+            if not({{~cond}}) {
+                break
+            }
+            {{~body}}
+        }
+    }~
+}
+
+macro $until (~cond:expr, ~body:block) {
+    return ~{
+        loop {
+            if {{~cond}} {
+                break
+            }
+            {{~body}}
+        }
+    }~    
+}
+
+macro $do (~body:block, while, ~cond:expr) {
+     return ~{
+        loop {
+            {{~body}}
+            if not({{~cond}}) {
+                break
+            }
+        }
+    }~   
+}
+
+macro $unless (~cond:expr, ~body:block) {
+    return ~{
+        if not({{~cond}}) {
+            {{~body}}
+        }
+    }~
+}
+
+macro $for (~l:expr, of, ~r:expr, ~body:block) {
+  return ~{
+    def {{callback}}: func ({{~l}}) {
+      {{~body}}
+    }
+    {} ++ loop ({{i}} <- {{~r}}) {{callback}}({{i}})
+  }~
+}

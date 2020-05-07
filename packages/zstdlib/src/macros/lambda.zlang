@@ -1,0 +1,7 @@
+macro operator ->(~param:expr, ~body:expr) {
+    return ~{
+        func ({{~param}}) {
+            return {{~body}}
+        }
+    }~
+}

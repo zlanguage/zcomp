@@ -1,0 +1,10 @@
+macro operator &&(~l:expr, ~r:expr) {
+    return ~{
+        Boolean(if ({{~l}}) {{~r}} else {{~l}})
+    }~
+}
+macro operator ||(~l:expr, ~r:expr) {
+    return ~{
+        Boolean(if ({{~l}}) {{~l}} else {{~r}})
+    }~
+}

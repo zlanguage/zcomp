@@ -1,0 +1,109 @@
+def constant: func (value) func value
+
+def integer: func (from: 0, to: Number.MAX_SAFE_INTEGER, step: 1) func () {
+    if from < to {
+        def result: from
+        from: from + step
+        return result
+    }
+}
+
+def element: func (array, gen: integer(0, array.length)) func (...args) {
+    def elementNumber: gen(...args)
+    if not(elementNumber = undefined) {
+        return array[elementNumber]
+    }
+}
+
+def property: func (object, gen: element(Object.keys(object))) func (...args) {
+    def key: gen(...args)
+    if not(key = undefined) {
+        return [key, object[key]]
+    }
+}
+def collect: func (gen, arr) func (...args) {
+    def val: gen(...args)
+    if not(val = undefined) {
+        arr.push(val)
+    }
+    return val
+}
+
+def repeat: func (gen) {
+    loop {
+        if gen() = undefined {
+            break
+        }
+    }
+}
+
+def harvest: func (gen) {
+    def arr: []
+    repeat(collect(gen, arr))
+    return arr
+}
+
+def limit: func (gen, count: 1) func (...args) {
+    if count >= 1 {
+        count -= 1
+        return gen(...args)
+    }
+}
+
+def filter: func (gen, pred) {
+    def filterGen: func (...args) {
+        def val: generator(...args)
+        if not(val = undefined) and not(pred(val)) {
+            return filterGen(...args)
+        }
+        return val
+    }
+    return filterGen
+}
+def concat: func (...gens) {
+    def next: element(gens)
+    def gen: next()
+    def concatGen: func (...args) {
+        if not(gen = undefined) {
+            def val: gen(...args)
+            if val = undefined {
+                gen: next()
+                return concatGen(...args)
+            }
+            return val
+        }
+    }
+}
+def join: func (f, ...gens) func () {
+    def results: gens.map(func gen!())
+    if not(results.every(func result! = undefined)) {
+        return f(...results)
+    }
+    return undefined
+}
+
+def map: func (f, arr) join(f, element(arr))
+
+def struct: func (...names) func (...vals) {
+    def obj: Object.create(null)
+    names.forEach(func (name, index) {
+        obj[name]: vals[index]
+    })
+    return obj
+}
+
+export [
+    "constant": constant,
+    integer,
+    element,
+    property,
+    collect,
+    repeat,
+    harvest,
+    limit,
+    filter,
+    concat,
+    join,
+    map,
+    struct
+]

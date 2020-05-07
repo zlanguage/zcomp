@@ -1,0 +1,37 @@
+def Callable: func (obj) {
+    def ret: func (...args) {
+        return obj.call.apply(ret, args)
+    }
+    ret.__proto__: Object
+    Object.keys(obj).forEach(func (key) {
+        ret[key]: obj[key]
+    })
+    return ret
+}
+
+def Ref: func (val) {
+    return [
+        "type": func "Ref",
+        "deref": func val,
+        "set": func (newVal) {
+            val: newVal
+        },
+        "=": func (other) {
+            return JS.===(this, other)
+        }
+    ]
+}
+def Immut: func (data) {
+    return [
+        "type": func "Immut",
+        "deref": func () {
+            return copy(data)
+        }
+    ]
+}
+
+export [
+    "Callable": Callable,
+    Ref,
+    Immut
+]

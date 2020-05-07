@@ -1,0 +1,213 @@
+import fs
+import https
+import readline
+import F: "./F"
+
+def gerror: func (err, ch) {
+    send([
+        "__err__": true,
+        "error": err
+    ], ch)
+}
+def wrapNodeCB: func (context, f) {
+    return func (...args) {
+        let spec: undefined
+        let ch: undefined
+        if args.length > 1 {
+            spec: F.init(args)
+            ch: F.last(args)
+        } else {
+            spec: [args[0]]
+            ch: chan()
+        }
+        f.apply(context, [...spec, func (err, data) {
+            if Boolean(err) {
+                gerror(err, ch)
+            } else {
+                send(data, ch)
+            }
+        }])
+        return ch
+    }
+}
+
+def readfile: wrapNodeCB(fs, fs.readFile)
+def writefile: wrapNodeCB(fs, fs.writeFile)
+
+def json: func (url, ch: chan()) {
+    https["get"](url, func (resp) {
+        let data: ""
+        resp["on"]("data", func (chunk) {
+            data: data ++ chunk
+        })
+        resp["on"]("end", func () {
+            try {
+                JSON.parse(data)
+            } on err {
+                gerror(err, ch)
+                settle err
+                return undefined
+            }
+            send(JSON.parse(data), ch)
+        })
+    })["on"]("error", func (err) {
+        gerror(err, ch)
+    })
+    return ch
+}
+
+def page: func (url, ch: chan()) {
+    https["get"](url, func (resp) {
+        let data: ""
+        resp["on"]("data", func (chunk) {
+            data: data ++ chunk
+        })
+        resp["on"]("end", func () {
+            send(data, ch)
+        })
+    })["on"]("error", func (err) {
+        gerror(err, ch)
+    })
+    return ch
+}
+
+def line: func (prompt: "", ch: chan()) {
+    def rl: readline.createInterface([
+        "input": process.stdin,
+        "output": process.stdout
+    ])
+    rl.question(prompt, func (line) {
+        rl.close()
+        send(line, ch)
+    })
+    return ch
+}
+line._from: func JS.new(Promise, func (resolve) {
+    def rl: readline.createInterface([
+        "input": process.stdin,
+        "output": process.stdout
+    ])
+    rl.question("", func (line) {
+        rl.close()
+        resolve(line)
+    })
+})
+
+def wrapPromise: func (prom, ch: chan()) {
+    prom.then(func (res) {
+        send(res, ch)
+    }, func (err) {
+        gerror(err, ch)
+    })
+    return ch
+}
+def all: func (chs, ch: chan()) {
+    Promise.all(chs.map(func ch!._from())).then(func (reses) {
+        send(reses, ch)
+    })
+    return ch
+}
+def race: func (chs, ch: chan()) {
+    Promise.race(chs.map(func ch!._from())).then(func (reses) {
+        send(reses, ch)
+    })
+    return ch
+}
+def status: func (chs, ch: chan()) {
+    Promise.all(chs.map(func ch!._from().then(
+        func (value) {
+            if value.__err__ = true {
+                return [
+                    "state": "failed",
+                    "error": value.error
+                ]
+            }
+            return [
+                "state": "succeeded",
+                "result": value
+            ]
+        }
+    ))).then(func (reses) {
+        send(reses, ch)
+    })
+    return ch
+}
+
+def any: func (chs, ch: chan()) {
+    def fails: []
+    let valueSent: false
+    chs.forEach(func (c, index) {
+        c._from().then(func (value) {
+            if value.__err__ = true {
+                fails[index]: value.error
+            } else if not(valueSent) {
+                send(value, ch)
+                valueSent: true
+            }
+            if =(fails.reduce(func t! + 1, 0), chs.length) {
+                send(fails, ch)
+            }
+        })
+    })
+    return ch
+}
+
+def wait: func (ms, ch: chan()) {
+    setTimeout(func () {
+        send(Symbol(), ch)
+    }, ms)
+    return ch
+}
+def waitUntil: func (cond, ch: chan()) {
+    def conditionInterval: setInterval(func () {
+        if cond() {
+            clearInterval(conditionInterval)
+            send(Symbol(), ch)
+        }
+    }, 100)
+    return ch
+}
+def give: func (ch: chan()) {
+    wait(10, ch)
+    return ch
+}
+
+def listen: go func (cb, ch) {
+    loop {
+        def val: get ch
+        cb(val)
+    }
+}
+
+def select: func (chs, ch: chan()) {
+    let valueSent: false
+    chs.forEach(func ((c, cb)) {
+        c._from().then(func (res) {
+            if not(valueSent) {
+                valueSent: true
+                send(cb(res), ch)
+            }
+        })
+    })
+    return ch
+}
+
+export [
+    "gerror": gerror,
+    wrapNodeCB,
+    readfile,
+    writefile,
+    json,
+    page,
+    line,
+    wrapPromise,
+    all,
+    race,
+    status,
+    any,
+    wait,
+    waitUntil,
+    give,
+    listen,
+    select
+]

@@ -1,0 +1,79 @@
+import Decimal: "./Decimal"
+def Complex: func (real, imag) {
+    if typeOf(real) = "Complex" {
+        return real
+    }
+    if typeOf(imag) = "undefined" and typeOf(real) = "string" {
+        def fmtNums: .map(.trim().replace("i", "")).map(func if (imag! = "") 1 else imag!)
+        if real.includes("+") {
+            (real, imag): fmtNums(real.split(" + "))
+        }
+        if real.includes("-") {
+            (real, imag): fmtNums(real.split(" - "))
+            imag: "-" ++ imag
+        }
+    }
+    real: Decimal(real)
+    imag: Decimal(imag)
+    return stone([
+        real,
+        imag,
+        "type": func "Complex",
+        "toString": func () {
+            return "" ++ real ++ " + " ++ imag ++ "i"
+        },
+        "+": func (other) {
+            other: Complex(other)
+            return Complex(real + other.real, imag + other.imag)
+        },
+        "r+": func (other) {
+            other: Complex(other)
+            return other.+(this)
+        },
+        "-": func (other) {
+            other: Complex(other)
+            return Complex(real - other.real, imag - other.imag)
+        },
+        "r-": func (other) {
+            other: Complex(other)
+            return other.-(this)
+        },
+        "*": func (other) {
+            other: Complex(other)
+            return Complex(
+                real * other.real - imag * other.imag, 
+                real * other.imag + imag * other.real
+            )
+        },
+        "r*": func (other) {
+            other: Complex(other)
+            return other.*(this)
+        },
+        "/": func (other) {
+            other: Complex(other)
+            def denom: other.real * other.real + other.imag * other.imag
+            return Complex(
+                +(real * other.real, imag * other.imag) / denom,
+                +(real * other.imag * -1, imag * other.real) / denom
+            )
+        },
+        "r/": func (other) {
+            other: Complex(other)
+            return other./(this)
+        },
+        "=": func (other) {
+            other: Complex(other)
+            return real = other.real and imag = other.imag
+        },
+        "r=": func (other) {
+            other: Complex(other)
+            return other.=(this)
+        }
+    ])
+}
+
+Complex.random: func () {
+    return Complex(Decimal.random(), Decimal.random())
+}
+
+export Complex

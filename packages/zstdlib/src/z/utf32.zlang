@@ -1,0 +1,45 @@
+def quote: String.fromCharCode(34)
+let upoints: undefined
+def ustring: func (str) {
+    def points: JS.new(Uint32Array, [...str].map(func char!.codePointAt(0)))
+    return stone([
+        "type": func "ustr",
+        "toString": func () {
+            let i: 0
+            let res: ""
+            loop {
+                if >=(i, points.length) {
+                    break
+                }
+                res: res.concat(String.fromCodePoint(points[i]))
+                i: +(i, 1)
+            }
+            return "u".concat(quote, res, quote)
+        },
+        "toJSON": func () {
+            return this.toString().slice(1)
+        },
+        "at": func upoints(points[index!]),
+        "codeAt": func points[index!],
+        "points": func points,
+        "concat": func upoints(...points, ...other!.points()),
+        "length": func points.length,
+        "slice": func upoints(...points.slice(start!, end!)),
+        "=": func (str) {
+            str: match str {
+                array! => upoints(...str),
+                string! => ustring(str),
+                _ => _
+            }
+            return =(points, str.points())
+        }
+    ])
+} 
+upoints: func (...points) {
+    return ustring(points.map(func String.fromCodePoint(point!)).join(""))
+}
+export [
+    "string": ustring,
+    "points": upoints,
+    quote
+]
