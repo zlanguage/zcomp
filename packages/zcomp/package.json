@@ -3,13 +3,13 @@
   "description": "The Z language transpiler.",
   "author": "N8",
   "bin": {
-    "zcomp": "./bin/run"
+    "zcomp": "node src/commands/index.js"
   },
   "bugs": {
     "url": "https://github.com/zlanguage/zcomp/issues"
   },
   "dependencies": {
-    "@zlanguage/zstdlib": "*",
+    "@zlanguage/zstdlib": "^0.4.1",
     "commander": "^5.1.0",
     "globby": "^11.0.0",
     "vlq": "^1.0.1"
