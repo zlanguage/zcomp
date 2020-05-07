@@ -1,19 +1,18 @@
 {
-  "name": "z",
+  "name": "@zlanguage/zcomp",
+  "description": "The Z language transpiler.",
+  "author": "N8",
+  "bin": {
+    "zcomp": "./bin/run"
+  },
+  "bugs": {
+    "url": "https://github.com/zlanguage/zcomp/issues"
+  },
   "dependencies": {
     "@zlanguage/zstdlib": "^0.4.1",
     "commander": "^5.1.0",
     "globby": "^11.0.0",
     "vlq": "^1.0.1"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.9.6",
-    "@babel/preset-env": "^7.9.6",
-    "@types/jest": "^25.2.1",
-    "babel-jest": "^26.0.1",
-    "jest": "^26.0.1",
-    "lerna": "^3.20.2",
-    "prettier": "^2.0.5"
   },
   "engines": {
     "node": ">=10.0.0"
@@ -25,12 +24,14 @@
     "compiler"
   ],
   "license": "MIT",
+  "main": "src/commands/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/zlanguage/zcomp.git"
   },
   "scripts": {
     "test": "jest",
+    "coverage:generate": "jest --collectCoverage --coverageDirectory ./coverage/",
     "coverage:report": "npm run coverage:generate && ./codecov",
     "prettier": "prettier --write **/*.{js,json,md}",
     "lerna": "lerna"

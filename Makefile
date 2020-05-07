@@ -13,12 +13,8 @@ reportcoverage:
 	npm run coverage:report
 .PHONY: reportcoverage
 
-coverage: build
-	npm run coverage:generate
-.PHONY: coverage
-
 publish: build
 	npm install -g npm-cli-login
 	npm-cli-login
-	npm publish --access public
+	yarn publish --access public
 .PHONY: publish
