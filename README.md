@@ -1,6 +1,5 @@
 # zcomp
 
-
 The Z transpiler/interpreter
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
@@ -33,33 +32,46 @@ $ npm link @zlanguage/zstdlib
 ```
 
 However, if you are using Z for a web app (or npm package), and want to deploy it to the world, instead run the following two commands:
+
 ```sh
 $ npm init
 $ npm install @zlanguage/zstdlib
 ```
+
 This installs the Z standard library locally in just the paackage you need it for.
 
 # Use The Compiler
 
 Transpile Z Code:
+
 ```sh
 $ zcomp transpile [path of Z to transpile] [path of where to output the transpiled JS]
 ```
+
 Run Z Code:
+
 ```sh
 $ zcomp run [path of Z to run]
 ```
+
 Transpile one directory to another:
+
 ```sh
 $ zcomp dirt [path of directory with Z] [path of "out" directory]
 ```
+
 Watch a file for changes, and transpile when the file is changed:
+
 ```sh
 $ zcomp watch [path of Z to watch and transpile] [path of where to output the transpiled JS]
 ```
+
 # Docs
+
 The docs are on the offical [Z Website](https://zlanguage.github.io/).
 
 # Z 0.4.1 is out!
+
 New features:
+
 - Macro system and `include`

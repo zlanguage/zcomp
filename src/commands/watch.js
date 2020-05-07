@@ -25,7 +25,7 @@ class WatchCommand extends Command {
         } catch (err) {
           this.log(err);
         }
-        fs.writeFile(to, res, err => {
+        fs.writeFile(to, res, (err) => {
           if (err) {
             this.log(err);
           }
@@ -43,6 +43,6 @@ to: Where to transpile the file
 
 WatchCommand.args = [
   { name: "path", description: "Path of file to transpile", required: true },
-  { name: "to", description: "Where to transpile the file.", required: false }
+  { name: "to", description: "Where to transpile the file.", required: false },
 ];
 module.exports = WatchCommand;

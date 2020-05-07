@@ -26,7 +26,7 @@ class WdirCommand extends Command {
       if (err) {
         return this.log(err);
       }
-      files.forEach(file => {
+      files.forEach((file) => {
         const filepath = path.join(inPath, file);
         const outpath = path.join(outPath, file).replace(".zlang", ".js");
         fs.lstat(filepath, (err, stats) => {
@@ -45,7 +45,7 @@ class WdirCommand extends Command {
                 this.log(`In file ${filepath}, error found:`);
                 this.log(err);
               }
-              fs.writeFile(outpath, transpiledFile, err => {
+              fs.writeFile(outpath, transpiledFile, (err) => {
                 if (err) {
                   return this.log(err);
                 }
@@ -56,16 +56,16 @@ class WdirCommand extends Command {
               if (err) {
                 return this.log(err);
               }
-              fs.writeFile(outpath, data.toString(), err => {
+              fs.writeFile(outpath, data.toString(), (err) => {
                 if (err) {
                   return this.log(err);
                 }
               });
             });
           } else if (stats.isDirectory()) {
-            fs.exists(outpath, exists => {
+            fs.exists(outpath, (exists) => {
               if (!exists) {
-                fs.mkdir(outpath, err => {
+                fs.mkdir(outpath, (err) => {
                   if (err) {
                     return this.log(err);
                   }
@@ -82,19 +82,20 @@ class WdirCommand extends Command {
   }
 }
 
-WdirCommand.description = "Watches a directory for changes, and transpiles it when they happen.";
+WdirCommand.description =
+  "Watches a directory for changes, and transpiles it when they happen.";
 
 WdirCommand.args = [
   {
     name: "indir",
     description: "Path of the directory to transpile",
-    required: true
+    required: true,
   },
   {
     name: "outdir",
     description: "Path of the directory to transpile to.",
-    required: true
-  }
+    required: true,
+  },
 ];
 
 module.exports = WdirCommand;
