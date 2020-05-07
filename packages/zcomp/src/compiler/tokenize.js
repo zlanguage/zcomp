@@ -254,4 +254,5 @@ function tokenize(source, comment = false) {
     }
   };
 }
+
 module.exports = Object.freeze(tokenize);

@@ -3,10 +3,13 @@ const gen = require("./gen");
 const tokenize = require("./tokenize");
 const { copy } = require("@zlanguage/zstdlib");
 const fs = require("fs");
+const path = require("path");
+
 // List of all warnings: [string]
 let warnings = [];
+
 // An API for registering error objects will later be displayed.
-const errors = (function () {
+const errors = (() => {
   let index = 0;
   let errors = [];
   return {
@@ -35,18 +38,22 @@ const errors = (function () {
     },
   };
 })();
+
 let macros = {};
 let isMacro = false;
 let prevTok;
 let tok;
 let nextTok;
 let tokList;
-// THe current token.
+
+// The current token.
 let index = 0;
 // Metadata collected via `meta` statements
+
 let metadata = {
   ddsdir: process.cwd(), // Default place where the dollar directives are coming from.
 };
+
 // Valid left-associative operator names (all built-in)
 // To is reserved for future use.
 const validNameOps = ["and", "or", "to", "til", "by"];
@@ -77,6 +84,7 @@ const ops = {
   to: 555,
   til: 555,
 };
+
 // Reference to how Z mangles identifiers for debugging.
 const symbolMap = {
   "+": "$plus",
@@ -235,6 +243,7 @@ function isExprAhead() {
       : true)
   ); // Invocations and subscripts must be on the same line.
 }
+
 // Implicit parameter check.
 function isImplicit(str) {
   return typeof str === "string" && str.endsWith("$exclam");
@@ -2042,6 +2051,7 @@ function pureMacro(macroName, params) {
   ast = ast.map((node) => insertParams(node, params, cache));
   return ast;
 }
+
 // Gather all the statements together.
 function statements() {
   const statements = [];
@@ -2071,7 +2081,9 @@ function statements() {
         process.chdir("..");
       }
       const file = fs.readFileSync(
-        `node_modules/@zlanguage/zstdlib/src/macros/${tok.string}.zlang`
+        process.env.IS_Z_SRC_TEST_RUNNING
+          ? `packages/zstdlib/src/macros/${tok.string}.zlang`
+          : `node_modules/@zlanguage/zstdlib/src/macros/${tok.string}.zlang`
       );
       statements.push(...parseMacro(tokenize(file.toString()), false));
       advance();
