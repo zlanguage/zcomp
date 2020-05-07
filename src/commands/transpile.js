@@ -5,7 +5,7 @@ const fs = require("fs");
 
 function main({ file, outFile }) {
   if (!outFile) {
-    to = file.replace(/(.+).zlang/, "$1.js");
+    outFile = file.replace(/(.+).zlang/, "$1.js");
   }
   fs.readFile(path, (err, data) => {
     if (err) {
@@ -17,7 +17,7 @@ function main({ file, outFile }) {
     } catch (err) {
       console.log(err);
     }
-    fs.writeFile(to, res, (err) => {
+    fs.writeFile(outFile, res, (err) => {
       if (err) {
         console.log(err);
       }

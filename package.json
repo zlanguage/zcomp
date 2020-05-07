@@ -31,10 +31,12 @@
   ],
   "homepage": "https://github.com/zlanguage/zcomp",
   "keywords": [
-    "Z"
+    "Z",
+    "language",
+    "compiler"
   ],
   "license": "MIT",
-  "main": "src/index.js",
+  "main": "src/commands/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/zlanguage/zcomp.git"
