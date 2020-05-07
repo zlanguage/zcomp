@@ -1,13 +1,8 @@
 const { program } = require("commander");
 
 program.version("0.6.0");
-
-program
-  .command("dirt")
-  .description("Compile a directory recursively.")
-  .option("-i, --in-dir", "The base directory to search.")
-  .option("-o, --out-dir", "The directory to output built files to.")
-  .action(require("./dirt"));
+program.name("zcomp");
+program.description("The Z programming language transpiler.");
 
 program
   .command("repl")
@@ -21,10 +16,9 @@ program
   .action(require("./run"));
 
 program
-  .command("build")
+  .command("build <file>")
   .description("Build a Z source file into a JavaScript file.")
-  .option("-f, --file", "The file to build.")
   .option("-o, --out-file", "The name of the file to output the code to.")
-  .action(require("./transpile"));
+  .action(require("./build"));
 
 program.parse(process.argv);

@@ -3,11 +3,11 @@ const parse = require("../compiler/parse");
 const gen = require("../compiler/gen");
 const fs = require("fs");
 
-function main(file, outFile) {
+function main(file, { outFile }) {
   if (!outFile) {
     outFile = file.replace(/(.+).zlang/, "$1.js");
   }
-  fs.readFile(path, (err, data) => {
+  fs.readFile(file, (err, data) => {
     if (err) {
       return console.log(err);
     }

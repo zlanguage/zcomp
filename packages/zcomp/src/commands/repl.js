@@ -50,7 +50,7 @@ function main() {
   const loaded = {};
 
   rl.question("zrepl>", async function ask(code) {
-    process.exit(0)
+    process.exit(0);
     if (code.startsWith(":")) {
       const command = code[1];
       let rest = code.slice(2).trim();
