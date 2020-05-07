@@ -4,6 +4,7 @@ const fs = require("fs");
 const tokenize = require("../compiler/tokenize");
 const parse = require("../compiler/parse");
 const gen = require("../compiler/gen");
+const process = require("process");
 const lineBreakers = ["(", "{", "["];
 
 function getLines(rl, opener) {
@@ -16,7 +17,7 @@ function getLines(rl, opener) {
   let open = 1;
   let res = "";
   const string = /("(?:[^"\\]|\\(?:[nr"\\]|u\{[0-9A-F]{4,6}\}))*")/g;
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     rl.question("..", function recieve(code) {
       res += code + "\n";
       code
@@ -49,6 +50,7 @@ function main() {
   const loaded = {};
 
   rl.question("zrepl>", async function ask(code) {
+    process.exit(0)
     if (code.startsWith(":")) {
       const command = code[1];
       let rest = code.slice(2).trim();
