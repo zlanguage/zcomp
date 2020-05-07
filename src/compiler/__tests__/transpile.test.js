@@ -444,7 +444,7 @@ Object.entries(evalTests).forEach(([testName, tests]) => {
       it(`should evaluate ${expr} as ${
         res == null ? res : res.toString()
       }`, () => {
-        expect(evalZ(expr)).toBe(res);
+        expect(evalZ(expr)).toStrictEqual(res);
       });
     });
   });
