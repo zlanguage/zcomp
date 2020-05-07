@@ -16,8 +16,10 @@
     "vlq": "^1.0.1"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.6",
-    "chai": "^4.2.0",
+    "@babel/core": "^7.9.6",
+    "@babel/preset-env": "^7.9.6",
+    "@types/jest": "^25.2.1",
+    "babel-jest": "^26.0.1",
     "jest": "^26.0.1",
     "prettier": "^2.0.5"
   },
@@ -25,8 +27,7 @@
     "node": ">=8.0.0"
   },
   "files": [
-    "/bin",
-    "/npm-shrinkwrap.json",
+    "README.md",
     "/src"
   ],
   "homepage": "https://github.com/zlanguage/zcomp",
@@ -40,9 +41,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/zlanguage/zcomp.git"
-  },
-  "jest": {
-    "verbose": true
   },
   "scripts": {
     "test": "jest",

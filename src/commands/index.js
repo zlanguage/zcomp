@@ -25,4 +25,4 @@ program
   .description("Build a Z source file into a JavaScript file.")
   .option("-f, --file", "The file to build.")
   .option("-o, --out-file", "The name of the file to output the code to.")
-  .action(() => require("./transpile").main)
+  .action(() => require("./transpile").main);
