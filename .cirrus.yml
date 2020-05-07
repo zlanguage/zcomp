@@ -3,7 +3,7 @@ Tests_task:
     folder: node_modules
     fingerprint_script: |
       cat package.json
-      cat package-lock.json
+      cat yarn.lock
     populate_script: make install
   script: |
     if [[ -z $CODE_COVERAGE_RUN ]]; then

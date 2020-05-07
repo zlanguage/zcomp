@@ -3,7 +3,7 @@ build:
 .PHONY: build
 
 install:
-	npm install
+	yarn install
 .PHONY: install
 
 reportcoverage:
