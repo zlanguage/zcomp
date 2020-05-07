@@ -22,7 +22,6 @@
     "test": "jest",
     "coverage:report": "npm run coverage:generate && ./codecov",
     "prettier": "prettier --write **/*.{js,json,md}",
-    "lerna": "lerna",
-    "postinstall": "yarn lerna bootstrap"
+    "lerna": "lerna"
   }
 }

@@ -5,6 +5,7 @@ Tests_task:
       cat package.json
       cat yarn.lock
     populate_script: make install
+  bootstrap_script: yarn lerna bootstrap
   script: make
   matrix:
     - container:
