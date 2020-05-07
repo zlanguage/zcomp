@@ -39,7 +39,7 @@ function getLines(rl, opener) {
   });
 }
 
-async function main() {
+function main() {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,

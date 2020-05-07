@@ -3,7 +3,7 @@ const parse = require("../compiler/parse");
 const gen = require("../compiler/gen");
 const fs = require("fs");
 
-async function main({ path }) {
+function main({ path }) {
   fs.readFile(path, (err, data) => {
     if (err) {
       return console.log(err);

@@ -3,7 +3,7 @@ const parse = require("../compiler/parse");
 const gen = require("../compiler/gen");
 const fs = require("fs");
 
-async function main({ file, outFile }) {
+function main({ file, outFile }) {
   if (!outFile) {
     to = file.replace(/(.+).zlang/, "$1.js");
   }

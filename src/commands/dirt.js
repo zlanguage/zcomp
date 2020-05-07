@@ -7,19 +7,19 @@ const tokenize = require("../compiler/tokenize");
 function transpileDir(inPath, outPath) {
   fs.readdir(inPath, (err, files) => {
     if (err) {
-      return this.log(err);
+      return console.log(err);
     }
     files.forEach((file) => {
       const filepath = path.join(inPath, file);
       const outpath = path.join(outPath, file).replace(".zlang", ".js");
       fs.lstat(filepath, (err, stats) => {
         if (err) {
-          return this.log(err);
+          return console.log(err);
         }
         if (stats.isFile() && /\.zlang/.test(filepath)) {
           fs.readFile(filepath, (err, data) => {
             if (err) {
-              return this.log(err);
+              return console.log(err);
             }
             let transpiledFile;
             try {
@@ -64,7 +64,7 @@ function transpileDir(inPath, outPath) {
   });
 }
 
-async function main({ inDir, outDir }) {
+function main({ inDir, outDir }) {
   const inPath = path.join(process.cwd(), inDir);
   const outPath = path.join(process.cwd(), outDir);
   transpileDir(inPath, outPath);
