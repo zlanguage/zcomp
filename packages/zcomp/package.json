@@ -9,7 +9,7 @@
     "url": "https://github.com/zlanguage/zcomp/issues"
   },
   "dependencies": {
-    "@zlanguage/zstdlib": "^0.4.1",
+    "@zlanguage/zstdlib": "*",
     "commander": "^5.1.0",
     "globby": "^11.0.0",
     "vlq": "^1.0.1"
