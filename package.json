@@ -1,9 +1,10 @@
 {
-  "name": "z",
+  "name": "@zlanguage/monorepo",
   "devDependencies": {
     "@babel/core": "^7.9.6",
     "@babel/preset-env": "^7.9.6",
     "@types/jest": "^25.2.1",
+    "@zlanguage/zstdlib": "^0.4.1",
     "babel-jest": "^26.0.1",
     "husky": "^4.2.5",
     "jest": "^26.0.1",
@@ -22,7 +23,6 @@
   },
   "scripts": {
     "test": "jest",
-    "coverage:report": "npm run coverage:generate && ./codecov",
     "prettier": "prettier --write **/*.{js,json,md}",
     "lerna": "lerna"
   },
