@@ -3,7 +3,6 @@ const gen = require("./gen");
 const tokenize = require("./tokenize");
 const { copy } = require("@zlanguage/zstdlib");
 const fs = require("fs");
-const path = require("path");
 
 // List of all warnings: [string]
 let warnings = [];
@@ -2081,9 +2080,7 @@ function statements() {
         process.chdir("..");
       }
       const file = fs.readFileSync(
-        process.env.IS_Z_SRC_TEST_RUNNING
-          ? `packages/zstdlib/src/macros/${tok.string}.zlang`
-          : `node_modules/@zlanguage/zstdlib/src/macros/${tok.string}.zlang`
+        `node_modules/@zlanguage/zstdlib/src/macros/${tok.string}.zlang`
       );
       statements.push(...parseMacro(tokenize(file.toString()), false));
       advance();
