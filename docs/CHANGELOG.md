@@ -1,4 +1,14 @@
-## [0.6.0]
+## [0.6.2]
+
+- Fixed some regressions from 0.6.0
+
+## [0.6.0/0.6.1] - 2020-05-07
+
+- Switched off oclif and onto commander
+- The watch, dirt, and transpile commands have been removed for now
+  - transpile is now called build, and functions the same
+- Removed chai
+- Code cleanup
 
 ## [0.4.4] - 2019-10-12
 
