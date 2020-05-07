@@ -12,11 +12,6 @@ Tests_task:
         image: node:latest
       matrix:
         - name: "Tests@Node:Latest"
-        - name: "Deploy@Node:Latest"
-          only_if: $CIRRUS_TAG != ""
-          push_script: make publish
-          env:
-            YARN_NPM_AUTH_TOKEN: ENCRYPTED[26181d2447fe13add10ca986fc1551717fa77ed15e8acf3fb887fd52bbf13008af982745baedd4e3de6e9bea47f8b5f5]
         - name: "CodeCoverage@Node:Latest"
           env:
             CODE_COVERAGE_RUN: true
