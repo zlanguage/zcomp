@@ -33,5 +33,5 @@ Tests_task:
         image: node:dubnium
       name: "Tests@Node:Dubnium"
     - container:
-        image: node:carbon
-      name: "Tests@Node:Carbon"
+        image: node:erbium
+      name: "Tests@Node:Erbium"
