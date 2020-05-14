@@ -1,8 +1,6 @@
-// Find the built-in Z Runtime
 const runtime = require("@zlanguage/zstdlib");
-// Get all the primitives defined by it
 const prims = Object.keys(runtime);
-// Generate a "prelude"
+
 let res = `"use strict";
 
 const $Z = require("@zlanguage/zstdlib")
@@ -38,16 +36,21 @@ function zStringify(thing) {
         '"' +
         thing.slice(1, -1).replace(/\\|\n|\t|\r|"/g, (p) => {
           switch (p) {
-            case '"':
+            case '"': {
               return '\\"';
-            case "\n":
+            }
+            case "\n": {
               return "\\n";
-            case "\\":
+            }
+            case "\\": {
               return "\\\\";
-            case "\t":
+            }
+            case "\t": {
               return "\\t";
-            case "\r":
+            }
+            case "\r": {
               return "\\r";
+            }
           }
         }) +
         '"'
@@ -98,6 +101,7 @@ function zStringify(thing) {
     return thing;
   }
 }
+
 function genParameterList() {
   let r = curr.wunth.map((parameter) => {
     curr = parameter;
@@ -105,21 +109,27 @@ function genParameterList() {
   });
   return r.join(", ");
 }
+
 // For conditional refinements.
 let condrList = [];
-// Generates a chianed expression.
+
+/**
+ * Generates a chianed expression.
+ */
 function genExprTwoth() {
   let r = "";
   switch (curr.type) {
-    case "refinement":
+    case "refinement": {
       r += `["${curr.wunth}"]`;
       r += genTwoth();
       break;
-    case "subscript":
+    }
+    case "subscript": {
       r += `[${zStringify(curr.wunth)}]`;
       r += genTwoth();
       break;
-    case "condrefinement":
+    }
+    case "condrefinement": {
       // Record the chained conditional refinement.
       condrList.push(curr.zeroth);
       const upToNow = [
@@ -129,7 +139,8 @@ function genExprTwoth() {
       r += ` && ${upToNow}["${curr.wunth}"]`;
       r += genTwoth();
       break;
-    case "invocation":
+    }
+    case "invocation": {
       r += "(";
       let anchor = curr;
       r += genParameterList();
@@ -137,16 +148,22 @@ function genExprTwoth() {
       curr = anchor;
       r += genTwoth();
       break;
-    case "assignment":
+    }
+    case "assignment": {
       r += " = ";
       curr = curr.wunth;
       r += genExpr();
       break;
+    }
   }
   return r;
 }
 
-// This traverses as expression, add all the different parts together.
+/**
+ * Traverse an expression, add all the different parts together.
+ *
+ * @returns {string} The twoth.
+ */
 function genTwoth() {
   let r = "";
   if (curr.twoth) {
@@ -159,6 +176,13 @@ function genTwoth() {
   }
   return r;
 }
+
+/**
+ * Check if a node is an expression.
+ *
+ * @param {{ type: string }} obj The node.
+ * @returns {boolean} If the node is an expression.
+ */
 function isExpr(obj) {
   return (
     obj &&
@@ -188,7 +212,7 @@ function genDestructuring(arr) {
     switch (arr.species.slice(13)) {
       case "[Array]":
         return `[${arr.map(genDestructuring).join(", ")}]`;
-      case "[Object]":
+      case "[Object]": {
         let r = "{";
         r += arr
           .map((dstruct) => {
@@ -201,6 +225,7 @@ function genDestructuring(arr) {
           .join(", ");
         r += "}";
         return r;
+      }
     }
   } else if (isExpr(arr)) {
     // Other left-hand assignments are left alone.
@@ -212,6 +237,7 @@ function genDestructuring(arr) {
   }
   return arr;
 }
+
 // Utility function to detect namespaced extractors.
 function typeIn(thing, type) {
   if (thing === undefined) {
@@ -384,6 +410,7 @@ function genLoopStatements(loopexpr) {
   });
   return r;
 }
+
 // Produces a array of match expressions to pass to matcher
 function genMatcherArr(matches) {
   let r = "";
@@ -424,7 +451,7 @@ function genExpr() {
         condrList.push(curr.zeroth);
         r += genTwoth();
         break;
-      case "invocation":
+      case "invocation": {
         r += `${curr.zeroth}(`;
         let anchor = curr;
         r += genParameterList();
@@ -432,6 +459,7 @@ function genExpr() {
         curr = anchor;
         r += genTwoth();
         break;
+      }
       case "assignment":
         r += `${genDestructuring(curr.zeroth)} = `;
         curr = curr.wunth;
@@ -488,7 +516,7 @@ function genExpr() {
         r += `])(${zStringify(curr.zeroth)})`;
         break;
       // Range literals translate directly to arrays.
-      case "range":
+      case "range": {
         const from = curr.zeroth;
         const to = curr.wunth;
         r += `Array($plus($minus(${zStringify(to)}, ${zStringify(
@@ -497,6 +525,7 @@ function genExpr() {
           from
         )}) })`;
         break;
+      }
       // List expressions become IIFEs
       case "loopexpr":
         r += "function(){\n  const res = [];\n";
@@ -644,6 +673,7 @@ generateStatement.raise = () => {
 generateStatement.settle = () => {
   return `${curr.zeroth}["settled"] = true;`;
 };
+
 generateStatement.meta = () => {
   return `/* meta ${curr.zeroth} = ${'"' + curr.wunth + '"'} */`; // Meta statements become comments just so you know that they are there.
 };
@@ -677,12 +707,14 @@ generateStatement.go = () => {
   curr = anchor;
   return r;
 };
+
 // Generates the immutable properties for an enum declaration
 function generateGetters(fields) {
   return fields
     .map((field) => `get ${field}(){ return ${field}; }`)
     .join(",\n\t\t");
 }
+
 // Generates the equals method for an enum declaration
 function generateEquals(type, fields) {
   return `"="(other) {
@@ -691,6 +723,7 @@ function generateEquals(type, fields) {
   }${fields.map((field) => `$eq(${field}, other.${field})`).join(" && ")};
     }`;
 }
+
 // Generates the static methods of an enum from a `where` block.
 function generateStatics(type, static_item = {}) {
   let res = "";
@@ -705,6 +738,7 @@ ${type}.${key} = ${f};
   });
   return res;
 }
+
 // Generates the overarching parent type for an enum.
 function generateParent(type, parts, static_item = {}) {
   let res = `let ${type} = {
@@ -714,21 +748,23 @@ function generateParent(type, parts, static_item = {}) {
   res += generateStatics(type, static_item);
   return res;
 }
+
 // Generates type checks for an enum's fields.
 function generateTypeChecks(typeChecks, parent, child) {
   let r = "";
   typeChecks
-    .filter(([field, type]) => type !== "_$exclam")
+    .filter(([, type]) => type !== "_$exclam")
     .forEach(([field, type]) => {
       type = type.replace(/\$exclam$/, "");
       r += `
-  if (typeOf(${field}) !== "${type}") { 
+  if (typeOf(${field}) !== "${type}") {
     throw new Error("${parent}.${child}.${field} must be of type ${type}. However, you passed " + ${field} + " to ${parent}.${child} which is not of type ${type}.");
   }
 `;
     });
   return r;
 }
+
 // Will wrap and expression with functions.
 function wrapFuncs(funcs, str) {
   if (!Array.isArray(funcs) || funcs.length === 0) {
@@ -747,6 +783,7 @@ function wrapFuncs(funcs, str) {
   const close = ")".repeat(funcs.length);
   return open + str + close;
 }
+
 generateStatement.enum = () => {
   let r = "";
   const parentType = curr.zeroth;
@@ -825,6 +862,7 @@ generateStatement.enum = () => {
   }
   return r;
 };
+
 generateStatement.hoist = () => {
   let r = `var `;
   let assignmentArray = [];
@@ -837,8 +875,14 @@ generateStatement.hoist = () => {
   curr = anchor;
   return r + ";";
 };
+
+/**
+ * Generate a block.
+ *
+ * @param {any} cleanup Anything that should go at the end of the block.
+ * @returns {string} The block.
+ */
 function genBlock(cleanup) {
-  // cleanup is extra stuff that goes at the end of the block
   let r = " {\n";
   indent();
   let anchor = curr;
@@ -864,7 +908,8 @@ function genBlock(cleanup) {
   r += "}".padStart(1 + padstart);
   return r;
 }
-function genStatement(extraAdv) {
+
+function genStatement() {
   let res;
   if (curr.type === undefined) {
     return "";
@@ -877,6 +922,7 @@ function genStatement(extraAdv) {
   condrList = [];
   return res.padStart(padstart + res.length);
 }
+
 function genStatements(ast) {
   let r = "";
   while (index < ast.length) {
@@ -898,8 +944,15 @@ function genStatements(ast) {
   }
   return r;
 }
-module.exports = Object.freeze(function gen(ast, prelude = true) {
+
+/**
+ * Generate JS code based on the given Z AST nodes.
+ *
+ * @param {any} ast The AST.
+ * @param {boolean?} usePrelude If the prelude should be included.
+ */
+module.exports = Object.freeze(function gen(ast, usePrelude = true) {
   index = 0;
   padstart = 0;
-  return prelude ? res + genStatements(ast) : genStatements(ast); // For debugging purposes, the prelude may sometimes be removed.
+  return usePrelude ? res + genStatements(ast) : genStatements(ast);
 });

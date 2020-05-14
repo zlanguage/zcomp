@@ -1,9 +1,9 @@
-const tokenize = require("../compiler/tokenize");
-const parse = require("../compiler/parse");
-const gen = require("../compiler/gen");
-const fs = require("fs");
+import tokenize from "../compiler/tokenize";
+import parse from "../compiler/parse";
+import gen from "../compiler/gen";
+import fs from "fs";
 
-function main(path) {
+export default function main(path) {
   fs.readFile(path, (err, data) => {
     if (err) {
       return console.log(err);
@@ -122,5 +122,3 @@ function main(path) {
     });
   });
 }
-
-module.exports = main;

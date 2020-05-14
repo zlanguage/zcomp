@@ -85,6 +85,7 @@ const ops = {
 };
 
 // Reference to how Z mangles identifiers for debugging.
+/*
 const symbolMap = {
   "+": "$plus",
   "-": "$minus",
@@ -102,6 +103,8 @@ const symbolMap = {
   "'": "$quote",
   "!": "$exclam",
 };
+*/
+
 // Reverse of the above (also for debugging).
 const reverseSymMap = {
   $plus: "+",
@@ -142,6 +145,7 @@ function error(message) {
 function warn(message) {
   warnings.push(`Warning: "${message}" at ${formatCurrLine()}.`);
 }
+
 // Makes an error without the quotes.
 function nqerror(message) {
   return {
@@ -182,6 +186,7 @@ function fallback() {
   tok = prevTok;
   prevTok = tokList[index - 1];
 }
+
 // Check that the token has a certain id.
 function isTok(id) {
   if (tok && id !== undefined && id !== tok.id) {
@@ -260,6 +265,7 @@ function isExpr(obj) {
     ].includes(obj.type)
   );
 }
+
 // Searches an expression for implicit parameters and returns the ones it finds.
 function findImplicits(ast) {
   if (
@@ -316,7 +322,7 @@ function findWildcards(pat) {
   switch (typeof pat) {
     case "string":
       if (pat.includes("$exclam")) {
-        const [_, wildcard] = pat.split("$exclam");
+        const [, wildcard] = pat.split("$exclam");
         if (wildcard) {
           wildcards.push(wildcard);
         }
@@ -339,7 +345,7 @@ function findWildcards(pat) {
           wildcards.push(...findWildcards(pat.wunth));
         }
       } else if (pat.species === "Destructuring[Object]") {
-        const pats = arrayToObj([...pat]).map(([k, v]) => v);
+        const pats = arrayToObj([...pat]).map(([, v]) => v);
         pats.forEach((patpart) => {
           wildcards.push(...findWildcards(patpart));
         });
@@ -350,6 +356,7 @@ function findWildcards(pat) {
   }
   return Array.from(new Set(wildcards));
 }
+
 // Adds return-type assertions to a return statement.
 function convertReturns(returnType, statement) {
   if (statement.type === "return") {
@@ -364,6 +371,7 @@ function convertReturns(returnType, statement) {
   }
   return wrapReturn(returnType, statement);
 }
+
 // And return-type assertions to a whole function.
 function wrapReturn(returnType, block) {
   if (!block) {
@@ -407,6 +415,7 @@ function wrapReturn(returnType, block) {
   }
   return block;
 }
+
 // Configures an expression in a near identical manner to expr()
 function configureExpr(type, zeroth, wunth, twoth) {
   if (twoth !== undefined) {
@@ -438,6 +447,7 @@ function opPred(op) {
   // Otherwise, return a default of 1.
   return 1;
 }
+
 // Checks if an operator can be left-associative
 function isValidOp(op) {
   // Is it part of a predefined list of left-associative operators?
@@ -451,6 +461,7 @@ function isValidOp(op) {
   // Otherwise, it's a right-associative operator.
   return false;
 }
+
 // Changes an expression according to the rules of operator precedence.
 // Takes: +(3, -(2, 7))
 // And Returns: +(-(3, 2), 7)
@@ -500,8 +511,6 @@ function swapLeftToRight(obj) {
       nested.wunth[1],
     ],
   };
-  /* console.log("In: ", JSON.stringify(obj, undefined, 4));
-        console.log("Out: ", JSON.stringify(res, undefined, 4)); */
   // Mark the changed expression as in correct order, so it is not flipped back by a subsequent call.
   Object.defineProperty(res, "leftToRight", {
     value: true,
@@ -510,6 +519,7 @@ function swapLeftToRight(obj) {
   // Return the modified expression.
   return res;
 }
+
 // Orders an expression left-to-right using the above function.
 function leftToRight(obj) {
   if (!obj || typeof obj !== "object") {
@@ -532,11 +542,13 @@ function leftToRight(obj) {
   }
   return obj;
 }
+
 // Parses a collection literal.
 function parseCol(start, end, sep = ",") {
   let res = [];
   advance(start);
   if (tok && tok.id !== end) {
+    // eslint-disable-next-line
     while (true) {
       const toPush = expr();
       // Check for errors in the expression about to be added to the up-and-coming collection.
@@ -579,6 +591,7 @@ function hasGet(statement) {
   }
   return false;
 }
+
 // Used for seeing if a function can be treated as a goroutine
 function isGoroutine(ast) {
   return ast.some((statement) => (hasGet(statement) ? true : false));
@@ -715,7 +728,7 @@ function expr({ infix = true } = {}) {
         zeroth = arrayToObj(zeroth); // Support parsing of object literals.
         break;
       // Expressions starting with refinements are functions in disguise. .x = func x!.x
-      case ".":
+      case ".": {
         // Put "." in nextTok for refinement
         fallback();
         tok = { alphanumeric: true, id: "(throwaway)" };
@@ -735,6 +748,7 @@ function expr({ infix = true } = {}) {
           },
         ];
         break;
+      }
       case "(keyword)":
         switch (tok.string) {
           // For statically deriving traits
@@ -748,7 +762,7 @@ function expr({ infix = true } = {}) {
             advance("(keyword)");
             type = "goroutine";
           // Function parsing
-          case "func":
+          case "func": {
             if (type !== "goroutine") {
               type = "function";
             }
@@ -889,8 +903,9 @@ function expr({ infix = true } = {}) {
               twoth = expr();
             }
             break;
+          }
           // Parse match
-          case "match":
+          case "match": {
             type = "match";
             advance("(keyword)");
             zeroth = expr();
@@ -937,6 +952,7 @@ function expr({ infix = true } = {}) {
               return error("Unclosed match expression.");
             }
             break;
+          }
           case "loop":
             // Parse loop
             type = "loopexpr";
@@ -1032,7 +1048,7 @@ function expr({ infix = true } = {}) {
           zeroth = "@";
         }
         break;
-      case "$":
+      case "$": {
         advance();
         if (tok.id === "Z") {
           zeroth = "$Z";
@@ -1052,6 +1068,7 @@ function expr({ infix = true } = {}) {
         // isMacro = false;
         // advance();
         break;
+      }
       case "(error)":
         // Return invalid tokens
         return error(`Unexpected token(s) ${tok.string}`);
@@ -1273,10 +1290,6 @@ function expr({ infix = true } = {}) {
         (param) => param !== undefined
       ),
     };
-    /*Object.defineProperty(res, "infix", {
-              value: true,
-              enumerable: false
-            });*/
     return leftToRight(res);
   }
   // Typed assignment: variable type!: expr
@@ -1358,12 +1371,14 @@ parseStatement.let = (name = "Let") => {
   }
   return letStatement;
 };
+
 // Def is like const
 parseStatement.def = () => {
   const res = parseStatement.let("Def");
   res.type = "def";
   return res;
 };
+
 parseStatement.import = () => {
   const importStatement = {
     type: "import",
@@ -1382,6 +1397,7 @@ parseStatement.import = () => {
     if (imported.twoth) {
       imported = imported.twoth;
       // Traverse refinements to extract import path.
+      // eslint-disable-next-line
       while (true) {
         path += `/${imported.wunth}`;
         if (imported.twoth === undefined) {
@@ -1475,6 +1491,7 @@ parseStatement.return = () => {
 parseStatement["}"] = () => {
   advance();
 };
+
 parseStatement.break = () => {
   return {
     type: "break",
@@ -1485,7 +1502,6 @@ parseStatement.try = () => {
   const tryStatement = {
     type: "try",
   };
-  //advance("(keyword)");
   tryStatement.zeroth = block();
   // Check for "on" clause
   if (nextTok && nextTok.id === "(keyword)" && nextTok.string === "on") {
@@ -1520,7 +1536,6 @@ parseStatement.raise = () => {
 
 parseStatement.importstd = () => {
   advance("(keyword)");
-  let imports = undefined;
   return {
     type: "import",
     zeroth: tok.id,
@@ -1892,7 +1907,7 @@ function insertParams(node, params, cache = {}) {
         const { rest } = params;
         const results = [];
         const template = node.wunth[0].wunth;
-        rest.forEach((paramList, index) => {
+        rest.forEach((paramList) => {
           paramList = { ...paramList, ...params };
           const cache = {};
           let use = copy(template);
@@ -1985,7 +2000,7 @@ function paramMacro() {
         isTok(name.replace(/^\"|"$/g, ""));
         p[name] = name.startsWith('"') ? name : '"' + name + '"';
         break;
-      case "rest":
+      case "rest": {
         advance();
         isTok(param.start);
         const capturedExprs = [];
@@ -2000,6 +2015,7 @@ function paramMacro() {
         p.rest = capturedExprs;
         advance();
         break;
+      }
     }
     return true;
   });
@@ -2031,6 +2047,7 @@ function paramMacro() {
   advance();
   return ast;
 }
+
 function pureMacro(macroName, params) {
   const ids = [];
   let macroString = macros[macroName].macro(...Object.values(params));
@@ -2053,8 +2070,10 @@ function pureMacro(macroName, params) {
 
 // Gather all the statements together.
 function statements() {
-  const statements = [];
+  let statements = [];
   let nextStatement;
+  // eslint freaks out about this, not sure why
+  // eslint-ignore-next-line
   while (true) {
     if (tok && tok.id === "$" && nextTok.id !== "Z") {
       advance("$");
@@ -2165,6 +2184,7 @@ function findAndThrow(ast, topLevel = true) {
   }
   return errorFound;
 }
+
 function parseMacro(tokGen, exp = true) {
   isMacro = true;
   const oldTokList = tokList;
@@ -2172,7 +2192,7 @@ function parseMacro(tokGen, exp = true) {
   const oldTok = tok;
   const oldNextTok = nextTok;
   const oldIndex = index;
-  tokList = (function () {
+  tokList = (() => {
     let res = [];
     for (let i; (i = tokGen()) !== undefined; ) {
       res.push(i);
@@ -2237,9 +2257,10 @@ function resolveOpMacros(ast) {
   }
   return ast;
 }
+
 function parse(tokGen, debug = true) {
   // Generate a list of tokens
-  tokList = (function () {
+  tokList = (() => {
     let res = [];
     for (let i; (i = tokGen()) !== undefined; ) {
       res.push(i);
@@ -2264,7 +2285,6 @@ function parse(tokGen, debug = true) {
       console.log(warning);
     });
   }
-  // console.log(JSON.stringify(statementz, undefined, 4));
   if (!findAndThrow(statementz)) {
     // Resolve top-level get.
     if (isGoroutine(statementz)) {

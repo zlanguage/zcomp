@@ -22,10 +22,10 @@ describe("Function Typing Tests", () => {
 
     it("should have returned a function that returns a proper token.", () => {
       expect(
-        testTok.hasOwnProperty("id") ||
-          testTok.hasOwnProperty("lineNumber") ||
-          testTok.hasOwnProperty("columnNumber") ||
-          testTok.hasOwnProperty("columnWidth")
+        Object.prototype.hasOwnProperty.call(testTok, "id") ||
+          Object.prototype.hasOwnProperty.call(testTok, "lineNumber") ||
+          Object.prototype.hasOwnProperty.call(testTok, "columnNumber") ||
+          Object.prototype.hasOwnProperty.call(testTok, "columnWidth")
       ).toBe(true);
     });
   });

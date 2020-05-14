@@ -1,9 +1,9 @@
-const tokenize = require("../compiler/tokenize");
-const parse = require("../compiler/parse");
-const gen = require("../compiler/gen");
-const fs = require("fs");
+import tokenize from "../compiler/tokenize";
+import parse from "../compiler/parse";
+import gen from "../compiler/gen";
+import fs from "fs";
 
-function main(file, { outFile }) {
+export default function main(file, { outFile }, plugins) {
   if (!outFile) {
     outFile = file.replace(/(.+).zlang/, "$1.js");
   }
@@ -14,6 +14,12 @@ function main(file, { outFile }) {
     let res;
     try {
       res = gen(parse(tokenize(data.toString())));
+      plugins.forEach((p) => {
+        res =
+          p._eventbus_announce("outputGeneratedCode", {
+            code: res,
+          }) ?? res;
+      });
     } catch (err) {
       console.log(err);
     }
@@ -24,5 +30,3 @@ function main(file, { outFile }) {
     });
   });
 }
-
-module.exports = main;

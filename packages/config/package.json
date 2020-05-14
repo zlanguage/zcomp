@@ -1,0 +1,32 @@
+{
+  "name": "@zlanguage/config",
+  "version": "0.6.2",
+  "description": "The configuration handler.",
+  "keywords": [
+    "z",
+    "language",
+    "compiler",
+    "config"
+  ],
+  "author": "Reece Dunham <me@rdil.rocks>",
+  "homepage": "https://github.com/zlanguage/zcomp",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zlanguage/zcomp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zlanguage/zcomp/issues"
+  },
+  "scripts": {
+    "build": "babel --config-file ../../babel.config.js src --out-dir lib"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.9.6"
+  },
+  "dependencies": {
+    "deep-extend": "^0.6.0"
+  }
+}

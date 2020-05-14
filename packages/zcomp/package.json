@@ -4,7 +4,7 @@
   "version": "0.6.2",
   "author": "N8",
   "bin": {
-    "zcomp": "node src/commands/index.js"
+    "zcomp": "node lib/commands/index.js"
   },
   "bugs": {
     "url": "https://github.com/zlanguage/zcomp/issues"
@@ -13,7 +13,9 @@
     "@zlanguage/zstdlib": "^0.4.1",
     "commander": "^5.1.0",
     "globby": "^11.0.0",
-    "vlq": "^1.0.1"
+    "vlq": "^1.0.1",
+    "@zlanguage/config": "^0.6.2",
+    "@zlanguage/plugin": "^0.6.2"
   },
   "engines": {
     "node": ">=10.0.0"
@@ -30,7 +32,11 @@
     "type": "git",
     "url": "https://github.com/zlanguage/zcomp.git"
   },
+  "scripts": {
+    "build": "babel --config-file ../../babel.config.js src --out-dir lib"
+  },
   "devDependencies": {
-    "@types/commander": "^2.12.2"
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.9.6"
   }
 }

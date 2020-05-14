@@ -1,10 +1,11 @@
-const readline = require("readline");
-const path = require("path");
-const fs = require("fs");
-const tokenize = require("../compiler/tokenize");
-const parse = require("../compiler/parse");
-const gen = require("../compiler/gen");
-const process = require("process");
+import readline from "readline";
+import path from "path";
+import fs from "fs";
+import tokenize from "../compiler/tokenize";
+import parse from "../compiler/parse";
+import gen from "../compiler/gen";
+import process from "process";
+
 const lineBreakers = ["(", "{", "["];
 
 function getLines(rl, opener) {
@@ -40,7 +41,7 @@ function getLines(rl, opener) {
   });
 }
 
-function main() {
+export default function main() {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -142,5 +143,3 @@ function main() {
     rl.question("zrepl>", ask);
   });
 }
-
-module.exports = main;

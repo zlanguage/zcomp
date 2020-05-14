@@ -1,16 +1,24 @@
 {
   "name": "@zlanguage/monorepo",
   "devDependencies": {
+    "@babel/cli": "^7.8.4",
     "@babel/core": "^7.9.6",
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.8.3",
     "@babel/preset-env": "^7.9.6",
     "@types/jest": "^25.2.1",
     "@zlanguage/zstdlib": "^0.4.1",
+    "babel-eslint": "^10.1.0",
     "babel-jest": "^26.0.1",
+    "babel-plugin-transform-inline-consecutive-adds": "^0.4.3",
+    "eslint": "^7.0.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-jest": "^23.10.0",
     "husky": "^4.2.5",
     "jest": "^26.0.1",
     "lerna": "^3.20.2",
     "prettier": "^2.0.5",
-    "pretty-quick": "^2.0.1"
+    "pretty-quick": "^2.0.1",
+    "rimraf": "^3.0.2"
   },
   "engines": {
     "node": ">=10.0.0"
@@ -24,11 +32,17 @@
   "scripts": {
     "test": "jest",
     "prettier": "prettier --write **/*.{js,json,md}",
-    "lerna": "lerna"
+    "lerna": "lerna",
+    "lint": "eslint packages/**/*.js",
+    "clean": "rimraf packages/**/lib",
+    "build": "yarn lerna run build"
   },
   "husky": {
     "hooks": {
       "pre-commit": "pretty-quick"
     }
+  },
+  "dependencies": {
+    "@babel/plugin-proposal-optional-chaining": "^7.9.0"
   }
 }
