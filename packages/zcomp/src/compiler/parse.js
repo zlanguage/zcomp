@@ -1,8 +1,8 @@
 "use strict";
-const gen = require("./gen");
-const tokenize = require("./tokenize");
-const { copy } = require("@zlanguage/zstdlib");
-const fs = require("fs");
+import gen from "./gen";
+import tokenize from "./tokenize";
+import { copy } from "@zlanguage/zstdlib";
+import fs from "fs";
 
 // List of all warnings: [string]
 let warnings = [];
@@ -83,27 +83,6 @@ const ops = {
   to: 555,
   til: 555,
 };
-
-// Reference to how Z mangles identifiers for debugging.
-/*
-const symbolMap = {
-  "+": "$plus",
-  "-": "$minus",
-  "*": "$star",
-  "/": "$slash",
-  "^": "$carot",
-  "?": "$question",
-  "=": "$eq",
-  "<": "$lt",
-  ">": "$gt",
-  "\\": "$backslash",
-  "&": "$and",
-  "|": "$or",
-  "%": "$percent",
-  "'": "$quote",
-  "!": "$exclam",
-};
-*/
 
 // Reverse of the above (also for debugging).
 const reverseSymMap = {
@@ -631,6 +610,7 @@ function warnBadOp(str) {
     }
   });
 }
+
 // Allows for expressions with more than two parts to use operators.
 function mkChain(type, zeroth, wunth, twoth) {
   // Detect normal operator
@@ -645,7 +625,6 @@ function mkChain(type, zeroth, wunth, twoth) {
       twoth.type === "invocation" &&
       twoth.zeroth !== ")")
   ) {
-    // console.log("In: ", JSON.stringify(configureExpr(type, zeroth, wunth, twoth), undefined, 4))
     // Detect partial application
     if (twoth.zeroth === "curry") {
       const oldType = type;
@@ -672,7 +651,6 @@ function mkChain(type, zeroth, wunth, twoth) {
       wunth = [resolution, rightHand];
       twoth = undefined;
     }
-    // console.log("Out: ", JSON.stringify(configureExpr(type, zeroth, wunth, twoth), undefined, 4))
   }
   return configureExpr(type, zeroth, wunth, twoth);
 }
@@ -2333,5 +2311,6 @@ function parse(tokGen, debug = true) {
   }
   return [];
 }
+
 // Tie everything together with one function.
 module.exports = Object.freeze(parse);

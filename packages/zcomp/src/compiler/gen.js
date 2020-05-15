@@ -1,4 +1,5 @@
-const runtime = require("@zlanguage/zstdlib");
+import runtime from "@zlanguage/zstdlib";
+
 const prims = Object.keys(runtime);
 
 let res = `"use strict";
@@ -238,7 +239,11 @@ function genDestructuring(arr) {
   return arr;
 }
 
-// Utility function to detect namespaced extractors.
+/**
+ * Utility function to detect namespaced extractors.
+ *
+ * @returns {boolean}
+ */
 function typeIn(thing, type) {
   if (thing === undefined) {
     return false;
@@ -250,6 +255,7 @@ function typeIn(thing, type) {
     typeIn(thing.twoth, type)
   );
 }
+
 // Transforms a pattern into calls to Z's matcher library
 function stringifyPat(pat) {
   if (typeof pat === "string" && pat.includes("$exclam")) {

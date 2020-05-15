@@ -1,6 +1,6 @@
-const tokenize = require("../tokenize");
-const parse = require("../parse");
-const gen = require("../gen");
+import tokenize from "../tokenize";
+import parse from "../parse";
+import gen from "../gen";
 
 const evalTests = {
   "math and string manipulations": {

@@ -1,4 +1,4 @@
-const symbolMap = {
+export const symbolMap = {
   "+": "$plus",
   "-": "$minus",
   "*": "$star",
@@ -16,27 +16,19 @@ const symbolMap = {
   "!": "$exclam",
 };
 
-const symbolRegExps = Object.keys(symbolMap).map((x) => {
+export const symbolRegExps = Object.keys(symbolMap).map((x) => {
   const res = new RegExp(`\\${x}`, "g");
   res.str = symbolMap[x];
   return res;
 });
 
-const unicodeEscapementRegExp = /\\u\{([0-9A-F]{4,6})\}/g;
-const newLineRegExp = /\n|\r\n?/;
+export const unicodeEscapementRegExp = /\\u\{([0-9A-F]{4,6})\}/g;
+export const newLineRegExp = /\n|\r\n?/;
 
-/*
-Capturing Group:
-[1] Whitespace
-[2] Comment
-[3] String
-[4] Keyword
-[5] Name
-[6] Number
-[7] Punctuator
-[8] RegExp
-*/
-const tokenRegExp = /(\u0020+|\t+)|(#.*)|("(?:[^"\\]|\\(?:[nrt"\\]|u\{[0-9A-F]{4,6}\}))*")|\b(let|loop|if|else|func|break|import|export|match|return|def|try|on|settle|raise|importstd|meta|enter|exit|operator|hoist|go|get|enum|where|derives|static|macro|include|includestd)\b|([A-Za-z_+\-/*%&|?^=<>'!][A-Za-z_0-9+\-/*%&|?^<>='!]*)|((?:0[box])?-?\d[\d_]*(?:\.[\d_]+)?(?:e\-?[\d_]+)?[a-z]*)|(\.{2,3}|~{|}~|[~@$(),.{}\[\]:])|(`.+?`[gimsuy]*)/y;
+/**
+ * @see dev-notes.md
+ */
+export const tokenRegExp = /(\u0020+|\t+)|(#.*)|("(?:[^"\\]|\\(?:[nrt"\\]|u\{[0-9A-F]{4,6}\}))*")|\b(let|loop|if|else|func|break|import|export|match|return|def|try|on|settle|raise|importstd|meta|enter|exit|operator|hoist|go|get|enum|where|derives|static|macro|include|includestd)\b|([A-Za-z_+\-/*%&|?^=<>'!][A-Za-z_0-9+\-/*%&|?^<>='!]*)|((?:0[box])?-?\d[\d_]*(?:\.[\d_]+)?(?:e\-?[\d_]+)?[a-z]*)|(\.{2,3}|~{|}~|[~@$(),.{}\[\]:])|(`.+?`[gimsuy]*)/y;
 
 /**
  * Create a token generator for a specific source.
@@ -44,7 +36,7 @@ const tokenRegExp = /(\u0020+|\t+)|(#.*)|("(?:[^"\\]|\\(?:[nrt"\\]|u\{[0-9A-F]{4
  * @param {boolean} comment Should comments be tokenized and returned from the generator?
  * @returns {() => void | {id: string, lineNumber: number, columnNumber: number, string?: string, columnTo?: number, readonly?: boolean, alphanumeric?: boolean, number?: number, source?: string}} A function that generates the next token.
  */
-function tokenize(source, comment = false) {
+export default function tokenize(source, comment = false) {
   // Handle multiline comments
   source = source.replace(
     new RegExp("/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/", "g"),
@@ -59,7 +51,7 @@ function tokenize(source, comment = false) {
   let template = [];
   let linesDone = [];
   let line = lines[0];
-  // Keep trackc of where the token is on the line
+  // Keep track of where the token is on the line
   tokenRegExp.lastIndex = 0;
   return function tokenGenerator() {
     // Are we done yet?
@@ -75,7 +67,6 @@ function tokenize(source, comment = false) {
       // Get the next token.
       return line === undefined ? undefined : tokenGenerator();
     }
-    console.log;
     // Figure out the current token.
     let captives = tokenRegExp.exec(line);
     if (
@@ -257,5 +248,3 @@ function tokenize(source, comment = false) {
     }
   };
 }
-
-module.exports = Object.freeze(tokenize);
