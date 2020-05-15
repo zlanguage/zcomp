@@ -211,223 +211,67 @@ const evalTests = {
 };
 
 const transpileTests = {
-  "variable declarations": {
-    "let x: 0": "let x = 0;",
-    "let x: 0, y: 0": "let x = 0, y = 0;",
-    "def x: 0": "const x = 0;",
-    "def x: 0, y: 0": "const x = 0, y = 0;",
-    "hoist x: 0": "var x = 0;",
-    "hoist x: 0, y: 0": "var x = 0, y = 0;",
-  },
-  modules: {
-    "import foo": `const foo = stone(require("foo"));`,
-    'import foo: "./foo"': `const foo = stone(require("./foo"));`,
-    "import ramda.src.map": `const map = stone(require("ramda/src/map"));`,
-    "importstd gr":
-      'const gr = stone(require("@zlanguage/zstdlib/src/js/gr"));',
-    "export fooey": "module.exports = stone(fooey);",
-  },
-  "$Z Macro": {
-    "log($Z)": "log($Z);",
-  },
-  include: {
-    'includestd "imperative"': "",
-  },
-  "control flow": {
-    "if foo { log(bar) }": `if (assertBool(foo)) {
-            log(bar);
-        }`,
-    "log(bar) if foo": `if (assertBool(foo)) {
-          log(bar);
-      }`,
-    "if foo { log(bar) } else if fooey { log(baree) } else { log(foobar) }": `if (assertBool(foo)) {
-            log(bar);
-          } else {
-            if (assertBool(fooey)) {
-              log(baree);
-            } else {
-              log(foobar);
-            }
-          }`,
-    'loop { log("YAY") }': `while (true) {
-            log("YAY");
-          }`,
-  },
-  "error handling": {
-    [`try {
+  "variable declarations": [
+    "let x: 0",
+    "let x: 0, y: 0",
+    "def x: 0",
+    "def x: 0, y: 0",
+    "hoist x: 0",
+    "hoist x: 0, y: 0",
+  ],
+  modules: [
+    "import foo",
+    'import foo: "./foo"',
+    "import ramda.src.map",
+    "importstd gr",
+    "export fooey",
+  ],
+  "$Z Macro": ["log($Z)"],
+  include: ['includestd "imperative"'],
+  "control flow": [
+    "if foo { log(bar) }",
+    "log(bar) if foo",
+    "if foo { log(bar) } else if fooey { log(baree) } else { log(foobar) }",
+    'loop { log("YAY") }',
+  ],
+  "error handling": [
+    `try {
             raise "FOOEY"
           } on err {
             settle err
-          }`]: `try {
-            throw new Error("FOOEY");
-          } catch (err) {
-            err["settled"] = true;
-            if (assertBool($eq(err["settled"], undefined))) {
-              throw new Error("Error err not settled.")
-            }
-          }
-          `,
-  },
-  goroutines: {
-    [`copy(go func () {
+          }`,
+  ],
+  goroutines: [
+    `copy(go func () {
             get fooey()
-          })`]: `copy(async function () {
-            await fooey()._from();
-          });
-          `,
-    [`go {
+          })`,
+    `go {
             get fooey()
-        }`]: `(async function () {
-            await fooey()._from();
-          })();
-          `,
-    "get foo": `const $main = async function () {
-          await foo._from();
-        };
-        $main();`,
-  },
-  comments: {
-    "# Hola": "",
-  },
-  enums: {
-    [`enum Foo {
+        }`,
+    "get foo",
+  ],
+  comments: ["# Hola"],
+  enums: [
+    `enum Foo {
             Bar(x: number!),
             Baz(y: _!, z: number!)
           } derives (Nada) where {
             foobar () {}
-          } `]: `function Bar(x) {
-
-            if($eq(Object.keys((x == null) ? { [Symbol()]: 0 } : x).sort(), ["x"].sort())) {
-              ({ x } = x);
-            }
-
-
-            if (typeOf(x) !== "number") {
-              throw new Error("Foo.Bar.x must be of type number. However, you passed " + x + " to Foo.Bar which is not of type number.");
-            }
-
-            return Nada({
-              type() { return "Foo"; },
-              get constructor() { return Bar; },
-              get parent() { return Foo; },
-              get fields() { return ["x"]; },
-              get x(){ return x; },
-              "="(other) {
-                return other.constructor === Bar && $eq(x, other.x);
-              }
-            });
-          }
-
-          Bar.extract = function (val) {
-            if (val.constructor === Bar) {
-              return [val.x];
-            }
-            return undefined;
-          };
-
-          function Baz(y, z) {
-
-            if($eq(Object.keys((y == null) ? { [Symbol()]: 0 } : y).sort(), ["y", "z"].sort())) {
-              ({ y, z } = y);
-            }
-
-
-            if (typeOf(z) !== "number") {
-              throw new Error("Foo.Baz.z must be of type number. However, you passed " + z + " to Foo.Baz which is not of type number.");
-            }
-
-            return Nada({
-              type() { return "Foo"; },
-              get constructor() { return Baz; },
-              get parent() { return Foo; },
-              get fields() { return ["y", "z"]; },
-              get y(){ return y; },
-                  get z(){ return z; },
-              "="(other) {
-                return other.constructor === Baz && $eq(y, other.y) && $eq(z, other.z);
-              }
-            });
-          }
-
-          Baz.extract = function (val) {
-            if (val.constructor === Baz) {
-              return [val.y, val.z];
-            }
-            return undefined;
-          };
-
-          let Foo = {
-            order: [Bar, Baz],
-            Bar,
-              Baz
-          };
-          Foo.foobar = function () {
-          };
-
-          `,
-    [`enum Point(x: number!, y: number!) where {
+          } `,
+    `enum Point(x: number!, y: number!) where {
             nada () {}
-          }`]: `function Point(x, y) {
-
-            if($eq(Object.keys((x == null) ? { [Symbol()]: 0 } : x).sort(), ["x", "y"].sort())) {
-              ({ x, y } = x);
-            }
-
-
-            if (typeOf(x) !== "number") {
-              throw new Error("Point.Point.x must be of type number. However, you passed " + x + " to Point.Point which is not of type number.");
-            }
-
-            if (typeOf(y) !== "number") {
-              throw new Error("Point.Point.y must be of type number. However, you passed " + y + " to Point.Point which is not of type number.");
-            }
-
-            return {
-              type() { return "Point"; },
-              get constructor() { return Point; },
-              get parent() { return Point; },
-              get fields() { return ["x", "y"]; },
-              get x(){ return x; },
-                  get y(){ return y; },
-              "="(other) {
-                return other.constructor === Point && $eq(x, other.x) && $eq(y, other.y);
-              }
-            };
-          }
-
-          Point.extract = function (val) {
-            if (val.constructor === Point) {
-              return [val.x, val.y];
-            }
-            return undefined;
-          };
-
-          Point.order = [Point];
-
-          Point.nada = function () {
-          };`,
-  },
-  "advanced function & features": {
-    "x number!: 3": `x = assertType("number", 3);`,
-    [`func (x number!) number! {
+          }`,
+  ],
+  "advanced function & features": [
+    "x number!: 3",
+    `func (x number!) number! {
         return x
-      }`]: `function (x) {
-        if (!($eq(typeOf(x), "number"))) { throw new Error("Enter failed") }
-        return assertType("number", x);
-      };`,
-    'func () { exit { log("Hello World") } }': `function (){ try {  {
-
-      } } finally { if (!(log("Hello World"))) { throw new Error("Exit failed") } } };`,
-    "Math.pow(@, @)": `curry(function ($, $$) {
-        return Math["pow"]($, $$);
-      });`,
-    ".val": `function (obj) {
-        return obj["val"];
-      };`,
-  },
-  metadata: {
-    "operator +: 1000": "/* operator $plus = 1000 */",
-  },
+      }`,
+    'func () { exit { log("Hello World") } }',
+    "Math.pow(@, @)",
+    ".val",
+  ],
+  metadata: ["operator +: 1000"],
 };
 
 function evalZ(z) {
@@ -438,35 +282,32 @@ function transpileZ(z) {
   return gen(parse(tokenize(z)), false);
 }
 
-Object.entries(evalTests).forEach(([testName, tests]) => {
-  describe(testName, () => {
-    Object.entries(tests).forEach(([expr, res]) => {
-      it(`should evaluate ${expr} as ${
-        res == null ? res : res.toString()
-      }`, () => {
-        expect(evalZ(expr)).toStrictEqual(res);
+describe("Evaluation tests", () => {
+  Object.entries(evalTests).forEach(([testName, tests]) => {
+    describe(testName, () => {
+      Object.entries(tests).forEach(([expr, res]) => {
+        it(`should evaluate ${expr} as ${
+          res == null ? res : res.toString()
+        }`, () => {
+          expect(evalZ(expr)).toStrictEqual(res);
+        });
       });
     });
   });
 });
 
-Object.entries(transpileTests).forEach(([testName, tests]) => {
-  describe(testName, () => {
-    Object.entries(tests).forEach(([expr, res]) => {
-      it(`should transpile ${expr} to ${
-        res == null ? res : res.toString()
-      }`, () => {
-        expect(
-          transpileZ(expr)
-            .split("\n")
-            .map((x) => x.trim())
-            .join("")
-        ).toBe(
-          res
-            .split("\n")
-            .map((x) => x.trim())
-            .join("")
-        );
+describe("Transpiling snapshot tests", () => {
+  Object.entries(transpileTests).forEach(([testName, tests]) => {
+    describe(`(${testName})`, () => {
+      tests.forEach((test) => {
+        it(`should transpile ${test} to the snapshot`, () => {
+          expect(
+            transpileZ(test)
+              .split("\n")
+              .map((x) => x.trim())
+              .join("")
+          ).toMatchSnapshot();
+        });
       });
     });
   });

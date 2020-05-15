@@ -1,0 +1,78 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Transpiling snapshot tests ($Z Macro) should transpile log($Z) to the snapshot 1`] = `"log($Z);"`;
+
+exports[`Transpiling snapshot tests (advanced function & features) should transpile .val to the snapshot 1`] = `"function (obj) {return obj[\\"val\\"];};"`;
+
+exports[`Transpiling snapshot tests (advanced function & features) should transpile Math.pow(@, @) to the snapshot 1`] = `"curry(function ($, $$) {return Math[\\"pow\\"]($, $$);});"`;
+
+exports[`Transpiling snapshot tests (advanced function & features) should transpile func () { exit { log("Hello World") } } to the snapshot 1`] = `"function (){ try {  {} } finally { if (!(log(\\"Hello World\\"))) { throw new Error(\\"Exit failed\\") } } };"`;
+
+exports[`Transpiling snapshot tests (advanced function & features) should transpile func (x number!) number! {
+        return x
+      } to the snapshot 1`] = `"function (x) {if (!($eq(typeOf(x), \\"number\\"))) { throw new Error(\\"Enter failed\\") }return assertType(\\"number\\", x);};"`;
+
+exports[`Transpiling snapshot tests (advanced function & features) should transpile x number!: 3 to the snapshot 1`] = `"x = assertType(\\"number\\", 3);"`;
+
+exports[`Transpiling snapshot tests (comments) should transpile # Hola to the snapshot 1`] = `""`;
+
+exports[`Transpiling snapshot tests (control flow) should transpile if foo { log(bar) } else if fooey { log(baree) } else { log(foobar) } to the snapshot 1`] = `"if (assertBool(foo)) {log(bar);} else {if (assertBool(fooey)) {log(baree);} else {log(foobar);}}"`;
+
+exports[`Transpiling snapshot tests (control flow) should transpile if foo { log(bar) } to the snapshot 1`] = `"if (assertBool(foo)) {log(bar);}"`;
+
+exports[`Transpiling snapshot tests (control flow) should transpile log(bar) if foo to the snapshot 1`] = `"if (assertBool(foo)) {log(bar);}"`;
+
+exports[`Transpiling snapshot tests (control flow) should transpile loop { log("YAY") } to the snapshot 1`] = `"while (true) {log(\\"YAY\\");}"`;
+
+exports[`Transpiling snapshot tests (enums) should transpile enum Foo {
+            Bar(x: number!),
+            Baz(y: _!, z: number!)
+          } derives (Nada) where {
+            foobar () {}
+          }  to the snapshot 1`] = `"function Bar(x) {if($eq(Object.keys((x == null) ? { [Symbol()]: 0 } : x).sort(), [\\"x\\"].sort())) {({ x } = x);}if (typeOf(x) !== \\"number\\") {throw new Error(\\"Foo.Bar.x must be of type number. However, you passed \\" + x + \\" to Foo.Bar which is not of type number.\\");}return Nada({type() { return \\"Foo\\"; },get constructor() { return Bar; },get parent() { return Foo; },get fields() { return [\\"x\\"]; },get x(){ return x; },\\"=\\"(other) {return other.constructor === Bar && $eq(x, other.x);}});}Bar.extract = function (val) {if (val.constructor === Bar) {return [val.x];}return undefined;};function Baz(y, z) {if($eq(Object.keys((y == null) ? { [Symbol()]: 0 } : y).sort(), [\\"y\\", \\"z\\"].sort())) {({ y, z } = y);}if (typeOf(z) !== \\"number\\") {throw new Error(\\"Foo.Baz.z must be of type number. However, you passed \\" + z + \\" to Foo.Baz which is not of type number.\\");}return Nada({type() { return \\"Foo\\"; },get constructor() { return Baz; },get parent() { return Foo; },get fields() { return [\\"y\\", \\"z\\"]; },get y(){ return y; },get z(){ return z; },\\"=\\"(other) {return other.constructor === Baz && $eq(y, other.y) && $eq(z, other.z);}});}Baz.extract = function (val) {if (val.constructor === Baz) {return [val.y, val.z];}return undefined;};let Foo = {order: [Bar, Baz],Bar,Baz};Foo.foobar = function () {};"`;
+
+exports[`Transpiling snapshot tests (enums) should transpile enum Point(x: number!, y: number!) where {
+            nada () {}
+          } to the snapshot 1`] = `"function Point(x, y) {if($eq(Object.keys((x == null) ? { [Symbol()]: 0 } : x).sort(), [\\"x\\", \\"y\\"].sort())) {({ x, y } = x);}if (typeOf(x) !== \\"number\\") {throw new Error(\\"Point.Point.x must be of type number. However, you passed \\" + x + \\" to Point.Point which is not of type number.\\");}if (typeOf(y) !== \\"number\\") {throw new Error(\\"Point.Point.y must be of type number. However, you passed \\" + y + \\" to Point.Point which is not of type number.\\");}return {type() { return \\"Point\\"; },get constructor() { return Point; },get parent() { return Point; },get fields() { return [\\"x\\", \\"y\\"]; },get x(){ return x; },get y(){ return y; },\\"=\\"(other) {return other.constructor === Point && $eq(x, other.x) && $eq(y, other.y);}};}Point.extract = function (val) {if (val.constructor === Point) {return [val.x, val.y];}return undefined;};Point.order = [Point];Point.nada = function () {};"`;
+
+exports[`Transpiling snapshot tests (error handling) should transpile try {
+            raise "FOOEY"
+          } on err {
+            settle err
+          } to the snapshot 1`] = `"try {throw new Error(\\"FOOEY\\");} catch (err) {err[\\"settled\\"] = true;if (assertBool($eq(err[\\"settled\\"], undefined))) {throw new Error(\\"Error err not settled.\\")}}"`;
+
+exports[`Transpiling snapshot tests (goroutines) should transpile copy(go func () {
+            get fooey()
+          }) to the snapshot 1`] = `"copy(async function () {await fooey()._from();});"`;
+
+exports[`Transpiling snapshot tests (goroutines) should transpile get foo to the snapshot 1`] = `"const $main = async function () {await foo._from();};$main();"`;
+
+exports[`Transpiling snapshot tests (goroutines) should transpile go {
+            get fooey()
+        } to the snapshot 1`] = `"(async function () {await fooey()._from();})();"`;
+
+exports[`Transpiling snapshot tests (include) should transpile includestd "imperative" to the snapshot 1`] = `""`;
+
+exports[`Transpiling snapshot tests (metadata) should transpile operator +: 1000 to the snapshot 1`] = `"/* operator $plus = 1000 */"`;
+
+exports[`Transpiling snapshot tests (modules) should transpile export fooey to the snapshot 1`] = `"module.exports = stone(fooey);"`;
+
+exports[`Transpiling snapshot tests (modules) should transpile import foo to the snapshot 1`] = `"const foo = stone(require(\\"foo\\"));"`;
+
+exports[`Transpiling snapshot tests (modules) should transpile import foo: "./foo" to the snapshot 1`] = `"const foo = stone(require(\\"./foo\\"));"`;
+
+exports[`Transpiling snapshot tests (modules) should transpile import ramda.src.map to the snapshot 1`] = `"const map = stone(require(\\"ramda/src/map\\"));"`;
+
+exports[`Transpiling snapshot tests (modules) should transpile importstd gr to the snapshot 1`] = `"const gr = stone(require(\\"@zlanguage/zstdlib/src/js/gr\\"));"`;
+
+exports[`Transpiling snapshot tests (variable declarations) should transpile def x: 0 to the snapshot 1`] = `"const x = 0;"`;
+
+exports[`Transpiling snapshot tests (variable declarations) should transpile def x: 0, y: 0 to the snapshot 1`] = `"const x = 0, y = 0;"`;
+
+exports[`Transpiling snapshot tests (variable declarations) should transpile hoist x: 0 to the snapshot 1`] = `"var x = 0;"`;
+
+exports[`Transpiling snapshot tests (variable declarations) should transpile hoist x: 0, y: 0 to the snapshot 1`] = `"var x = 0, y = 0;"`;
+
+exports[`Transpiling snapshot tests (variable declarations) should transpile let x: 0 to the snapshot 1`] = `"let x = 0;"`;
+
+exports[`Transpiling snapshot tests (variable declarations) should transpile let x: 0, y: 0 to the snapshot 1`] = `"let x = 0, y = 0;"`;
