@@ -4,13 +4,12 @@ module.exports = {
       "@babel/preset-env",
       {
         targets: {
-          node: "current",
+          node: "10",
         },
       },
     ],
   ],
   plugins: [
-    "transform-inline-consecutive-adds",
     "@babel/proposal-optional-chaining",
     "@babel/proposal-nullish-coalescing-operator",
   ],
