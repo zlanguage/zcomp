@@ -1,0 +1,36 @@
+{
+  "name": "@zlanguage/plugin-prettier",
+  "version": "0.6.2",
+  "description": "A plugin that runs Prettier on outputted code.",
+  "keywords": [
+    "z",
+    "language",
+    "compiler",
+    "plugin"
+  ],
+  "author": "Reece Dunham <me@rdil.rocks>",
+  "homepage": "https://github.com/zlanguage/zcomp",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zlanguage/zcomp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zlanguage/zcomp/issues"
+  },
+  "scripts": {
+    "build": "babel --config-file ../../babel.config.js src --out-dir lib"
+  },
+  "dependencies": {
+    "@zlanguage/plugin": "^0.6.2",
+    "@zlanguage/config": "^0.6.2"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.9.6"
+  },
+  "peerDependencies": {
+    "prettier": "1.x || 2.x"
+  }
+}
