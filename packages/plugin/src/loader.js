@@ -6,9 +6,11 @@
  */
 export default function loadPlugins(config) {
   let pluginObjects = [];
-  const pluginPaths = config?.plugins ?? [];
+  const pluginPaths = config.plugins ?? [];
+
   pluginPaths.forEach((p) => {
     pluginObjects.push(new require(p));
   });
+
   return pluginObjects;
 }

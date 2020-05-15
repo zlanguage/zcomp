@@ -23,7 +23,11 @@ function outdent() {
   padstart -= 2;
 }
 
-// Stringifies an expression
+/**
+ * Stringifies an expression.
+ *
+ * @param {*} thing The expression.
+ */
 function zStringify(thing) {
   if (typeof thing === "string") {
     if (thing.startsWith("@@")) {
@@ -184,7 +188,7 @@ function genTwoth() {
  * @param {{ type: string }} obj The node.
  * @returns {boolean} If the node is an expression.
  */
-function isExpr(obj) {
+export function isExpr(obj) {
   return (
     obj &&
     [
@@ -206,7 +210,11 @@ function isExpr(obj) {
   );
 }
 
-// Generates array and object destrucutring.
+/**
+ * Generates array and object destrucutring.
+ *
+ * @param {{ species?: string }} arr The array.
+ */
 function genDestructuring(arr) {
   if (arr && arr.species && arr.species.startsWith("Destructuring")) {
     // Handle destrucutring
@@ -244,7 +252,7 @@ function genDestructuring(arr) {
  *
  * @returns {boolean}
  */
-function typeIn(thing, type) {
+export function typeIn(thing, type) {
   if (thing === undefined) {
     return false;
   }
@@ -333,7 +341,7 @@ function stringifyPat(pat) {
 function genLoopStatements(loopexpr) {
   const loops = [];
   // Figure out the final expression.
-  const finalRes = (function () {
+  const finalRes = (() => {
     let anchor = curr;
     curr = loopexpr.wunth;
     let r = genExpr();
@@ -417,7 +425,12 @@ function genLoopStatements(loopexpr) {
   return r;
 }
 
-// Produces a array of match expressions to pass to matcher
+/**
+ * Produces a array of match expressions to pass to matchers.
+ *
+ * @param {any[]} matches The match expressions.
+ * @returns {string} An array of match expressions.
+ */
 function genMatcherArr(matches) {
   let r = "";
   r += matches
@@ -437,6 +450,7 @@ function genMatcherArr(matches) {
     .join(",\n");
   return r;
 }
+
 function genExpr() {
   let r = "";
   if (isExpr(curr)) {
@@ -714,8 +728,12 @@ generateStatement.go = () => {
   return r;
 };
 
-// Generates the immutable properties for an enum declaration
-function generateGetters(fields) {
+/**
+ * Generates the immutable properties for an enum declaration.
+ *
+ * @param {string[]} fields The enum's properties.
+ */
+export function generateGetters(fields) {
   return fields
     .map((field) => `get ${field}(){ return ${field}; }`)
     .join(",\n\t\t");
