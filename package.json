@@ -12,7 +12,8 @@
     "lerna": "lerna",
     "lint": "eslint packages/**/*.js",
     "prettier": "prettier --write **/*.{js,json,md}",
-    "test": "jest"
+    "test": "jest",
+    "bootstrap": "lerna bootstrap"
   },
   "husky": {
     "hooks": {

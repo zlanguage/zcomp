@@ -7,10 +7,10 @@ const prims = Object.keys(runtime);
  */
 export let res = `"use strict";
 
-const $Z = require("@zlanguage/zstdlib")
-const matcher = require("@zlanguage/zstdlib/src/js/matcher");
+var $Z = require("@zlanguage/zstdlib");
+var matcher = require("@zlanguage/zstdlib/src/js/matcher");
 
-${prims.map((name) => `const ${name} = $Z.${name};`).join("\n")}
+${prims.map((name) => `var ${name} = $Z.${name};`).join("\n")}
 `;
 
 let index = 0;
@@ -606,7 +606,7 @@ generateStatement.let = () => {
 };
 
 generateStatement.def = () => {
-  let r = `const `;
+  let r = `var `;
   let assignmentArray = [];
   let anchor = curr;
   curr.zeroth.forEach((assignment) => {
@@ -619,7 +619,7 @@ generateStatement.def = () => {
 };
 
 generateStatement.import = () => {
-  return `const ${genDestructuring(curr.zeroth)} = stone(require(${
+  return `var ${genDestructuring(curr.zeroth)} = stone(require(${
     curr.wunth
   }));`; // All imports are immutable
 };
@@ -769,7 +769,7 @@ ${type}.${key} = ${f};
 
 // Generates the overarching parent type for an enum.
 function generateParent(type, parts, static_item = {}) {
-  let res = `let ${type} = {
+  let res = `var ${type} = {
   order: ${zStringify(parts)},
   ${parts.join(",\n\t")}
 };`;

@@ -8,7 +8,7 @@ const testGened = gen(parse(tokenize(testStr)));
 
 describe("Function Typing Tests", () => {
   describe("Tokenization", () => {
-    it("should take one (non-optional) parameter.", () => {
+    it("should take one (non-optional) parameter", () => {
       expect(tokenize.length).toBe(1);
     });
 
@@ -16,11 +16,11 @@ describe("Function Typing Tests", () => {
       expect(tokenize(testStr)).toBeInstanceOf(Function);
     });
 
-    it("should have returned a function that returns an object.", () => {
+    it("should have returned a function that returns an object", () => {
       expect(testTok).toBeInstanceOf(Object);
     });
 
-    it("should have returned a function that returns a proper token.", () => {
+    it("should have returned a function that returns a proper token", () => {
       expect(
         Object.prototype.hasOwnProperty.call(testTok, "id") ||
           Object.prototype.hasOwnProperty.call(testTok, "lineNumber") ||
@@ -31,29 +31,29 @@ describe("Function Typing Tests", () => {
   });
 
   describe("Parsing", () => {
-    it("should take one parameter: the token generator.", () => {
+    it("should take one parameter: the token generator", () => {
       expect(parse.length).toBe(1);
     });
 
-    it("should return an array of objects.", () => {
+    it("should return an array of objects", () => {
       testAst.forEach((ast) => expect(ast).toBeInstanceOf(Object));
     });
   });
 
   describe("Code Generation", () => {
-    it("should take one formal, non optional parameter: the AST.", () => {
+    it("should take one formal, non optional parameter: the AST", () => {
       expect(gen.length).toBe(1);
     });
 
-    it("should return a string.", () => {
+    it("should return a string", () => {
       expect(typeof testGened === "string").toBe(true);
     });
 
-    it("should return a string that imports the Z Standard Library.", () => {
-      expect(testGened).toContain('const $Z = require("@zlanguage/zstdlib")');
+    it("should return a string that imports the Z Standard Library", () => {
+      expect(testGened).toContain('var $Z = require("@zlanguage/zstdlib")');
     });
 
-    it("should return a string that sets strict mode to true.", () => {
+    it("should return a string that sets strict mode to true", () => {
       expect(testGened.startsWith(`"use strict"`)).toBe(true);
     });
   });
