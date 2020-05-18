@@ -1,4 +1,5 @@
 import merge from "deep-extend";
+import fs from "fs";
 
 export const defaultConfig = {
   plugins: [],
@@ -10,31 +11,21 @@ export const defaultConfig = {
  * @returns {defaultConfig} The user's configuration.
  */
 export default function loadConfig() {
-  let loadedConfigYet = false;
-  let config = {
-    ...defaultConfig,
-  };
+  let config = defaultConfig;
+  let json = {};
 
-  try {
-    let json = require("package.json");
+  if (fs.existsSync("package.json")) {
+    json = JSON.parse(fs.readFileSync("package.json"));
     let o = json.zOptions;
-    if (o) {
+    if (!!o) {
       config = merge(config, o);
-      loadedConfigYet = true;
     }
-  } catch (error) {
-    // ignore the error
   }
 
-  if (!loadedConfigYet) {
-    try {
-      let json = require("zConfig.json");
-      if (json) {
-        config = merge(config, json);
-        loadedConfigYet = true;
-      }
-    } catch (error) {
-      // ignore the error
+  if (fs.existsSync("zconfig.json")) {
+    json = JSON.parse(fs.readFileSync("zconfig.json"));
+    if (!!json) {
+      config = merge(config, json);
     }
   }
 

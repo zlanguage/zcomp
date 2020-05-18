@@ -56,15 +56,22 @@ let metadata = {
 // Valid left-associative operator names (all built-in)
 // To is reserved for future use.
 const validNameOps = ["and", "or", "to", "til", "by"];
-// Unary operations involving keywords.
-// get(arg) - JavaScript: `await (arg).from()`
-// static(arg) - Derives a trait on the enum itself
-const unOps = ["get", "static", "sym", "bsym"];
+/**
+ * Unary operations involving keywords.
+ * `get(arg)` - JavaScript: `await (arg).from()`.
+ * `static(arg)` - Derives a trait on the enum itself.
+ */
+export const unOps = ["get", "static", "sym", "bsym"];
 
-// Operators that can be broken over newlines, ex: |>
-const validStartLineOps = ["$or$gt"];
-// All of Z's operators
-const ops = {
+/**
+ * Operators that can be broken over newlines, ex: `|>`.
+ */
+export const validStartLineOps = ["$or$gt"];
+
+/**
+ * All of Z's operators.
+ */
+export const ops = {
   and: -333,
   or: -333,
   $eq: -222,
@@ -84,8 +91,10 @@ const ops = {
   til: 555,
 };
 
-// Reverse of the above (also for debugging).
-const reverseSymMap = {
+/**
+ * Reverse of the above (also for debugging).
+ */
+export const reverseSymMap = {
   $plus: "+",
   $minus: "-",
   $star: "*",
@@ -232,7 +241,12 @@ function isImplicit(str) {
   return typeof str === "string" && str.endsWith("$exclam");
 }
 
-function isExpr(obj) {
+/**
+ * Is this an expression?
+ *
+ * @param {{ type: string }} obj The AST object.
+ */
+export function isExpr(obj) {
   return (
     obj &&
     [

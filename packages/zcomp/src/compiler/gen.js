@@ -2,13 +2,15 @@ import runtime from "@zlanguage/zstdlib";
 
 const prims = Object.keys(runtime);
 
-let res = `"use strict";
+/**
+ * The prelude.
+ */
+export let res = `"use strict";
 
 const $Z = require("@zlanguage/zstdlib")
 const matcher = require("@zlanguage/zstdlib/src/js/matcher");
 
 ${prims.map((name) => `const ${name} = $Z.${name};`).join("\n")}
-
 `;
 
 let index = 0;
@@ -337,7 +339,9 @@ function stringifyPat(pat) {
   return zStringify(pat);
 }
 
-// Handle loop expressions: loop (x <- xs) x * 2
+/**
+ * Handle loop expressions (eg. `loop (x <- xs) x * 2`)
+ */
 function genLoopStatements(loopexpr) {
   const loops = [];
   // Figure out the final expression.
@@ -975,7 +979,7 @@ function genStatements(ast) {
  * @param {any} ast The AST.
  * @param {boolean?} usePrelude If the prelude should be included.
  */
-module.exports = Object.freeze(function gen(ast, usePrelude = true) {
+module.exports = Object.freeze((ast, usePrelude = true) => {
   index = 0;
   padstart = 0;
   return usePrelude ? res + genStatements(ast) : genStatements(ast);

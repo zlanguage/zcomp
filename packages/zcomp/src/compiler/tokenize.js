@@ -26,17 +26,17 @@ export const unicodeEscapementRegExp = /\\u\{([0-9A-F]{4,6})\}/g;
 export const newLineRegExp = /\n|\r\n?/;
 
 /**
- * @see dev-notes.md
+ * See docs/dev-notes.md
  */
 export const tokenRegExp = /(\u0020+|\t+)|(#.*)|("(?:[^"\\]|\\(?:[nrt"\\]|u\{[0-9A-F]{4,6}\}))*")|\b(let|loop|if|else|func|break|import|export|match|return|def|try|on|settle|raise|importstd|meta|enter|exit|operator|hoist|go|get|enum|where|derives|static|macro|include|includestd)\b|([A-Za-z_+\-/*%&|?^=<>'!][A-Za-z_0-9+\-/*%&|?^<>='!]*)|((?:0[box])?-?\d[\d_]*(?:\.[\d_]+)?(?:e\-?[\d_]+)?[a-z]*)|(\.{2,3}|~{|}~|[~@$(),.{}\[\]:])|(`.+?`[gimsuy]*)/y;
 
 /**
  * Create a token generator for a specific source.
  * @param {string | Array<string>} source If string is provided, string is split along newlines. If array is provided, array is used as the array of lines.
- * @param {boolean} comment Should comments be tokenized and returned from the generator?
+ * @param {boolean} comments Should comments be tokenized and returned from the generator?
  * @returns {() => void | {id: string, lineNumber: number, columnNumber: number, string?: string, columnTo?: number, readonly?: boolean, alphanumeric?: boolean, number?: number, source?: string}} A function that generates the next token.
  */
-export default function tokenize(source, comment = false) {
+export default function tokenize(source, comments = false) {
   // Handle multiline comments
   source = source.replace(
     new RegExp("/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/", "g"),
@@ -104,7 +104,7 @@ export default function tokenize(source, comment = false) {
     if (captives[2]) {
       dotLast = false;
       // Ignore empty comments
-      return comment
+      return comments
         ? {
             id: "(comment)",
             comment: captives[2],
@@ -124,7 +124,7 @@ export default function tokenize(source, comment = false) {
           captives[3].replace(
             // Handle unicode escapement.
             unicodeEscapementRegExp,
-            function (ignore, code) {
+            function (_ignore, code) {
               // @ts-ignore
               return String.fromCodePoint(parseInt(code, 16));
             }
