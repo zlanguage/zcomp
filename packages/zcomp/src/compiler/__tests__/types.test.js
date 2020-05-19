@@ -36,7 +36,7 @@ describe("Tokenization", () => {
       columnTo: 0,
       string: "",
       string: "✔️",
-    })
+    });
   });
 });
 
