@@ -13,6 +13,10 @@ Tests_task:
       matrix:
         - name: "Tests@Node:Latest"
         - name: "CodeCoverage@Node:Latest"
+          upload_script: |
+            curl -L -o ./codecov https://codecov.io/bash
+            chmod +x ./codecov
+            ./codecov
           env:
             CODE_COVERAGE_RUN: true
             CODECOV_TOKEN: ENCRYPTED[230fd82953b0b0ed3fbde809dbad5bc8cf92a3b88e03d5b86c5124e01a890a12fde06130fb35af71c19ec4485d4519e3]
