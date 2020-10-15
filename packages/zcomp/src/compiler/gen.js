@@ -219,7 +219,7 @@ export function isExpr(astNode) {
   if (!astNode) {
     return false;
   }
-  return validTypes.includes(astNode?.type);
+  return validTypes.includes(astNode.type);
 }
 
 /**
