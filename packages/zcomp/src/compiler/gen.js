@@ -374,13 +374,15 @@ function genLoopStatements(loopexpr) {
   loopexpr.zeroth.forEach((expr) => {
     // Detect generator
     if (expr.type === "invocation" && expr.zeroth === "$lt$minus") {
-      loops.push(new AstNode({
-        type: "of",
-        zeroth: expr.wunth[0],
-        wunth: expr.wunth[1],
-        twoth: [],
-        predicates: [],
-      }));
+      loops.push(
+        new AstNode({
+          type: "of",
+          zeroth: expr.wunth[0],
+          wunth: expr.wunth[1],
+          twoth: [],
+          predicates: [],
+        })
+      );
     } else if (expr.type === "assignment") {
       // Generators can have assignments attached to them.
       loops[loops.length - 1].twoth.push(expr);
@@ -934,7 +936,7 @@ generateStatement.hoist = () => {
   return r + ";";
 };
 
-generateStatement.invocation = () => {}
+generateStatement.invocation = () => {};
 
 /**
  * Generate a block.
@@ -983,7 +985,7 @@ function genStatement() {
     res = genExpr() + ";";
   } else {
     if (debugCallback) {
-      debugCallback(generateStatement[curr.type])
+      debugCallback(generateStatement[curr.type]);
     }
     res = generateStatement[curr.type].call();
   }
@@ -1025,9 +1027,11 @@ function genStatements(ast) {
  * @param {AstNode} ast The AST Node.
  * @param {boolean?} usePrelude If the prelude should be included.
  */
-module.exports = Object.freeze((ast, dbgCallback = undefined, usePrelude = true) => {
-  index = 0;
-  padstart = 0;
-  debugCallback = dbgCallback;
-  return usePrelude ? res + genStatements(ast) : genStatements(ast);
-});
+module.exports = Object.freeze(
+  (ast, dbgCallback = undefined, usePrelude = true) => {
+    index = 0;
+    padstart = 0;
+    debugCallback = dbgCallback;
+    return usePrelude ? res + genStatements(ast) : genStatements(ast);
+  }
+);

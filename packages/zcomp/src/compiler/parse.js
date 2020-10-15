@@ -3,7 +3,7 @@ import gen from "./gen";
 import tokenize from "./tokenize";
 import { copy } from "@zlanguage/zstdlib";
 import fs from "fs";
-import { AstNode, validTypes } from "./types"
+import { AstNode, validTypes } from "./types";
 
 /**
  * List of all generated warnings.
@@ -521,7 +521,7 @@ function isValidOp(op) {
  */
 function swapLeftToRight(obj) {
   // Is the object not an object?
-  if (!obj || typeof(obj) === AstNode) {
+  if (!obj || typeof obj === AstNode) {
     return obj;
   }
   // Is it already in proper oder?
@@ -1024,10 +1024,12 @@ function expr({ infix = true } = {}) {
               // Allow for predicates inside loop expression
               if (tok.id === "(keyword)" && tok.string === "if") {
                 advance("(keyword)");
-                zeroth.push(new AstNode({
-                  type: "predicate",
-                  zeroth: expr(),
-                }));
+                zeroth.push(
+                  new AstNode({
+                    type: "predicate",
+                    zeroth: expr(),
+                  })
+                );
               } else {
                 // Otherwise, just add a normal expresison. Invalid expressions are ignored.
                 zeroth.push(expr());

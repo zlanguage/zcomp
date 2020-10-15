@@ -86,7 +86,17 @@ export class AstNode {
    * @param {{ species?: any, type?: any, zeroth?: AstNode | any[], wunth?: AstNode | any[], twoth?: AstNode | any[], id?: string, data?: string, leftToRight?: boolean, predicates: any[] }} properties The node's properties
    */
   constructor(properties) {
-    for (let property of ["species", "type", "zeroth", "wunth", "twoth", "id", "data", "leftToRight", "predicates"]) {
+    for (let property of [
+      "species",
+      "type",
+      "zeroth",
+      "wunth",
+      "twoth",
+      "id",
+      "data",
+      "leftToRight",
+      "predicates",
+    ]) {
       if (properties.hasOwnProperty(property)) {
         this[property] = properties[property];
       }
