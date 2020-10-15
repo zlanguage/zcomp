@@ -149,7 +149,7 @@ const validOpName = RegExp(
 function error(message) {
   return new AstNode({
     id: "(error)",
-    data: `Error: "${message}" at ${formatCurrLine()}.`,
+    zeroth: `Error: "${message}" at ${formatCurrLine()}.`,
   });
 }
 
@@ -170,7 +170,7 @@ function warn(message) {
 function nqerror(message) {
   return new AstNode({
     id: "(error)",
-    data: `Error: ${message} at ${formatCurrLine()}.`,
+    zeroth: `Error: ${message} at ${formatCurrLine()}.`,
   });
 }
 

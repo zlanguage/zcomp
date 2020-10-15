@@ -62,13 +62,6 @@ export class AstNode {
   id;
 
   /**
-   * Extra data (only used by errors currently).
-   *
-   * @type {string?}
-   */
-  data;
-
-  /**
    * Used in determining operator precedence.
    *
    * @type {boolean?}
@@ -93,7 +86,6 @@ export class AstNode {
       "wunth",
       "twoth",
       "id",
-      "data",
       "leftToRight",
       "predicates",
     ]) {
