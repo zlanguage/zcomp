@@ -4,7 +4,11 @@ import tokenize from "./tokenize";
 import { copy } from "@zlanguage/zstdlib";
 import fs from "fs";
 
-// List of all warnings: [string]
+/**
+ * List of all generated warnings.
+ *
+ * @type {string[]}
+ */
 let warnings = [];
 
 // An API for registering error objects will later be displayed.
@@ -45,17 +49,26 @@ let tok;
 let nextTok;
 let tokList;
 
-// The current token.
+/**
+ * The current token.
+ *
+ * @type {number}
+ */
 let index = 0;
-// Metadata collected via `meta` statements
 
+/**
+ * Metadata collected via `meta` statements.
+ */
 let metadata = {
   ddsdir: process.cwd(), // Default place where the dollar directives are coming from.
 };
 
-// Valid left-associative operator names (all built-in)
-// To is reserved for future use.
-const validNameOps = ["and", "or", "to", "til", "by"];
+/**
+ * Valid left-associative operator names (all built-in).
+ * To is reserved for future use.
+ */
+export const validNameOps = ["and", "or", "to", "til", "by"];
+
 /**
  * Unary operations involving keywords.
  * `get(arg)` - JavaScript: `await (arg).from()`.
@@ -111,9 +124,11 @@ export const reverseSymMap = {
   $quote: "'",
   $exclam: "!",
 };
+
 // Checks if identifier is valid JS name
 const isValidName = /^[A-Za-z_$][A-za-z_$0-9]*$/;
 // Checks if an identifier consists only of symbols. (ie. +, -, ?!?) but not +x
+
 const validOpName = RegExp(
   `^(${Object.keys(reverseSymMap)
     .filter((key) => key.startsWith("$"))
@@ -121,7 +136,9 @@ const validOpName = RegExp(
     .join("|")})+$`
 );
 
-// Makes an error (which is an object)
+/**
+ * Makes an error (which is an object)
+ */
 function error(message) {
   return {
     id: "(error)",

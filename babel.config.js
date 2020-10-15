@@ -12,5 +12,6 @@ module.exports = {
   plugins: [
     "@babel/proposal-optional-chaining",
     "@babel/proposal-nullish-coalescing-operator",
+    "@babel/proposal-class-properties",
   ],
 };

@@ -1,4 +1,5 @@
 import runtime from "@zlanguage/zstdlib";
+import { AstNode } from "./types";
 
 const prims = Object.keys(runtime);
 
@@ -14,13 +15,31 @@ ${prims.map((name) => `var ${name} = $Z.${name};`).join("\n")}
 `;
 
 let index = 0;
+
+/**
+ * The currently focused element.
+ *
+ * @type {AstNode}
+ */
 let curr;
+
+/**
+ * The amount of spaces before any statements generated after a change of this value.
+ *
+ * @type {number}
+ */
 let padstart = 0;
 
+/**
+ * Adds 2 spaces before any statements.
+ */
 function indent() {
   padstart += 2;
 }
 
+/**
+ * Decreases indent by 2.
+ */
 function outdent() {
   padstart -= 2;
 }
@@ -28,7 +47,7 @@ function outdent() {
 /**
  * Stringifies an expression.
  *
- * @param {*} thing The expression.
+ * @param {string | number | AstNode | any[]} thing The expression.
  */
 function zStringify(thing) {
   if (typeof thing === "string") {
@@ -109,6 +128,11 @@ function zStringify(thing) {
   }
 }
 
+/**
+ * Generates a parameter list.
+ *
+ * @returns {string} The parameter list as a string.
+ */
 function genParameterList() {
   let r = curr.wunth.map((parameter) => {
     curr = parameter;
@@ -121,7 +145,7 @@ function genParameterList() {
 let condrList = [];
 
 /**
- * Generates a chianed expression.
+ * Generates a chained expression.
  */
 function genExprTwoth() {
   let r = "";
@@ -187,29 +211,11 @@ function genTwoth() {
 /**
  * Check if a node is an expression.
  *
- * @param {{ type: string }} obj The node.
+ * @param {AstNode} astNode The node.
  * @returns {boolean} If the node is an expression.
  */
-export function isExpr(obj) {
-  return (
-    obj &&
-    [
-      "subscript",
-      "refinement",
-      "invocation",
-      "assignment",
-      "function",
-      "spread",
-      "match",
-      "range",
-      "loopexpr",
-      "ifexpr",
-      "goroutine",
-      "get",
-      "condrefinement",
-      "condsubscript",
-    ].includes(obj.type)
-  );
+export function isExpr(astNode) {
+  return astNode && astNode.isValidType();
 }
 
 /**
@@ -252,6 +258,7 @@ function genDestructuring(arr) {
 /**
  * Utility function to detect namespaced extractors.
  *
+ * @param {AstNode?} thing The AST node.
  * @returns {boolean}
  */
 export function typeIn(thing, type) {
@@ -266,7 +273,12 @@ export function typeIn(thing, type) {
   );
 }
 
-// Transforms a pattern into calls to Z's matcher library
+/**
+ * Transforms a pattern into calls to Z's matcher library.
+ *
+ * @param {*} pat The pattern.
+ * @returns {string} A call to the matcher library.
+ */
 function stringifyPat(pat) {
   if (typeof pat === "string" && pat.includes("$exclam")) {
     // Detect type
@@ -340,7 +352,9 @@ function stringifyPat(pat) {
 }
 
 /**
- * Handle loop expressions (eg. `loop (x <- xs) x * 2`)
+ * Handle loop expressions (eg. `loop (x <- xs) x * 2`).
+ *
+ * @param {AstNode} loopexpr The loop expression AST node.
  */
 function genLoopStatements(loopexpr) {
   const loops = [];
@@ -388,7 +402,7 @@ function genLoopStatements(loopexpr) {
       curr = anchor;
       return res;
     })();
-    r += `for (const ${iteree} of ${iterable}) {\n`;
+    r += `for (var ${iteree} of ${iterable}) {\n`;
     indent();
     let anchor = curr;
     // Add the assignments.
@@ -455,6 +469,11 @@ function genMatcherArr(matches) {
   return r;
 }
 
+/**
+ * Generates an expression.
+ *
+ * @returns {string} The built expression.
+ */
 function genExpr() {
   let r = "";
   if (isExpr(curr)) {
@@ -718,6 +737,7 @@ generateStatement.enter = () => {
 generateStatement.exit = () => {
   return "";
 };
+
 generateStatement.operator = () => {
   return `/* operator ${curr.zeroth} = ${curr.wunth} */`; // Like meta, operator translates into a comment so you know it's there.
 };
@@ -736,6 +756,7 @@ generateStatement.go = () => {
  * Generates the immutable properties for an enum declaration.
  *
  * @param {string[]} fields The enum's properties.
+ * @returns {string} A JS code string which defines the properties.
  */
 export function generateGetters(fields) {
   return fields
@@ -743,8 +764,13 @@ export function generateGetters(fields) {
     .join(",\n\t\t");
 }
 
-// Generates the equals method for an enum declaration
-function generateEquals(type, fields) {
+/**
+ * Generates the equals method for an enum declaration.
+ *
+ * @param {any[]} fields The fields in the enum.
+ * @returns {string} A JS code string which defines the equals method.
+ */
+export function generateEquals(type, fields) {
   return `"="(other) {
       return other.constructor === ${type}${
     fields.length > 0 ? " && " : ""
@@ -907,7 +933,7 @@ generateStatement.hoist = () => {
 /**
  * Generate a block.
  *
- * @param {any} cleanup Anything that should go at the end of the block.
+ * @param {string[]} cleanup Anything that should go at the end of the block.
  * @returns {string} The block.
  */
 function genBlock(cleanup) {
