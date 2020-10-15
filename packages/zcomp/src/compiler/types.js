@@ -47,15 +47,6 @@ export class AstNode {
       }
     }
   }
-
-  /**
-   * Validate that the type is one of the acceptable ones.
-   *
-   * @returns If the type is valid.
-   */
-  isValidType() {
-    return validTypes.includes(this.type);
-  }
 }
 
 /**

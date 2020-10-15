@@ -1,5 +1,5 @@
 import runtime from "@zlanguage/zstdlib";
-import { AstNode } from "./types";
+import { AstNode, validTypes } from "./types";
 
 const prims = Object.keys(runtime);
 
@@ -215,7 +215,10 @@ function genTwoth() {
  * @returns {boolean} If the node is an expression.
  */
 export function isExpr(astNode) {
-  return astNode && astNode.isValidType();
+  if (!astNode) {
+    return false;
+  }
+  return validTypes.includes(astNode?.type);
 }
 
 /**
