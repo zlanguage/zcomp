@@ -1,7 +1,7 @@
 import runtime from "@zlanguage/zstdlib";
 import { AstNode, validTypes } from "./types";
 
-const prims = Object.keys(runtime);
+export const prims = Object.keys(runtime);
 
 /**
  * The prelude.
@@ -15,6 +15,7 @@ ${prims.map((name) => `var ${name} = $Z.${name};`).join("\n")}
 `;
 
 let index = 0;
+let debugCallback;
 
 /**
  * The currently focused element.
@@ -373,13 +374,13 @@ function genLoopStatements(loopexpr) {
   loopexpr.zeroth.forEach((expr) => {
     // Detect generator
     if (expr.type === "invocation" && expr.zeroth === "$lt$minus") {
-      loops.push({
+      loops.push(new AstNode({
         type: "of",
         zeroth: expr.wunth[0],
         wunth: expr.wunth[1],
         twoth: [],
         predicates: [],
-      });
+      }));
     } else if (expr.type === "assignment") {
       // Generators can have assignments attached to them.
       loops[loops.length - 1].twoth.push(expr);
@@ -411,10 +412,10 @@ function genLoopStatements(loopexpr) {
     // Add the assignments.
     loop.twoth.forEach((assignment) => {
       let anchor = curr;
-      curr = {
+      curr = new AstNode({
         type: "def",
         zeroth: [assignment],
-      };
+      });
       r += genStatement() + "\n";
       curr = anchor;
     });
@@ -933,6 +934,8 @@ generateStatement.hoist = () => {
   return r + ";";
 };
 
+generateStatement.invocation = () => {}
+
 /**
  * Generate a block.
  *
@@ -966,20 +969,34 @@ function genBlock(cleanup) {
   return r;
 }
 
+/**
+ * Generates the next statement in the queue.
+ *
+ * @returns {string} The generated JavaScript for the statement.
+ */
 function genStatement() {
   let res;
-  if (curr.type === undefined) {
+  if (curr.type === undefined || curr.type === null) {
     return "";
   }
   if (isExpr(curr)) {
     res = genExpr() + ";";
   } else {
-    res = generateStatement[curr.type]();
+    if (debugCallback) {
+      debugCallback(generateStatement[curr.type])
+    }
+    res = generateStatement[curr.type].call();
   }
   condrList = [];
   return res.padStart(padstart + res.length);
 }
 
+/**
+ * Generates code for all AST Nodes given.
+ *
+ * @param {AstNode[]} ast The AST Nodes.
+ * @returns {string} The generated JavaScript.
+ */
 function genStatements(ast) {
   let r = "";
   while (index < ast.length) {
@@ -1005,11 +1022,12 @@ function genStatements(ast) {
 /**
  * Generate JS code based on the given Z AST nodes.
  *
- * @param {any} ast The AST.
+ * @param {AstNode} ast The AST Node.
  * @param {boolean?} usePrelude If the prelude should be included.
  */
-module.exports = Object.freeze((ast, usePrelude = true) => {
+module.exports = Object.freeze((ast, dbgCallback = undefined, usePrelude = true) => {
   index = 0;
   padstart = 0;
+  debugCallback = dbgCallback;
   return usePrelude ? res + genStatements(ast) : genStatements(ast);
 });

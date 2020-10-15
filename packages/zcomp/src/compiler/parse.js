@@ -3,6 +3,7 @@ import gen from "./gen";
 import tokenize from "./tokenize";
 import { copy } from "@zlanguage/zstdlib";
 import fs from "fs";
+import { AstNode, validTypes } from "./types"
 
 /**
  * List of all generated warnings.
@@ -125,10 +126,14 @@ export const reverseSymMap = {
   $exclam: "!",
 };
 
-// Checks if identifier is valid JS name
+/**
+ * Checks if identifier is valid JS name.
+ */
 const isValidName = /^[A-Za-z_$][A-za-z_$0-9]*$/;
-// Checks if an identifier consists only of symbols. (ie. +, -, ?!?) but not +x
 
+/**
+ * Checks if an identifier consists only of symbols. (ie. +, -, ?!?) but not +x
+ */
 const validOpName = RegExp(
   `^(${Object.keys(reverseSymMap)
     .filter((key) => key.startsWith("$"))
@@ -137,29 +142,43 @@ const validOpName = RegExp(
 );
 
 /**
- * Makes an error (which is an object)
+ * Makes an error AST Node.
+ *
+ * @returns {AstNode} The AST Node.
  */
 function error(message) {
-  return {
+  return new AstNode({
     id: "(error)",
-    zeroth: `Error: "${message}" at ${formatCurrLine()}.`,
-  };
+    data: `Error: "${message}" at ${formatCurrLine()}.`,
+  });
 }
 
-// Records a warning (which is a string)
+/**
+ * Records a warning.
+ *
+ * @param {string} message The warning message.
+ */
 function warn(message) {
   warnings.push(`Warning: "${message}" at ${formatCurrLine()}.`);
 }
 
-// Makes an error without the quotes.
+/**
+ * Makes an error AST Node without the quotes.
+ *
+ * @returns {AstNode} The AST Node.
+ */
 function nqerror(message) {
-  return {
+  return new AstNode({
     id: "(error)",
-    zeroth: `Error: ${message} at ${formatCurrLine()}.`,
-  };
+    data: `Error: ${message} at ${formatCurrLine()}.`,
+  });
 }
 
-// Formats the current token position: "{lineNumber}:{columnNumber}:{columnTo}"
+/**
+ * Formats the current token position: "{lineNumber}:{columnNumber}:{columnTo}".
+ *
+ * @returns {string} The formatted current token position.
+ */
 function formatCurrLine() {
   let lastTok;
   // Find the last available token.
@@ -175,7 +194,11 @@ function formatCurrLine() {
   }`;
 }
 
-// Move ahead one token, while checking the current token (not the incoming one) has a certain id.
+/**
+ * Move ahead one token, while checking the current token (not the incoming one) has a certain ID.
+ *
+ * @type {string?} id The ID to check for.
+ */
 function advance(id) {
   isTok(id);
   index += 1;
@@ -184,7 +207,9 @@ function advance(id) {
   nextTok = tokList[index + 1];
 }
 
-// Fall back one token
+/**
+ * Fall back one token.
+ */
 function fallback() {
   index -= 1;
   nextTok = tok;
@@ -192,7 +217,9 @@ function fallback() {
   prevTok = tokList[index - 1];
 }
 
-// Check that the token has a certain id.
+/**
+ * Check that the token has a certain ID.
+ */
 function isTok(id) {
   if (tok && id !== undefined && id !== tok.id) {
     errors.push(error(`Expected "${id}" but got "${tok.id}".`));
@@ -228,11 +255,11 @@ function arrayToObj(arr) {
     .map((field) => {
       // Allow for [name] -> ["name": name] syntax
       if (typeof field === "string" || typeof field === "number") {
-        return {
+        return new AstNode({
           type: "assignment",
           zeroth: `"` + demangle(field) + `"`,
           wunth: field,
-        };
+        });
       }
       return field;
     })
@@ -259,21 +286,16 @@ function isImplicit(str) {
 }
 
 /**
- * Is this an expression?
+ * Check if a node is an expression.
  *
- * @param {{ type: string }} obj The AST object.
+ * @param {AstNode} astNode The node.
+ * @returns {boolean} If the node is an expression.
  */
-export function isExpr(obj) {
-  return (
-    obj &&
-    [
-      "subscript",
-      "refinement",
-      "invocation",
-      "assignment",
-      "function",
-    ].includes(obj.type)
-  );
+export function isExpr(astNode) {
+  if (!astNode) {
+    return false;
+  }
+  return validTypes.includes(astNode.type);
 }
 
 // Searches an expression for implicit parameters and returns the ones it finds.
@@ -340,7 +362,7 @@ function findWildcards(pat) {
         wildcards.push(pat);
       }
       break;
-    case "object":
+    case AstNode:
       if (pat.type === "spread") {
         wildcards.push(pat.wunth);
       } else if (pat.species === "Destructuring[Array]") {
@@ -370,19 +392,25 @@ function findWildcards(pat) {
 // Adds return-type assertions to a return statement.
 function convertReturns(returnType, statement) {
   if (statement.type === "return") {
-    return {
+    return new AstNode({
       type: "return",
-      zeroth: {
+      zeroth: new AstNode({
         type: "invocation",
         zeroth: "assertType",
         wunth: [returnType, statement.zeroth],
-      },
-    };
+      }),
+    });
   }
   return wrapReturn(returnType, statement);
 }
 
-// And return-type assertions to a whole function.
+/**
+ * Add return-type assertions to a whole function.
+ *
+ * @param {string} returnType The return type.
+ * @param {AstNode} block The block AST Node.
+ * @returns {AstNode} The transformed AST Node.
+ */
 function wrapReturn(returnType, block) {
   if (!block) {
     return block;
@@ -447,7 +475,12 @@ function configureExpr(type, zeroth, wunth, twoth) {
   return zeroth;
 }
 
-// Determines the precedence of an operator
+/**
+ * Determines the precedence of an operator.
+ *
+ * @param {number?} op The operator's ID.
+ * @returns {number} The result.
+ */
 function opPred(op) {
   // Does the operator have valid precedence?
   if (ops[op] !== undefined) {
@@ -458,7 +491,12 @@ function opPred(op) {
   return 1;
 }
 
-// Checks if an operator can be left-associative
+/**
+ * Checks if an operator can be left-associative.
+ *
+ * @param {string} op The operator to check.
+ * @returns {boolean} If the operator can be left-associative.
+ */
 function isValidOp(op) {
   // Is it part of a predefined list of left-associative operators?
   if (validNameOps.includes(op)) {
@@ -472,12 +510,18 @@ function isValidOp(op) {
   return false;
 }
 
-// Changes an expression according to the rules of operator precedence.
-// Takes: +(3, -(2, 7))
-// And Returns: +(-(3, 2), 7)
+/**
+ * Changes an expression according to the rules of operator precedence.
+ *
+ * @param {AstNode?} obj The AST Node.
+ * @returns {AstNode} The modified AST Node.
+ * @example
+ * Takes: +(3, -(2, 7))
+ * Returns: +(-(3, 2), 7)
+ */
 function swapLeftToRight(obj) {
   // Is the object not an object?
-  if (!obj) {
+  if (!obj || typeof(obj) === AstNode) {
     return obj;
   }
   // Is it already in proper oder?
@@ -509,30 +553,29 @@ function swapLeftToRight(obj) {
   // Otherwise, switch the order in which the operators are evaluated.
   const nested = obj.wunth[1];
   const outer = obj;
-  const res = {
+  return new AstNode({
     type: "invocation",
     zeroth: nested.zeroth,
     wunth: [
-      {
+      new AstNode({
         type: "invocation",
         zeroth: outer.zeroth,
         wunth: [outer.wunth[0], nested.wunth[0]],
-      },
+      }),
       nested.wunth[1],
     ],
-  };
-  // Mark the changed expression as in correct order, so it is not flipped back by a subsequent call.
-  Object.defineProperty(res, "leftToRight", {
-    value: true,
-    enumerable: false,
+    leftToRight: true,
   });
-  // Return the modified expression.
-  return res;
 }
 
-// Orders an expression left-to-right using the above function.
+/**
+ * Orders an expression left-to-right using the above function.
+ *
+ * @param {AstNode?} obj The AST Node.
+ * @returns {AstNode} The AST Node.
+ */
 function leftToRight(obj) {
-  if (!obj || typeof obj !== "object") {
+  if (!obj) {
     return obj;
   }
   if (obj.type === "invocation") {
@@ -553,7 +596,9 @@ function leftToRight(obj) {
   return obj;
 }
 
-// Parses a collection literal.
+/**
+ * Parses a collection literal.
+ */
 function parseCol(start, end, sep = ",") {
   let res = [];
   advance(start);
@@ -577,9 +622,14 @@ function parseCol(start, end, sep = ",") {
   return res;
 }
 
-// Checks if a statement has a `get` expresison in it.
+/**
+ * Checks if a statement has a `get` expresison in it.
+ *
+ * @param {AstNode} statement
+ * @returns {boolean}
+ */
 function hasGet(statement) {
-  if (statement == null || typeof statement !== "object") {
+  if (statement == null) {
     return false;
   }
   if (statement.type === "function") {
@@ -613,13 +663,15 @@ const demanglers = Object.keys(reverseSymMap).map((x) => {
   res.str = reverseSymMap[x];
   return res;
 });
+
 // Reverses the mangling performed in tokenization.
-function demangle(str) {
+export function demangle(str) {
   demanglers.forEach((demangler) => {
     str = str.replace(demangler, demangler.str);
   });
   return str;
 }
+
 // Detects if an alphanumeric identifier could have been intended as an operator.
 function warnBadOp(str) {
   if (str.id.endsWith("$eq") || str.id.endsWith("$exclam")) {
@@ -664,12 +716,12 @@ function mkChain(type, zeroth, wunth, twoth) {
       type = "invocation";
       zeroth = "curry";
       wunth = twoth.wunth;
-      wunth[0].wunth[0].zeroth = {
+      wunth[0].wunth[0].zeroth = new AstNode({
         type: oldType,
         zeroth: oldZeroth,
         wunth: oldWunth,
         twoth: wunth[0].wunth[0].zeroth,
-      };
+      });
       twoth = undefined;
     } else {
       // Otherwise, fix it like normal
@@ -748,12 +800,12 @@ function expr({ infix = true } = {}) {
         wunth = [
           {
             type: "return",
-            zeroth: {
+            zeroth: new AstNode({
               type: "refinement",
               zeroth: "obj",
               wunth: chain.wunth,
               twoth: chain.twoth,
-            },
+            }),
           },
         ];
         break;
@@ -826,23 +878,23 @@ function expr({ infix = true } = {}) {
                   ...typeChecks.map(([param, type]) => ({
                     type: "enter",
                     zeroth: [
-                      {
+                      new AstNode({
                         type: "invocation",
                         zeroth: "$eq",
                         wunth: [
-                          {
+                          new AstNode({
                             type: "invocation",
                             zeroth: type.includes("$gt")
                               ? "typeGeneric"
                               : "typeOf",
                             wunth: [param],
-                          }, // Handle generics types.
+                          }), // Handle generics types.
                           `"${type
                             .replace(/\$exclam$/, "")
                             .replace(/\$gt/g, ">")
                             .replace(/\$lt/g, "<")}"`,
                         ],
-                      },
+                      }),
                     ],
                   })),
                   ...block(),
@@ -861,23 +913,23 @@ function expr({ infix = true } = {}) {
                   ...typeChecks.map(([param, type]) => ({
                     type: "enter",
                     zeroth: [
-                      {
+                      new AstNode({
                         type: "invocation",
                         zeroth: "$eq",
                         wunth: [
-                          {
+                          new AstNode({
                             type: "invocation",
                             zeroth: type.includes("$gt")
                               ? "typeGeneric"
                               : "typeOf",
                             wunth: [param],
-                          },
+                          }),
                           `"${type
                             .replace(/\$exclam$/, "")
                             .replace(/\$gt/g, ">")
                             .replace(/\$lt/g, "<")}"`,
                         ],
-                      },
+                      }),
                     ],
                   })),
                   ...wrapReturn(returnType, block()),
@@ -886,10 +938,10 @@ function expr({ infix = true } = {}) {
                 // Single-expression function: func (params) expr
                 advance(")");
                 wunth = [
-                  {
+                  new AstNode({
                     type: "return",
                     zeroth: expr(),
-                  },
+                  }),
                 ];
               }
             } else {
@@ -898,10 +950,10 @@ function expr({ infix = true } = {}) {
               const implicitExpr = expr();
               zeroth = findImplicits(implicitExpr);
               wunth = [
-                {
+                new AstNode({
                   type: "return",
                   zeroth: implicitExpr,
-                },
+                }),
               ];
             }
             // Support for goroutine inference
@@ -931,24 +983,24 @@ function expr({ infix = true } = {}) {
               if (nextTok && nextTok.id !== "{") {
                 advance("$eq$gt");
                 // Single expression result: pat => expr
-                res = {
+                res = new AstNode({
                   type: "function",
                   zeroth: wildcards,
                   wunth: [
-                    {
+                    new AstNode({
                       type: "return",
                       zeroth: expr(),
-                    },
+                    }),
                   ],
-                };
+                });
               } else {
                 isTok("$eq$gt");
                 // Block result: pat => block
-                res = {
+                res = new AstNode({
                   type: "function",
                   zeroth: wildcards,
                   wunth: block(),
-                };
+                });
               }
               advance();
               if (tok && tok.id !== "}") {
@@ -972,10 +1024,10 @@ function expr({ infix = true } = {}) {
               // Allow for predicates inside loop expression
               if (tok.id === "(keyword)" && tok.string === "if") {
                 advance("(keyword)");
-                zeroth.push({
+                zeroth.push(new AstNode({
                   type: "predicate",
                   zeroth: expr(),
-                });
+                }));
               } else {
                 // Otherwise, just add a normal expresison. Invalid expressions are ignored.
                 zeroth.push(expr());
@@ -1022,15 +1074,15 @@ function expr({ infix = true } = {}) {
               type = "invocation";
               zeroth = "handleErr";
               wunth = [
-                {
+                new AstNode({
                   type: "get",
                   zeroth: oldZeroth,
-                },
-                {
+                }),
+                new AstNode({
                   type: "function",
                   zeroth: ["err"],
                   wunth: block(),
-                },
+                }),
               ];
             }
             break;
@@ -1215,7 +1267,7 @@ function expr({ infix = true } = {}) {
             });
           let currParamDollarAmt = 1;
           wunth = [
-            {
+            new AstNode({
               type: "return",
               zeroth: {
                 type: "invocation",
@@ -1229,7 +1281,7 @@ function expr({ infix = true } = {}) {
                   return param;
                 }),
               },
-            },
+            }),
           ];
           const result = configureExpr(type, zeroth, wunth, twoth);
           type = "invocation";
@@ -1292,13 +1344,13 @@ function expr({ infix = true } = {}) {
     warnBadOp(nextTok);
     advance();
     advance();
-    let res = {
+    let res = new AstNode({
       type: "invocation",
       zeroth: prevTok.id,
       wunth: [configureExpr(type, zeroth, wunth, twoth), expr()].filter(
         (param) => param !== undefined
       ),
-    };
+    });
     return leftToRight(res);
   }
   // Typed assignment: variable type!: expr
@@ -1322,38 +1374,39 @@ function expr({ infix = true } = {}) {
     };
   }
   if (twoth !== undefined) {
-    return {
+    return new AstNode({
       type,
       zeroth,
       wunth,
       twoth,
-    };
+    });
   }
   if (wunth !== undefined && type !== undefined) {
-    return {
+    return new AstNode({
       type,
       zeroth,
       wunth,
-    };
+    });
   }
   // Some unary operations capture zeroth only
   if (unOps.includes(type)) {
-    return {
+    return new AstNode({
       type,
       zeroth,
-    };
+    });
   }
   // Return raw value if isn't a complete token
   return zeroth;
 }
+
 // Object to store functions, each which parses a statement.
 let parseStatement = Object.create(null);
 
 parseStatement.let = (name = "Let") => {
-  let letStatement = {
+  let letStatement = new AstNode({
     type: "let",
     zeroth: [],
-  };
+  });
   advance("(keyword)");
   let assignment;
   assignment = expr();
@@ -1389,9 +1442,9 @@ parseStatement.def = () => {
 };
 
 parseStatement.import = () => {
-  const importStatement = {
+  const importStatement = new AstNode({
     type: "import",
-  };
+  });
   advance("(keyword)");
   let imported = expr();
   // Test for shorthand imports:
@@ -1435,10 +1488,11 @@ parseStatement.import = () => {
   }
   return importStatement;
 };
+
 parseStatement.export = () => {
-  const exportStatement = {
+  const exportStatement = new AstNode({
     type: "export",
-  };
+  });
   advance("(keyword)");
   const exported = expr();
   if (exported.type === "assignment") {
@@ -1483,9 +1537,9 @@ parseStatement.loop = () => {
 };
 
 parseStatement.return = () => {
-  const returnStatement = {
+  const returnStatement = new AstNode({
     type: "return",
-  };
+  });
   advance("(keyword)");
   returnStatement.zeroth = expr();
   if (returnStatement.zeroth.id === "(error)") {
@@ -1502,15 +1556,15 @@ parseStatement["}"] = () => {
 };
 
 parseStatement.break = () => {
-  return {
+  return new AstNode({
     type: "break",
-  };
+  });
 };
 
 parseStatement.try = () => {
-  const tryStatement = {
+  const tryStatement = new AstNode({
     type: "try",
-  };
+  });
   tryStatement.zeroth = block();
   // Check for "on" clause
   if (nextTok && nextTok.id === "(keyword)" && nextTok.string === "on") {
@@ -1526,18 +1580,18 @@ parseStatement.try = () => {
 
 // settle statements exist to make sure you take care of errors.
 parseStatement.settle = () => {
-  const settleStatement = {
+  const settleStatement = new AstNode({
     type: "settle",
-  };
+  });
   advance("(keyword)");
   settleStatement.zeroth = expr();
   return settleStatement;
 };
 
 parseStatement.raise = () => {
-  const raiseStatement = {
+  const raiseStatement = new AstNode({
     type: "raise",
-  };
+  });
   advance("(keyword)");
   raiseStatement.zeroth = expr();
   return raiseStatement;
@@ -1545,11 +1599,11 @@ parseStatement.raise = () => {
 
 parseStatement.importstd = () => {
   advance("(keyword)");
-  return {
+  return new AstNode({
     type: "import",
     zeroth: tok.id,
     wunth: `"@zlanguage/zstdlib/src/js/${tok.id}"`, // The npm package where the standard library lives.
-  };
+  });
 };
 
 parseStatement.meta = () => {
@@ -1563,25 +1617,25 @@ parseStatement.meta = () => {
   const value = tok.string;
   // Store metadata for passing to dollar directives later
   metadata[name] = value;
-  return {
+  return new AstNode({
     type: "meta",
     zeroth: name,
     wunth: value,
-  };
+  });
 };
 
 parseStatement.enter = () => {
-  return {
+  return new AstNode({
     type: "enter",
     zeroth: block(),
-  };
+  });
 };
 
 parseStatement.exit = () => {
-  return {
+  return new AstNode({
     type: "exit",
     zeroth: block(),
-  };
+  });
 };
 
 parseStatement.operator = () => {
@@ -1592,12 +1646,13 @@ parseStatement.operator = () => {
   const pred = tok.number;
   // Record the operator's new precedence
   ops[op] = pred;
-  return {
+  return new AstNode({
     type: "operator",
     zeroth: op,
     wunth: pred,
-  };
+  });
 };
+
 // hoist is like var
 parseStatement.hoist = () => {
   const res = parseStatement.let("Hoist");
@@ -1675,11 +1730,11 @@ parseStatement.enum = () => {
         advance();
         // Get the function body
         const temp = expr();
-        const func = {
+        const func = new AstNode({
           type: "function",
           zeroth: temp.slice(0, -1),
           wunth: temp[temp.length - 1].wunth,
-        };
+        });
         res.twoth[key] = func;
         advance("}");
         if (!tok) {
@@ -1694,17 +1749,23 @@ parseStatement.enum = () => {
   }
   return res;
 };
+
 parseStatement.go = function () {
-  return {
+  return new AstNode({
     type: "go",
     zeroth: block(),
-  };
+  });
 };
-const blockSyms = {
+
+/**
+ * The block symbols.
+ */
+export const blockSyms = {
   "(": ")",
   "[": "]",
   "{": "}",
 };
+
 parseStatement.macro = function () {
   advance("(keyword)");
   if (tok.id === "(keyword)" && tok.string === "operator") {
@@ -2218,6 +2279,10 @@ function parseMacro(tokGen, exp = true) {
   return exp ? statementz[0] : statementz;
 }
 
+/**
+ * @param {AstNode | any[]} ast
+ * @returns {AstNode | any[]}
+ */
 function resolveOpMacros(ast) {
   if (Array.isArray(ast)) {
     ast.forEach((statement, index) => {
@@ -2267,6 +2332,12 @@ function resolveOpMacros(ast) {
   return ast;
 }
 
+/**
+ * Parse a list of tokens from a generator.
+ *
+ * @param {() => any} tokGen The token generator.
+ * @param {boolean} debug If debugging should be enabled.
+ */
 function parse(tokGen, debug = true) {
   // Generate a list of tokens
   tokList = (() => {
@@ -2303,25 +2374,25 @@ function parse(tokGen, debug = true) {
         ).zeroth;
       }
       return [
-        {
+        new AstNode({
           type: "def",
           zeroth: [
-            {
+            new AstNode({
               type: "assignment",
               zeroth: "$main",
-              wunth: {
+              wunth: new AstNode({
                 type: "goroutine",
                 zeroth: [],
                 wunth: statementz,
-              },
-            },
+              }),
+            }),
           ],
-        },
-        {
+        }),
+        new AstNode({
           type: "invocation",
           zeroth: "$main",
           wunth: [],
-        },
+        }),
       ];
     }
     return statementz;

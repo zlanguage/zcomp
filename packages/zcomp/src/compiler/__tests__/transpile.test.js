@@ -278,10 +278,6 @@ function evalZ(z) {
   return eval(gen(parse(tokenize(z))));
 }
 
-function transpileZ(z) {
-  return gen(parse(tokenize(z)), false);
-}
-
 describe("Evaluation tests", () => {
   Object.entries(evalTests).forEach(([testName, tests]) => {
     describe(testName, () => {
@@ -295,6 +291,10 @@ describe("Evaluation tests", () => {
     });
   });
 });
+
+function transpileZ(z, cb) {
+  return gen(parse(tokenize(z)), cb, false);
+}
 
 describe("Transpiling snapshot tests", () => {
   Object.entries(transpileTests).forEach(([testName, tests]) => {
