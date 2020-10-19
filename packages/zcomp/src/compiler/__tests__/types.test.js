@@ -38,6 +38,20 @@ describe("Tokenization", () => {
       string: "✔️",
     });
   });
+
+  it("should return undefined if comment AST is disabled", () => {
+    expect(tokenize("# testing")()).toBeUndefined();
+  });
+
+  it("should return comment AST if it is enabled", () => {
+    expect(tokenize("# testing 2", true)()).toStrictEqual({
+      columnNumber: 0,
+      columnTo: 11,
+      comment: "# testing 2",
+      id: "(comment)",
+      lineNumber: 0,
+    });
+  });
 });
 
 describe("Parsing", () => {
