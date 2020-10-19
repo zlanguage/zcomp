@@ -214,11 +214,26 @@ function genTwoth() {
  * @param {AstNode} astNode The node.
  * @returns {boolean} If the node is an expression.
  */
-export function isExpr(astNode) {
-  if (!astNode) {
-    return false;
-  }
-  return validTypes.includes(astNode.type);
+export function isExpr(obj) {
+  return (
+    obj &&
+    [
+      "subscript",
+      "refinement",
+      "invocation",
+      "assignment",
+      "function",
+      "spread",
+      "match",
+      "range",
+      "loopexpr",
+      "ifexpr",
+      "goroutine",
+      "get",
+      "condrefinement",
+      "condsubscript",
+    ].includes(obj.type)
+  );
 }
 
 /**
@@ -1022,9 +1037,16 @@ function genStatements(ast) {
  *
  * @param {AstNode} ast The AST Node.
  * @param {boolean?} usePrelude If the prelude should be included.
+ * @param {any[]} plugins The plugins.
  */
-module.exports = Object.freeze((ast, usePrelude = true) => {
+module.exports = Object.freeze((ast, usePrelude = true, plugins = []) => {
   index = 0;
   padstart = 0;
-  return usePrelude ? res + genStatements(ast) : genStatements(ast);
+  let generatedContent = usePrelude ? res + genStatements(ast) : genStatements(ast);
+  plugins.forEach(plugin => {
+    generatedContent = plugin._eventbus_announce("outputGeneratedCode", {
+      code: generatedContent,
+    });
+  });
+  return generatedContent;
 });

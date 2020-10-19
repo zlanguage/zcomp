@@ -16,20 +16,15 @@ export default class PrettierPlugin extends Plugin {
   /**
    * Handles the code.
    *
-   * @param {{ code: string, prettierConfig?: {} }} data The code.
+   * @param {{ code: string }} data The code.
    */
   handleCode(data) {
-    const { code, prettierConfig } = data;
-    return prettier.format(code, this.getPrettierConfig(prettierConfig));
+    const { code } = data;
+    return prettier.format(code, PrettierPlugin.prettierConfig);
   }
 
   /**
-   * Load the prettier configuration.
-   *
-   * @param {prettier.Options?} fallback The fallback config.
-   * @returns {prettier.Options} The options.
+   * The Prettier configuration.
    */
-  getPrettierConfig(fallback) {
-    return loadConfig().prettierOptions ?? fallback;
-  }
+  static prettierConfig = loadConfig().prettierOptions ?? {};
 }

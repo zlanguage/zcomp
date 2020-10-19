@@ -1,0 +1,194 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`prettier plugin outputs code with prettier correctly 1`] = `undefined`;
+
+exports[`prettier plugin outputs normal code 1`] = `
+"\\"use strict\\";
+
+var $Z = require(\\"@zlanguage/zstdlib\\");
+var matcher = require(\\"@zlanguage/zstdlib/src/js/matcher\\");
+
+var $eq = $Z.$eq;
+var isObject = $Z.isObject;
+var typeOf = $Z.typeOf;
+var stone = $Z.stone;
+var log = $Z.log;
+var copy = $Z.copy;
+var assertBool = $Z.assertBool;
+var $plus = $Z.$plus;
+var $minus = $Z.$minus;
+var $star = $Z.$star;
+var $slash = $Z.$slash;
+var $percent = $Z.$percent;
+var $carot = $Z.$carot;
+var pow = $Z.pow;
+var $lt = $Z.$lt;
+var $gt$eq = $Z.$gt$eq;
+var $gt = $Z.$gt;
+var $lt$eq = $Z.$lt$eq;
+var not = $Z.not;
+var $plus$plus = $Z.$plus$plus;
+var m = $Z.m;
+var both = $Z.both;
+var either = $Z.either;
+var and = $Z.and;
+var or = $Z.or;
+var JS = $Z.JS;
+var assertType = $Z.assertType;
+var typeGeneric = $Z.typeGeneric;
+var chan = $Z.chan;
+var send = $Z.send;
+var to = $Z.to;
+var til = $Z.til;
+var by = $Z.by;
+var curry = $Z.curry;
+var $or$gt = $Z.$or$gt;
+var $gt$gt = $Z.$gt$gt;
+var $lt$lt = $Z.$lt$lt;
+var handleErr = $Z.handleErr;
+var traits = stone(require(\\"@zlanguage/zstdlib/src/js/traits\\"));
+var {Show, Enum} = traits;
+function Red() {
+  
+  
+  return Show(Enum({
+    type() { return \\"Color\\"; },
+    get constructor() { return Red; },
+    get parent() { return Color; },
+    get fields() { return []; },
+    
+    \\"=\\"(other) {
+      return other.constructor === Red;
+    }
+  }));
+}
+
+Red.extract = function (val) {
+  if (val.constructor === Red) {
+    return [];
+  }
+  return undefined;
+};
+
+function Orange() {
+  
+  
+  return Show(Enum({
+    type() { return \\"Color\\"; },
+    get constructor() { return Orange; },
+    get parent() { return Color; },
+    get fields() { return []; },
+    
+    \\"=\\"(other) {
+      return other.constructor === Orange;
+    }
+  }));
+}
+
+Orange.extract = function (val) {
+  if (val.constructor === Orange) {
+    return [];
+  }
+  return undefined;
+};
+
+function Yellow() {
+  
+  
+  return Show(Enum({
+    type() { return \\"Color\\"; },
+    get constructor() { return Yellow; },
+    get parent() { return Color; },
+    get fields() { return []; },
+    
+    \\"=\\"(other) {
+      return other.constructor === Yellow;
+    }
+  }));
+}
+
+Yellow.extract = function (val) {
+  if (val.constructor === Yellow) {
+    return [];
+  }
+  return undefined;
+};
+
+function Green() {
+  
+  
+  return Show(Enum({
+    type() { return \\"Color\\"; },
+    get constructor() { return Green; },
+    get parent() { return Color; },
+    get fields() { return []; },
+    
+    \\"=\\"(other) {
+      return other.constructor === Green;
+    }
+  }));
+}
+
+Green.extract = function (val) {
+  if (val.constructor === Green) {
+    return [];
+  }
+  return undefined;
+};
+
+function Blue() {
+  
+  
+  return Show(Enum({
+    type() { return \\"Color\\"; },
+    get constructor() { return Blue; },
+    get parent() { return Color; },
+    get fields() { return []; },
+    
+    \\"=\\"(other) {
+      return other.constructor === Blue;
+    }
+  }));
+}
+
+Blue.extract = function (val) {
+  if (val.constructor === Blue) {
+    return [];
+  }
+  return undefined;
+};
+
+function Purple() {
+  
+  
+  return Show(Enum({
+    type() { return \\"Color\\"; },
+    get constructor() { return Purple; },
+    get parent() { return Color; },
+    get fields() { return []; },
+    
+    \\"=\\"(other) {
+      return other.constructor === Purple;
+    }
+  }));
+}
+
+Purple.extract = function (val) {
+  if (val.constructor === Purple) {
+    return [];
+  }
+  return undefined;
+};
+
+var Color = {
+  order: [Red, Orange, Yellow, Green, Blue, Purple],
+  Red,
+	Orange,
+	Yellow,
+	Green,
+	Blue,
+	Purple
+};
+Red()[\\"succ\\"]()[\\"toString\\"]();
+"
+`;

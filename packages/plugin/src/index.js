@@ -12,11 +12,9 @@ export default class Plugin {
   }
 
   /**
-   * Get a list of valid events you can listen for.
+   * A list of valid events you can listen for.
    */
-  getListenerTypes() {
-    return ["cliStartup", "outputGeneratedCode"];
-  }
+  static listenerTypes = ["cliStartup", "outputGeneratedCode"];
 
   /**
    * Listen for an event, and run the callback once it gets triggered.
@@ -25,7 +23,7 @@ export default class Plugin {
    * @param {(data: any) => void} callback The function to run once the event happens.
    */
   listen(event, callback) {
-    if (!this.getListenerTypes().contains(event)) {
+    if (!Plugin.listenerTypes.includes(event)) {
       console.log(
         `[WARN] [${this.name}] - I don't know how to listen for ${event}!`
       );
