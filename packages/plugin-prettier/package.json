@@ -28,7 +28,7 @@
   },
   "devDependencies": {
     "@babel/cli": "^7.12.1",
-    "@babel/core": "^7.12.1"
+    "@babel/core": "^7.12.3"
   },
   "peerDependencies": {
     "prettier": "1.x || 2.x"
