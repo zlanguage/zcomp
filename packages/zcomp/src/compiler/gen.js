@@ -407,7 +407,7 @@ function genLoopStatements(loopexpr) {
       curr = anchor;
       return res;
     })();
-    r += `for (var ${iteree} of ${iterable}) {\n`;
+    r += `for (const ${iteree} of ${iterable}) {\n`;
     indent();
     let anchor = curr;
     // Add the assignments.
