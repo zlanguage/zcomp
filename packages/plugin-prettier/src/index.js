@@ -26,5 +26,5 @@ export default class PrettierPlugin extends Plugin {
   /**
    * The Prettier configuration.
    */
-  static prettierConfig = loadConfig().prettierOptions ?? {};
+  static prettierConfig = loadConfig().prettierOptions ?? { parser: "babel" };
 }
