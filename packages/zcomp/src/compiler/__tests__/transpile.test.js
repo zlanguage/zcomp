@@ -292,8 +292,8 @@ describe("Evaluation tests", () => {
   });
 });
 
-function transpileZ(z, cb) {
-  return gen(parse(tokenize(z)), cb, false);
+function transpileZ(z) {
+  return gen(parse(tokenize(z)), false);
 }
 
 describe("Transpiling snapshot tests", () => {

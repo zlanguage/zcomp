@@ -27,8 +27,8 @@
     "@zlanguage/config": "^0.6.2"
   },
   "devDependencies": {
-    "@babel/cli": "^7.8.4",
-    "@babel/core": "^7.9.6"
+    "@babel/cli": "^7.12.1",
+    "@babel/core": "^7.12.1"
   },
   "peerDependencies": {
     "prettier": "1.x || 2.x"

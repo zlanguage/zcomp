@@ -15,7 +15,6 @@ ${prims.map((name) => `var ${name} = $Z.${name};`).join("\n")}
 `;
 
 let index = 0;
-let debugCallback;
 
 /**
  * The currently focused element.
@@ -984,9 +983,6 @@ function genStatement() {
   if (isExpr(curr)) {
     res = genExpr() + ";";
   } else {
-    if (debugCallback) {
-      debugCallback(generateStatement[curr.type]);
-    }
     res = generateStatement[curr.type].call();
   }
   condrList = [];
@@ -1028,10 +1024,9 @@ function genStatements(ast) {
  * @param {boolean?} usePrelude If the prelude should be included.
  */
 module.exports = Object.freeze(
-  (ast, dbgCallback = undefined, usePrelude = true) => {
+  (ast, usePrelude = true) => {
     index = 0;
     padstart = 0;
-    debugCallback = dbgCallback;
     return usePrelude ? res + genStatements(ast) : genStatements(ast);
   }
 );

@@ -362,7 +362,7 @@ function findWildcards(pat) {
         wildcards.push(pat);
       }
       break;
-    case AstNode:
+    case "object":
       if (pat.type === "spread") {
         wildcards.push(pat.wunth);
       } else if (pat.species === "Destructuring[Array]") {
