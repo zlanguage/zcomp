@@ -1042,8 +1042,10 @@ function genStatements(ast) {
 module.exports = Object.freeze((ast, usePrelude = true, plugins = []) => {
   index = 0;
   padstart = 0;
-  let generatedContent = usePrelude ? res + genStatements(ast) : genStatements(ast);
-  plugins.forEach(plugin => {
+  let generatedContent = usePrelude
+    ? res + genStatements(ast)
+    : genStatements(ast);
+  plugins.forEach((plugin) => {
     generatedContent = plugin._eventbus_announce("outputGeneratedCode", {
       code: generatedContent,
     });
