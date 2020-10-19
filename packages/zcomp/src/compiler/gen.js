@@ -1,6 +1,7 @@
 import runtime from "@zlanguage/zstdlib";
+import { AstNode, validTypes } from "./types";
 
-const prims = Object.keys(runtime);
+export const prims = Object.keys(runtime);
 
 /**
  * The prelude.
@@ -14,13 +15,31 @@ ${prims.map((name) => `var ${name} = $Z.${name};`).join("\n")}
 `;
 
 let index = 0;
+
+/**
+ * The currently focused element.
+ *
+ * @type {AstNode}
+ */
 let curr;
+
+/**
+ * The amount of spaces before any statements generated after a change of this value.
+ *
+ * @type {number}
+ */
 let padstart = 0;
 
+/**
+ * Adds 2 spaces before any statements.
+ */
 function indent() {
   padstart += 2;
 }
 
+/**
+ * Decreases indent by 2.
+ */
 function outdent() {
   padstart -= 2;
 }
@@ -28,7 +47,7 @@ function outdent() {
 /**
  * Stringifies an expression.
  *
- * @param {*} thing The expression.
+ * @param {string | number | AstNode | any[]} thing The expression.
  */
 function zStringify(thing) {
   if (typeof thing === "string") {
@@ -109,6 +128,11 @@ function zStringify(thing) {
   }
 }
 
+/**
+ * Generates a parameter list.
+ *
+ * @returns {string} The parameter list as a string.
+ */
 function genParameterList() {
   let r = curr.wunth.map((parameter) => {
     curr = parameter;
@@ -121,7 +145,7 @@ function genParameterList() {
 let condrList = [];
 
 /**
- * Generates a chianed expression.
+ * Generates a chained expression.
  */
 function genExprTwoth() {
   let r = "";
@@ -187,7 +211,7 @@ function genTwoth() {
 /**
  * Check if a node is an expression.
  *
- * @param {{ type: string }} obj The node.
+ * @param {AstNode} astNode The node.
  * @returns {boolean} If the node is an expression.
  */
 export function isExpr(obj) {
@@ -252,6 +276,7 @@ function genDestructuring(arr) {
 /**
  * Utility function to detect namespaced extractors.
  *
+ * @param {AstNode?} thing The AST node.
  * @returns {boolean}
  */
 export function typeIn(thing, type) {
@@ -266,7 +291,12 @@ export function typeIn(thing, type) {
   );
 }
 
-// Transforms a pattern into calls to Z's matcher library
+/**
+ * Transforms a pattern into calls to Z's matcher library.
+ *
+ * @param {*} pat The pattern.
+ * @returns {string} A call to the matcher library.
+ */
 function stringifyPat(pat) {
   if (typeof pat === "string" && pat.includes("$exclam")) {
     // Detect type
@@ -340,7 +370,9 @@ function stringifyPat(pat) {
 }
 
 /**
- * Handle loop expressions (eg. `loop (x <- xs) x * 2`)
+ * Handle loop expressions (eg. `loop (x <- xs) x * 2`).
+ *
+ * @param {AstNode} loopexpr The loop expression AST node.
  */
 function genLoopStatements(loopexpr) {
   const loops = [];
@@ -356,13 +388,15 @@ function genLoopStatements(loopexpr) {
   loopexpr.zeroth.forEach((expr) => {
     // Detect generator
     if (expr.type === "invocation" && expr.zeroth === "$lt$minus") {
-      loops.push({
-        type: "of",
-        zeroth: expr.wunth[0],
-        wunth: expr.wunth[1],
-        twoth: [],
-        predicates: [],
-      });
+      loops.push(
+        new AstNode({
+          type: "of",
+          zeroth: expr.wunth[0],
+          wunth: expr.wunth[1],
+          twoth: [],
+          predicates: [],
+        })
+      );
     } else if (expr.type === "assignment") {
       // Generators can have assignments attached to them.
       loops[loops.length - 1].twoth.push(expr);
@@ -394,10 +428,10 @@ function genLoopStatements(loopexpr) {
     // Add the assignments.
     loop.twoth.forEach((assignment) => {
       let anchor = curr;
-      curr = {
+      curr = new AstNode({
         type: "def",
         zeroth: [assignment],
-      };
+      });
       r += genStatement() + "\n";
       curr = anchor;
     });
@@ -455,6 +489,11 @@ function genMatcherArr(matches) {
   return r;
 }
 
+/**
+ * Generates an expression.
+ *
+ * @returns {string} The built expression.
+ */
 function genExpr() {
   let r = "";
   if (isExpr(curr)) {
@@ -718,6 +757,7 @@ generateStatement.enter = () => {
 generateStatement.exit = () => {
   return "";
 };
+
 generateStatement.operator = () => {
   return `/* operator ${curr.zeroth} = ${curr.wunth} */`; // Like meta, operator translates into a comment so you know it's there.
 };
@@ -736,6 +776,7 @@ generateStatement.go = () => {
  * Generates the immutable properties for an enum declaration.
  *
  * @param {string[]} fields The enum's properties.
+ * @returns {string} A JS code string which defines the properties.
  */
 export function generateGetters(fields) {
   return fields
@@ -743,8 +784,13 @@ export function generateGetters(fields) {
     .join(",\n\t\t");
 }
 
-// Generates the equals method for an enum declaration
-function generateEquals(type, fields) {
+/**
+ * Generates the equals method for an enum declaration.
+ *
+ * @param {any[]} fields The fields in the enum.
+ * @returns {string} A JS code string which defines the equals method.
+ */
+export function generateEquals(type, fields) {
   return `"="(other) {
       return other.constructor === ${type}${
     fields.length > 0 ? " && " : ""
@@ -904,10 +950,12 @@ generateStatement.hoist = () => {
   return r + ";";
 };
 
+generateStatement.invocation = () => {};
+
 /**
  * Generate a block.
  *
- * @param {any} cleanup Anything that should go at the end of the block.
+ * @param {string[]} cleanup Anything that should go at the end of the block.
  * @returns {string} The block.
  */
 function genBlock(cleanup) {
@@ -937,20 +985,31 @@ function genBlock(cleanup) {
   return r;
 }
 
+/**
+ * Generates the next statement in the queue.
+ *
+ * @returns {string} The generated JavaScript for the statement.
+ */
 function genStatement() {
   let res;
-  if (curr.type === undefined) {
+  if (curr.type === undefined || curr.type === null) {
     return "";
   }
   if (isExpr(curr)) {
     res = genExpr() + ";";
   } else {
-    res = generateStatement[curr.type]();
+    res = generateStatement[curr.type].call();
   }
   condrList = [];
   return res.padStart(padstart + res.length);
 }
 
+/**
+ * Generates code for all AST Nodes given.
+ *
+ * @param {AstNode[]} ast The AST Nodes.
+ * @returns {string} The generated JavaScript.
+ */
 function genStatements(ast) {
   let r = "";
   while (index < ast.length) {
@@ -976,11 +1035,20 @@ function genStatements(ast) {
 /**
  * Generate JS code based on the given Z AST nodes.
  *
- * @param {any} ast The AST.
+ * @param {AstNode} ast The AST Node.
  * @param {boolean?} usePrelude If the prelude should be included.
+ * @param {any[]} plugins The plugins.
  */
-module.exports = Object.freeze((ast, usePrelude = true) => {
+module.exports = Object.freeze((ast, usePrelude = true, plugins = []) => {
   index = 0;
   padstart = 0;
-  return usePrelude ? res + genStatements(ast) : genStatements(ast);
+  let generatedContent = usePrelude
+    ? res + genStatements(ast)
+    : genStatements(ast);
+  plugins.forEach((plugin) => {
+    generatedContent = plugin._eventbus_announce("outputGeneratedCode", {
+      code: generatedContent,
+    });
+  });
+  return generatedContent;
 });
