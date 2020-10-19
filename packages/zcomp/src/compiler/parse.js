@@ -521,7 +521,7 @@ function isValidOp(op) {
  */
 function swapLeftToRight(obj) {
   // Is the object not an object?
-  if (!obj || typeof obj === AstNode) {
+  if (!obj) {
     return obj;
   }
   // Is it already in proper oder?
@@ -629,7 +629,7 @@ function parseCol(start, end, sep = ",") {
  * @returns {boolean}
  */
 function hasGet(statement) {
-  if (statement == null) {
+  if (statement == null || typeof statement !== "object") {
     return false;
   }
   if (statement.type === "function") {
