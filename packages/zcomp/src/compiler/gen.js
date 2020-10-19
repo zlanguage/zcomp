@@ -1023,10 +1023,8 @@ function genStatements(ast) {
  * @param {AstNode} ast The AST Node.
  * @param {boolean?} usePrelude If the prelude should be included.
  */
-module.exports = Object.freeze(
-  (ast, usePrelude = true) => {
-    index = 0;
-    padstart = 0;
-    return usePrelude ? res + genStatements(ast) : genStatements(ast);
-  }
-);
+module.exports = Object.freeze((ast, usePrelude = true) => {
+  index = 0;
+  padstart = 0;
+  return usePrelude ? res + genStatements(ast) : genStatements(ast);
+});
