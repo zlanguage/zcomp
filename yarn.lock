@@ -3914,9 +3914,9 @@ eslint-config-prettier@^6.13.0:
     get-stdin "^6.0.0"
 
 eslint-plugin-jest@^24.1.0:
-  version "24.1.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-jest/-/eslint-plugin-jest-24.1.0.tgz#6708037d7602e5288ce877fd0103f329dc978361"
-  integrity sha512-827YJ+E8B9PvXu/0eiVSNFfxxndbKv+qE/3GSMhdorCaeaOehtqHGX2YDW9B85TEOre9n/zscledkFW/KbnyGg==
+  version "24.1.9"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-jest/-/eslint-plugin-jest-24.1.9.tgz#b8ccd3e3d1cc429ce14821dafd5bcc39766eafd1"
+  integrity sha512-dobHZxHQGiwpNuI/CNU69Q0T8oBWfJjhroOPD0vBUBbAuKzzjcflT7dqKj6NBvhNs5TfdBofX9GGswmQL2iKzQ==
   dependencies:
     "@typescript-eslint/experimental-utils" "^4.0.1"
 
