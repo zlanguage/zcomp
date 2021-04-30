@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@zlanguage/zstdlib": "^0.4.1",
-    "commander": "^6.1.0",
+    "commander": "^7.2.0",
     "globby": "^11.0.1",
     "vlq": "^1.0.1",
     "@zlanguage/config": "^0.6.2",
