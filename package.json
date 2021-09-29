@@ -30,7 +30,7 @@
     "@types/jest": "^26.0.14",
     "@zlanguage/zstdlib": "^0.4.1",
     "babel-eslint": "^10.1.0",
-    "babel-jest": "^26.6.0",
+    "babel-jest": "^27.2.3",
     "eslint": "^7.11.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-jest": "^24.1.0",
